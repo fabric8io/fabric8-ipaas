@@ -95,7 +95,14 @@
         <maven.require.version>3.1.1</maven.require.version>
         <maven.enforcer.plugin.version>1.4</maven.enforcer.plugin.version>
     </properties>
-        
+
+    <modules>
+        <module>api-registry</module>
+        <module>apiman-gateway</module>
+        <module>apiman</module>
+        <module>fabric8</module>
+    </modules>
+    
     <distributionManagement>
       <repository>
         <id>oss-sonatype-staging</id>
@@ -135,12 +142,6 @@
         </snapshots>
       </pluginRepository>
     </pluginRepositories>
-
-    <modules>
-      <module>api-registry</module>
-      <module>apiman-gateway</module>
-      <module>apiman</module>
-    </modules>
 
     <build>
       <pluginManagement>
