@@ -17,7 +17,7 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
     <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
-    <apiman.version>1.1.7.Final</apiman.version>
+    <apiman.version>1.2.0.Alpha1</apiman.version>
 
     <http.port>7070</http.port>    
     <docker.from>fabric8/java</docker.from>
@@ -60,20 +60,11 @@
      <artifactId>javax.servlet-api</artifactId>
      <version>3.1.0</version>
     </dependency>
+    
     <dependency>
-      <groupId>io.apiman</groupId>
-      <artifactId>apiman-gateway-engine-beans</artifactId>
-      <version>${apiman.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.apiman</groupId>
-      <artifactId>apiman-gateway-engine-core</artifactId>
-      <version>${apiman.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.apiman</groupId>
-      <artifactId>apiman-gateway-api-rest</artifactId>
-      <version>${apiman.version}</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
 </dependencies>
 
