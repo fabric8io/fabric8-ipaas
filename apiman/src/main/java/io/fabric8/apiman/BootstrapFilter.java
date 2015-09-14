@@ -69,8 +69,8 @@ public class BootstrapFilter implements Filter {
 	@Inject @ApimanLogger(BootstrapFilter.class)
 	IApimanLogger logger;
 	
-	public void loadDefaultPolicies() {
-		
+	public boolean loadDefaultPolicies() {
+		boolean isLoaded=true;
 		try {
 			//1. Find the policies
 			logger.info("Looking up /data/all-policyDefs.json on the classpath...");
@@ -106,11 +106,14 @@ public class BootstrapFilter implements Filter {
 				}
 			}
 		} catch (StorageException | IOException e) {
+			isLoaded=false;
 			logger.error(e);
 		}
+		return isLoaded;
 	}
 	
-	public void loadDefaultRoles() {
+	public boolean loadDefaultRoles() {
+		boolean isLoaded=true;
 		try {
 			Date now = new Date();
 			//Organization Owner
@@ -181,14 +184,27 @@ public class BootstrapFilter implements Filter {
 			}
 			
 		} catch (StorageException e) {
+			isLoaded=false;
 			logger.error(e);
 		}
+		return isLoaded;
 	}
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
-		loadDefaultPolicies();
-		loadDefaultRoles();
+		boolean isLoaded = false;
+		//keep retrying until loaded
+		while (isLoaded != true) {
+			if (loadDefaultPolicies() && loadDefaultRoles()) {
+				isLoaded = true;
+			} else {
+				try {
+					Thread.sleep(5000l);
+				} catch (InterruptedException e) {
+					logger.error(e);
+				}
+			}
+		}
 	}
 
 	/**
