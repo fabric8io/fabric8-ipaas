@@ -68,5 +68,8 @@ public class ApimanStarter {
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT));
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL));
         System.out.println(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME));
+        
+        if (System.getProperty("apiman-manager.service-catalog.type") == null)
+        	System.setProperty("apiman-manager.service-catalog.type", "io.fabric8.apiman.KubernetesServiceCatalog");
     }
 }
