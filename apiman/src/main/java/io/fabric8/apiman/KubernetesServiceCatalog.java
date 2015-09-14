@@ -83,8 +83,12 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		Map<String,String> descriptions = new HashMap<String,String>();
 		for(Template template : templateList.getItems()) {
 			String name = template.getMetadata().getName();
-			String description = template.getMetadata().getAnnotations().get("summary");
-			descriptions.put(name, description);
+			for (String annotation : template.getMetadata().getAnnotations().keySet()) {
+				if (annotation.contains("summary")) {
+					String description = template.getMetadata().getAnnotations().get(annotation);
+					descriptions.put(name, description);
+				}
+			}
 		}
 		osClient.close();
 		
@@ -185,7 +189,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		List<AvailableServiceBean> beanList = catalog.search("");
 		for (AvailableServiceBean bean: beanList) {
 			System.out.println(bean.getName() + " " + bean.getEndpoint() + " " + bean.getEndpointType());
-			System.out.println(bean.getName() + " " + bean.getDefinitionUrl() + " " + bean.getDefinitionType());
+			System.out.println(bean.getDescription() + " " + bean.getDefinitionUrl() + " " + bean.getDefinitionType());
 		}
 	}
 	
