@@ -27,6 +27,7 @@
     <docker.port.container.http>${http.port}</docker.port.container.http>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
+    <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
     <fabric8.env.MAIN>${docker.env.MAIN}</fabric8.env.MAIN>
     <fabric8.label.component>ApimanManagerAPI</fabric8.label.component>
     <fabric8.label.group>defaultGatewayGroup</fabric8.label.group>
