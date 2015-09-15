@@ -63,13 +63,15 @@ public class ApimanStarter {
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_METRICS_ES_PROTOCOL, protocol);
         if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME) == null) 
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME, "elasticsearch");
+        if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE) == null)
+        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE, "io.fabric8.apiman.KubernetesServiceCatalog");
         System.out.println("Elastic Connection Properties set to:");
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST));
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT));
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL));
         System.out.println(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME));
+        System.out.println("Service Catalog Type " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
         
-        if (System.getProperty("apiman-manager.service-catalog.type") == null)
-        	System.setProperty("apiman-manager.service-catalog.type", "io.fabric8.apiman.KubernetesServiceCatalog");
+        
     }
 }
