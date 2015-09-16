@@ -55,22 +55,24 @@ public class ApimanStarter {
     	}
     	String protocol = Systems.getEnvVarOrSystemProperty("ELASTICSEARCH_PROTOCOL", "http");
     	 
-        if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) == null) 
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) == null) 
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST, host);
-        if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) == null) 
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) == null) 
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT, hp[1]);
-        if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL) == null) 
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL) == null) 
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_METRICS_ES_PROTOCOL, protocol);
-        if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME) == null) 
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME) == null) 
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME, "elasticsearch");
-        if (System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE) == null)
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE) == null)
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE, "io.fabric8.apiman.KubernetesServiceCatalog");
+        
         System.out.println("Elastic Connection Properties set to:");
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST));
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT));
         System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL));
         System.out.println(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME));
         System.out.println("Service Catalog Type " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
+        System.out.println("Gateway Registry Class: " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
         
         
     }
