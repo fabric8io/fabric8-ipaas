@@ -17,7 +17,7 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
     <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
-    <apiman.version>1.2.0.Alpha1</apiman.version>
+    <apiman.version>1.2.0.Alpha2</apiman.version>
 
     <http.port>7777</http.port>    
     <docker.from>fabric8/java</docker.from>
