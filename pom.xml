@@ -102,10 +102,11 @@
         <module>apiman-gateway</module>
         <module>apiman</module>
         <module>fabric8</module>
+        <module>qpid-dispatch</module>
 
         <module>packages</module>
     </modules>
-    
+
     <distributionManagement>
       <repository>
         <id>oss-sonatype-staging</id>
