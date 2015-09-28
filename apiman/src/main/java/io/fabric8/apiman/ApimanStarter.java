@@ -26,6 +26,9 @@ import java.net.UnknownHostException;
  */
 public class ApimanStarter {
 
+	public final static String APIMAN_GATEWAY_USER     = "apiman-gateway.default.user";
+	public final static String APIMAN_GATEWAY_PASSWORD = "apiman-gateway.default.password";
+	
     /**
      * Main entry point for the API Manager micro service.
      * @param args the arguments
@@ -40,40 +43,49 @@ public class ApimanStarter {
     }
     
     public static void setFabric8Props() {
-    	String host = null;
-		try {
-			InetAddress initAddress = InetAddress.getByName("ELASTICSEARCH");
-			host = initAddress.getCanonicalHostName();
-		} catch (UnknownHostException e) {
-		    System.out.println("Could not resolve DNS for ELASTICSEARCH, trying ENV settings next.");
-		}
-    	String hostAndPort = Systems.getServiceHostAndPort("ELASTICSEARCH", "localhost", "9200");
-    	String[] hp = hostAndPort.split(":");
-    	if (host == null) {
-    	    System.out.println("ELASTICSEARCH host:port is set to " + hostAndPort + " using ENV settings.");
-    		host = hp[0];
-    	}
-    	String protocol = Systems.getEnvVarOrSystemProperty("ELASTICSEARCH_PROTOCOL", "http");
-    	 
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST, host);
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT, hp[1]);
+    	
+    	String[] esLocation = discoverServiceLocation("ELASTICSEARCH","9200");
+    	
         if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_METRICS_ES_PROTOCOL, protocol);
+        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL, esLocation[0]);
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) == null) 
+        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST, esLocation[1]);
+        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) == null) 
+        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT, esLocation[2]);
         if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME) == null) 
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME, "elasticsearch");
         if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE) == null)
         	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE, "io.fabric8.apiman.KubernetesServiceCatalog");
         
         System.out.println("Elastic Connection Properties set to:");
-        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST));
-        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT));
-        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL));
+        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL) + "://");
+        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) + ":");
+        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) + " ");
         System.out.println(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME));
         System.out.println("Service Catalog Type " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
         System.out.println("Gateway Registry Class: " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
         
-        
+    }
+    
+    public static String[] discoverServiceLocation(String serviceName, String defaultPort) {
+    	String[] location = new String[3];
+    	String host = null;
+		try {
+			InetAddress initAddress = InetAddress.getByName(serviceName);
+			host = initAddress.getCanonicalHostName();
+		} catch (UnknownHostException e) {
+		    System.out.println("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
+		}
+    	String hostAndPort = Systems.getServiceHostAndPort(serviceName, "localhost", defaultPort);
+    	String[] hp = hostAndPort.split(":");
+    	if (host == null) {
+    	    System.out.println(serviceName + " host:port is set to " + hostAndPort + " using ENV settings.");
+    		host = hp[0];
+    	}
+    	String protocol = Systems.getEnvVarOrSystemProperty(serviceName + "_PROTOCOL", "http");
+    	location[0] = protocol;
+    	location[1] = host;
+    	location[2] = hp[1];
+    	return location;
     }
 }

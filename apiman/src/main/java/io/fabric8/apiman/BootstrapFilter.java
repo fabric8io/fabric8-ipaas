@@ -16,6 +16,9 @@
 package io.fabric8.apiman;
 
 import io.apiman.common.util.AbstractMessages;
+import io.apiman.common.util.AesEncrypter;
+import io.apiman.manager.api.beans.gateways.GatewayBean;
+import io.apiman.manager.api.beans.gateways.GatewayType;
 import io.apiman.manager.api.beans.idm.PermissionType;
 import io.apiman.manager.api.beans.idm.RoleBean;
 import io.apiman.manager.api.beans.policies.PolicyDefinitionBean;
@@ -26,6 +29,7 @@ import io.apiman.manager.api.core.IStorageQuery;
 import io.apiman.manager.api.core.exceptions.StorageException;
 import io.apiman.manager.api.core.logging.ApimanLogger;
 import io.apiman.manager.api.core.logging.IApimanLogger;
+import io.fabric8.utils.Systems;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -106,6 +110,41 @@ public class BootstrapFilter implements Filter {
 				}
 			}
 		} catch (StorageException | IOException e) {
+			isLoaded=false;
+			logger.error(e);
+		}
+		return isLoaded;
+	}
+	
+	public boolean createApimanGateway() {
+		boolean isLoaded=true;
+		try {
+			Date now = new Date();
+			//1. Check if the gateway is present already
+			String gatewayName = "ApimanGateway";
+			if (storage.getGateway(gatewayName) == null) {
+				GatewayBean gateway = new GatewayBean();
+				String[] gwLocation = ApimanStarter.discoverServiceLocation("APIMAN-GATEWAY", "7777");
+				String endpoint = gwLocation[0] + "://" + gwLocation[1] + ":" + gwLocation[2] + "/api";
+				String username = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_USER, "admin");
+				String password = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_PASSWORD, "admin123!");
+				password = AesEncrypter.encrypt(password);
+				String configuration = "{\"endpoint\":\"" + endpoint + "\","
+						+ "\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
+				gateway.setConfiguration(configuration);
+				gateway.setCreatedOn(now);
+				gateway.setCreatedBy("admin");
+				gateway.setModifiedOn(now);
+				gateway.setModifiedBy("admin");
+				gateway.setDescription("Default Apiman Gateway configuation created by fabric8. Please make "
+						+ "make sure to run the Apiman-Gateway Service, and that 'Test Gateway' is successful. "
+						+ "You can update the current configuration info if needed.");
+				gateway.setId(gatewayName);
+				gateway.setName(gatewayName);
+				gateway.setType(GatewayType.REST);
+				storage.createGateway(gateway);
+			}
+		} catch (StorageException e) {
 			isLoaded=false;
 			logger.error(e);
 		}
@@ -195,7 +234,7 @@ public class BootstrapFilter implements Filter {
 		boolean isLoaded = false;
 		//keep retrying until loaded
 		while (isLoaded != true) {
-			if (loadDefaultPolicies() && loadDefaultRoles()) {
+			if (loadDefaultPolicies() && loadDefaultRoles() && createApimanGateway()) {
 				isLoaded = true;
 			} else {
 				try {
