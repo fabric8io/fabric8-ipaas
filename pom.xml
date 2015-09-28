@@ -81,6 +81,7 @@
         <fabric8.devops.version>2.2.28</fabric8.devops.version>
         <arquillian.version>1.1.8.Final</arquillian.version>
         <commons.beanutils.version>1.9.2</commons.beanutils.version>
+        <apiman.version>1.2.0.Alpha3</apiman.version>
         <docker.assembly.exportBaseDir>false</docker.assembly.exportBaseDir>
         <!-- TODO this can be removed once we upgrade the docker maven plugin -->
         <docker.assembly.exportBase>false</docker.assembly.exportBase>
