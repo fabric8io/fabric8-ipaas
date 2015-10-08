@@ -34,11 +34,8 @@
         <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
         <guava.version>15.0</guava.version>
 
-        <activemq.container.port>6194</activemq.container.port>
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
         <docker.env.MAIN>io.fabric8.mq.Main</docker.env.MAIN>
-        <docker.image>fabric8/fabric8mq</docker.image>
-        <docker.from>fabric8/java-jboss-openjdk8-jdk</docker.from>
 
         <fabric8.service.port>${activemq.container.port}</fabric8.service.port>
         <fabric8.service.containerPort>${activemq.container.port}</fabric8.service.containerPort>
@@ -202,7 +199,6 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
-            <version>3.9.9.Final</version>
         </dependency>
     </dependencies>
 

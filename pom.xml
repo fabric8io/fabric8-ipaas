@@ -96,14 +96,28 @@
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
         <maven.require.version>3.1.1</maven.require.version>
         <maven.enforcer.plugin.version>1.4</maven.enforcer.plugin.version>
+
+
+        <activemq.container.port>6194</activemq.container.port>
+        <activemq.service.port>6163</activemq.service.port>
+        <amqbroker.container.port>7162</amqbroker.container.port>
+        <amqbroker.service.port>7163</amqbroker.service.port>
+
+        <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk</docker.from>
+        <docker.image>${fabric8.dockerPrefix}${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+        <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
+        <docker.port.container.jolokia>8778</docker.port.container.jolokia>
     </properties>
 
     <modules>
+        <module>amqbroker</module>
         <module>api-registry</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
         <module>fabric8</module>
         <module>fabric8mq</module>
+        <module>fabric8mq-producer</module>
+        <module>fabric8mq-consumer</module>
         <module>qpid-dispatch</module>
         <module>packages</module>
     </modules>
@@ -290,10 +304,23 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>fabric8-cdi</artifactId>
+                <version>${fabric8.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <!-- netty add until next release-->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty</artifactId>
+                <version>3.9.9.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -302,8 +329,8 @@
         <profile>
           <id>fabric8-snapshot</id>
           <properties>
-            <fabric8.version>2.2.29_SNAPSHOT</fabric8.version>
-            <fabric8.release.version>2.2.29_SNAPSHOT</fabric8.release.version>
+            <fabric8.version>2.2.44-SNAPSHOT</fabric8.version>
+            <fabric8.release.version>2.2.44-SNAPSHOT</fabric8.release.version>
             <fabric8.dockerPrefix />
           </properties>
         </profile>
