@@ -35,6 +35,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Implementation of @IServiceCatalog that looks up service in Kubernetes. The
  * results are filtered by matching them to the search term passed in. All results
@@ -44,28 +47,29 @@ import java.util.Map;
  * (REST, SOAP, etc) as well as it's definition URL and definition Type (WSDL, WADL, Swagger, etc).
  * 
  * By default it is assumed that the service run at the root "/" of the serviceUrl, but if
- * it is not, or if there are multiple endpoints in one service, the servicepath annotation can
- * be used to set the path. Additionally the protocol and definitionpath and type can be set.
- * For example for single andpoint we look for for Kubernetes service annotations of the form:
-	     servicepath,
-	     protocol,
-	     definitionpath,
-	     definitiontype
-	For multiple endpoints the service developer can name the endpoints
-	     servicepath.myfirstservice,
-	     protocol.myfirstservice,
-	     definitionpath.myfirstservice,
-	     definitiontype.myfirstservice,
-	     servicepath.mysecondservice,
-	     protocol.mysecondservice,
-	     definitionpath.mysecondservice,
-	     definitiontype.mysecondservice
+ * it is not, the servicepath annotation can be used to set the path. Additionally the 
+ * protocol and definitionpath and type can be set. We look for Kubernetes Service 
+ * Annotations of the form:
+ * 
+	     <li>apiman.io/servicepath,</li>
+	     <li>apiman.io/servicetype,</li>
+	     <li>apiman.io/servicescheme</li>
+	     <li>apiman.io/descriptionpath,</li>
+	     <li>apiman.io/descriptiontype</li>
  */
 public class KubernetesServiceCatalog implements IServiceCatalog  {
 
+	final private static Log log = LogFactory.getLog(KubernetesServiceCatalog.class);
+	
+	final public static String SERVICE_PATH     = "apiman.io/servicepath";
+	final public static String SERVICE_TYPE     = "apiman.io/servicetype";
+	final public static String SERVICE_SCHEME   = "apiman.io/servicescheme";
+	final public static String DESCRIPTION_PATH = "apiman.io/descriptionpath";
+	final public static String DESCRIPTION_TYPE = "apiman.io/descriptiontype";
+	
 	@Override
 	public List<AvailableServiceBean> search(String keyword) {
-		System.out.println("Searching in Kubernetes with service keyword " + keyword);
+		log.info("Searching in Kubernetes with service keyword " + keyword);
 		return searchKube(keyword);
 	}
 	
@@ -103,127 +107,79 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				String scheme = "http";
 				String port = KubernetesHelper.serviceToPort(service.getMetadata().getName());
 				if (port!=null && port.endsWith("443")) scheme = "https";
-				if (annotations!=null && annotations.containsKey("servicescheme")) scheme = annotations.get("servicescheme");
+				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) scheme = annotations.get(SERVICE_SCHEME);
 				String serviceUrl = KubernetesHelper.getServiceURL(kubernetes, service.getMetadata().getName(),kubernetesNamespace, scheme, true);
-				List<ServiceContract> serviceContracts = createServiceContract(annotations, serviceUrl);
+				if (! serviceUrl.endsWith("/")) serviceUrl += "/";
+				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl);
 				
-				for (ServiceContract serviceContract: serviceContracts) {
-					AvailableServiceBean bean = new AvailableServiceBean();
-					bean.setName(service.getMetadata().getName() + serviceContract.getName());
-					bean.setDescription(descriptions.get(service.getMetadata().getName()));
-					bean.setEndpoint(serviceContract.getServiceUrl());
-					if (serviceContract.getProtocol()!=null) {
-						for (EndpointType type: EndpointType.values()) {
-							if (type.toString().equalsIgnoreCase(serviceContract.getProtocol())) {
-								bean.setEndpointType(EndpointType.valueOf(type.name()));
-							}
+				AvailableServiceBean bean = new AvailableServiceBean();
+				bean.setName(service.getMetadata().getName());
+				bean.setDescription(descriptions.get(service.getMetadata().getName()));
+				bean.setEndpoint(serviceContract.getServiceUrl());
+				if (serviceContract.getServiceType()!=null) {
+					for (EndpointType type: EndpointType.values()) {
+						if (type.toString().equalsIgnoreCase(serviceContract.getServiceType())) {
+							bean.setEndpointType(EndpointType.valueOf(type.name()));
 						}
-					} else {
-						bean.setEndpointType(null);
 					}
-					bean.setDefinitionUrl(serviceContract.getDescriptionUrl());
-					if (serviceContract.getDescriptionType()!=null) {
-						for (ServiceDefinitionType type: ServiceDefinitionType.values()) {
-							if (type.toString().equalsIgnoreCase(serviceContract.getDescriptionType())) {
-								bean.setDefinitionType(ServiceDefinitionType.valueOf(type.name()));
-							}
-						}
-					} else {
-						bean.setDefinitionType(ServiceDefinitionType.None);
-					}
-					availableServiceBeans.add(bean);
+				} else {
+					bean.setEndpointType(null);
 				}
+				bean.setDefinitionUrl(serviceContract.getDescriptionUrl());
+				if (serviceContract.getDescriptionType()!=null) {
+					for (ServiceDefinitionType type: ServiceDefinitionType.values()) {
+						if (type.toString().equalsIgnoreCase(serviceContract.getDescriptionType())) {
+							bean.setDefinitionType(ServiceDefinitionType.valueOf(type.name()));
+						}
+					}
+				} else {
+					bean.setDefinitionType(ServiceDefinitionType.None);
+				}
+				if (log.isDebugEnabled()) {
+					log.debug(bean.getName() + ":" + bean.getDescription());
+					log.debug("  " + bean.getEndpoint() + ":" + bean.getEndpointType());
+					log.debug("  " + bean.getDefinitionUrl() + ":" + bean.getDefinitionType());
+				}
+				availableServiceBeans.add(bean);
+				
 			} 
 		}
 	    kubernetes.close();
 	    return availableServiceBeans;
 	}
 	
-	protected List<ServiceContract> createServiceContract(Map<String,String> annotations, String serviceUrl) {
+	protected ServiceContract createServiceContract(Map<String,String> annotations, String serviceUrl) {
 		
-		List<ServiceContract> serviceContracts = new ArrayList<ServiceContract>();
+		ServiceContract serviceContract = new ServiceContract();
 		if (annotations!=null) {
-			for (String key: annotations.keySet()) {
-				if (key.startsWith("servicepath")) {
-					ServiceContract serviceContract = new ServiceContract();
-					String[] annotation = key.split("\\.");
-					String name = "";
-					if (annotation.length > 1) name = "/" + annotation[1];
-					serviceContract.setName(name);
-					serviceContract.setServiceUrl(serviceUrl + "/" + annotations.get(key));
-					String protocolKey = key.replace("servicepath", "protocol");
-					if (annotations.containsKey(protocolKey)) {
-						serviceContract.setProtocol(annotations.get(protocolKey));
-					}
-					String descriptionKey = key.replace("servicepath", "descriptionpath");
-					if (annotations.containsKey(descriptionKey)) {
-						serviceContract.setDescriptionUrl(serviceUrl + "/" + annotations.get(descriptionKey));
-					}
-					String definitionTypeKey = key.replace("servicepath", "descriptiontype");
-					if (annotations.containsKey(definitionTypeKey)) {
-						serviceContract.setDescriptionType(annotations.get(definitionTypeKey));
-					}
-					serviceContracts.add(serviceContract);
-				}
-			}
+			serviceContract.setServiceUrl(serviceUrl + annotations.get(SERVICE_PATH));
+			serviceContract.setServiceType(annotations.get(SERVICE_TYPE));
+			serviceContract.setDescriptionUrl(serviceUrl + annotations.get(DESCRIPTION_PATH));
+			serviceContract.setDescriptionType(annotations.get(DESCRIPTION_TYPE));
+		} else {
+			serviceContract.setServiceUrl(serviceUrl);
 		}
-		//add default contract for the root application "/"
-		if (serviceContracts.size()==0) {
-			ServiceContract serviceContract = new ServiceContract();
-			serviceContract.setName("");
-			serviceContract.setServiceUrl(serviceUrl + "/");
-			if (annotations!=null) {
-				for (String key: annotations.keySet()) {
-					if (key.startsWith("protocol")) {
-						serviceContract.setProtocol(annotations.get(key));
-					}
-					if (key.startsWith("descriptionpath")) {
-						serviceContract.setDescriptionUrl(serviceUrl + "/" + annotations.get(key));
-					}
-					if (key.startsWith("descriptiontype")) {
-						serviceContract.setDescriptionType(annotations.get(key));
-					}
-				}
-			}
-			serviceContracts.add(serviceContract);
-		}
-		return serviceContracts;
-	}
-	
-	public static void main(String[] args) {
-		KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
-		List<AvailableServiceBean> beanList = catalog.search("");
-		for (AvailableServiceBean bean: beanList) {
-			System.out.println(bean.getName() + " " + bean.getEndpoint() + " " + bean.getEndpointType());
-			System.out.println(bean.getDescription() + " " + bean.getDefinitionUrl() + " " + bean.getDefinitionType());
-		}
+		return serviceContract;
 	}
 	
 	protected class ServiceContract {
 		
-		String name;
 		String serviceUrl;
-		String protocol;
+		String serviceType;
 		String descriptionUrl;
 		String descriptionType;
 		
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
+		public void setServiceUrl(String serviceUrl) {
+			this.serviceUrl = serviceUrl;
 		}
 		public String getServiceUrl() {
 			return serviceUrl;
 		}
-		public String getProtocol() {
-			return protocol;
+		public String getServiceType() {
+			return serviceType;
 		}
-		public void setProtocol(String protocol) {
-			this.protocol = protocol;
-		}
-		public void setServiceUrl(String serviceUrl) {
-			this.serviceUrl = serviceUrl;
+		public void setServiceType(String serviceType) {
+			this.serviceType = serviceType;
 		}
 		public String getDescriptionUrl() {
 			return descriptionUrl;
