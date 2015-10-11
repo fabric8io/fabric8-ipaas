@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateList;
-import io.fabric8.openshift.client.DefaultOpenshiftClient;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.utils.Systems;
 
@@ -42,15 +42,15 @@ import org.apache.commons.logging.LogFactory;
  * Implementation of @IServiceCatalog that looks up service in Kubernetes. The
  * results are filtered by matching them to the search term passed in. All results
  * are returned in the search term is null, empty or '*'.
- * 
- * For the resulting services it tries return the full service URL and Service Protocol 
+ *
+ * For the resulting services it tries return the full service URL and Service Protocol
  * (REST, SOAP, etc) as well as it's definition URL and definition Type (WSDL, WADL, Swagger, etc).
- * 
+ *
  * By default it is assumed that the service run at the root "/" of the serviceUrl, but if
- * it is not, the servicepath annotation can be used to set the path. Additionally the 
- * protocol and definitionpath and type can be set. We look for Kubernetes Service 
+ * it is not, the servicepath annotation can be used to set the path. Additionally the
+ * protocol and definitionpath and type can be set. We look for Kubernetes Service
  * Annotations of the form:
- * 
+ *
 	     <li>apiman.io/servicepath,</li>
 	     <li>apiman.io/servicetype,</li>
 	     <li>apiman.io/servicescheme</li>
@@ -60,30 +60,30 @@ import org.apache.commons.logging.LogFactory;
 public class KubernetesServiceCatalog implements IServiceCatalog  {
 
 	final private static Log log = LogFactory.getLog(KubernetesServiceCatalog.class);
-	
+
 	final public static String SERVICE_PATH     = "apiman.io/servicepath";
 	final public static String SERVICE_TYPE     = "apiman.io/servicetype";
 	final public static String SERVICE_SCHEME   = "apiman.io/servicescheme";
 	final public static String DESCRIPTION_PATH = "apiman.io/descriptionpath";
 	final public static String DESCRIPTION_TYPE = "apiman.io/descriptiontype";
-	
+
 	@Override
 	public List<AvailableServiceBean> search(String keyword) {
 		log.info("Searching in Kubernetes with service keyword " + keyword);
 		return searchKube(keyword);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 */
 	private List<AvailableServiceBean> searchKube(String keyword){
 		List<AvailableServiceBean> availableServiceBeans = new ArrayList<AvailableServiceBean>();
 		//Obtain a list from Kubernetes, using the Kubernetes API
 		String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER", "https://172.28.128.4:8443");
 		String kubernetesNamespace = Systems.getEnvVarOrSystemProperty("KUBERNETES_NAMESPACE", "default");
-		if (Systems.getEnvVarOrSystemProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY) == null) 
+		if (Systems.getEnvVarOrSystemProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY) == null)
 			System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		OpenShiftClient osClient = new DefaultOpenshiftClient(kubernetesMasterUrl);
+		OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetesMasterUrl);
 		TemplateList templateList = osClient.templates().list();
 		Map<String,String> descriptions = new HashMap<String,String>();
 		for(Template template : templateList.getItems()) {
@@ -96,10 +96,10 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 			}
 		}
 		osClient.close();
-		
+
 		KubernetesClient kubernetes = new DefaultKubernetesClient(kubernetesMasterUrl);
 		Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes, kubernetesNamespace);
-		
+
 	    for (String serviceName : serviceMap.keySet()) {
 			if (keyword==null || keyword.equals("") || keyword.equals("*") || serviceName.toLowerCase().contains(keyword.toLowerCase())) {
 				Service service = serviceMap.get(serviceName);
@@ -111,7 +111,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				String serviceUrl = KubernetesHelper.getServiceURL(kubernetes, service.getMetadata().getName(),kubernetesNamespace, scheme, true);
 				if (! serviceUrl.endsWith("/")) serviceUrl += "/";
 				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl);
-				
+
 				AvailableServiceBean bean = new AvailableServiceBean();
 				bean.setName(service.getMetadata().getName());
 				bean.setDescription(descriptions.get(service.getMetadata().getName()));
@@ -141,15 +141,15 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 					log.debug("  " + bean.getDefinitionUrl() + ":" + bean.getDefinitionType());
 				}
 				availableServiceBeans.add(bean);
-				
-			} 
+
+			}
 		}
 	    kubernetes.close();
 	    return availableServiceBeans;
 	}
-	
+
 	protected ServiceContract createServiceContract(Map<String,String> annotations, String serviceUrl) {
-		
+
 		ServiceContract serviceContract = new ServiceContract();
 		if (annotations!=null) {
 			serviceContract.setServiceUrl(serviceUrl + annotations.get(SERVICE_PATH));
@@ -161,14 +161,14 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		}
 		return serviceContract;
 	}
-	
+
 	protected class ServiceContract {
-		
+
 		String serviceUrl;
 		String serviceType;
 		String descriptionUrl;
 		String descriptionType;
-		
+
 		public void setServiceUrl(String serviceUrl) {
 			this.serviceUrl = serviceUrl;
 		}
@@ -193,8 +193,8 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		public void setDescriptionType(String descriptionType) {
 			this.descriptionType = descriptionType;
 		}
-		
+
 	}
-	
+
 
 }
