@@ -135,6 +135,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
         <configuration>
           <mainClass>${docker.env.MAIN}</mainClass>
           <includePluginDependencies>false</includePluginDependencies>
