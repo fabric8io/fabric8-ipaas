@@ -3,6 +3,7 @@ package io.fabric8.apiman.gateway;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import io.apiman.gateway.platforms.war.WarEngineConfig;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroService;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroServicePlatform;
 import io.fabric8.utils.Systems;
@@ -31,21 +32,29 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
     		host = hp[0];
     	}
     	String protocol = Systems.getEnvVarOrSystemProperty("ELASTICSEARCH_PROTOCOL", "http");
-    	 
-        if (System.getProperty("apiman.es.protocol") == null)
-        	System.setProperty("apiman.es.protocol", protocol);
-        if (System.getProperty("apiman.es.host") == null)
-        	System.setProperty("apiman.es.host", host);
-        if (System.getProperty("apiman.es.port") == null)
-        	System.setProperty("apiman.es.port", hp[1]);
-        if (System.getProperty("apiman.es.cluster-name") == null)
-        	System.setProperty("apiman.es.cluster-name", "elasticsearch");
-        
-        if (System.getProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT) == null) {
-        	String kubernetesDomain = System.getProperty("KUBERNETES_DOMAIN", "vagrant.f8");
-        	System.setProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT, "http://apiman-gateway." + kubernetesDomain + "/gateway/");
+    	
+    	 if (Systems.getEnvVarOrSystemProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT) == null) {
+            String kubernetesDomain = System.getProperty("KUBERNETES_DOMAIN", "vagrant.f8");
+            System.setProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT, "http://apiman-gateway." + kubernetesDomain + "/gateway/");
         }
-     
+    	 
+        if (Systems.getEnvVarOrSystemProperty("apiman.es.protocol") == null)
+        	System.setProperty("apiman.es.protocol", protocol);
+        if (Systems.getEnvVarOrSystemProperty("apiman.es.host") == null)
+        	System.setProperty("apiman.es.host", host);
+        if (Systems.getEnvVarOrSystemProperty("apiman.es.port") == null)
+        	System.setProperty("apiman.es.port", hp[1]);
+        if (Systems.getEnvVarOrSystemProperty("apiman.es.cluster-name") == null)
+        	System.setProperty("apiman.es.cluster-name", "elasticsearch");
+        if (Systems.getEnvVarOrSystemProperty(WarEngineConfig.APIMAN_GATEWAY_REGISTRY_CLASS) == null) 
+        	System.setProperty(WarEngineConfig.APIMAN_GATEWAY_METRICS_CLASS,"io.apiman.gateway.engine.es.PollCachingESRegistry");
+        
+        System.out.print("Elastic " + System.getProperty("apiman.es.host"));
+        System.out.print(System.getProperty("apiman.es.port"));
+        System.out.print(System.getProperty("apiman.es.protocol"));
+        System.out.println(System.getProperty("apiman.es.cluster-name"));
+        System.out.println("Gateway Registry: " + System.getProperty(WarEngineConfig.APIMAN_GATEWAY_REGISTRY_CLASS));
+        System.out.println("Gateway Endpoint: " + System.getProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT));
 	}
 
 }

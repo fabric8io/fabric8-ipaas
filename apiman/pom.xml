@@ -1,14 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.fabric8.apps.ipaas</groupId>
+    <groupId>io.fabric8.ipaas.apps</groupId>
     <artifactId>fabric8-ipaas</artifactId>
-    <version>2.3-SNAPSHOT</version>
+    <version>2.2.47-SNAPSHOT</version>
   </parent>
   <artifactId>apiman</artifactId>
   <name>Apiman Manager</name>
   <description>Apiman deployed on Jetty</description>
-
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,7 +16,9 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
     <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
-    <apiman.version>1.2.0.Alpha1</apiman.version>
+
+    <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+    <timestamp>${maven.build.timestamp}</timestamp>
 
     <http.port>7070</http.port>    
     <docker.from>fabric8/java</docker.from>
@@ -27,6 +28,7 @@
     <docker.port.container.http>${http.port}</docker.port.container.http>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
+    <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
     <fabric8.env.MAIN>${docker.env.MAIN}</fabric8.env.MAIN>
     <fabric8.label.component>ApimanManagerAPI</fabric8.label.component>
     <fabric8.label.group>defaultGatewayGroup</fabric8.label.group>
@@ -60,6 +62,26 @@
      <artifactId>javax.servlet-api</artifactId>
      <version>3.1.0</version>
     </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore-nio</artifactId>
+      <version>4.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core </artifactId>
+      <version>4.10.4</version>
+    </dependency>
     
     <dependency>
       <groupId>junit</groupId>
@@ -70,6 +92,17 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
+
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/resources-filtered</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
 
     <plugins>
       <plugin>
