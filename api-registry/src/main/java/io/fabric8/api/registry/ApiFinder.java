@@ -366,7 +366,7 @@ public class ApiFinder {
                                 return protocolName + "://" + podIP + ":" + containerPort;
                             }
 
-                            // lets try use the host port and host name on jube
+                            // lets try use the host port and host name
                             String host = currentState.getHostIP();
                             Integer hostPort = port.getHostPort();
                             if (Strings.isNotBlank(host) && hostPort != null) {
