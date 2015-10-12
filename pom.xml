@@ -24,9 +24,9 @@
       <version>9</version>
     </parent>
 
-    <groupId>io.fabric8.apps.ipaas</groupId>
+    <groupId>io.fabric8.ipaas.apps</groupId>
     <artifactId>fabric8-ipaas</artifactId>
-    <version>2.3-SNAPSHOT</version>
+    <version>2.2.47-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Fabric8 iPaaS Apps</name>
@@ -77,32 +77,52 @@
 
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
 
+        <fabric8.devops.version>2.2.28</fabric8.devops.version>
         <arquillian.version>1.1.8.Final</arquillian.version>
         <commons.beanutils.version>1.9.2</commons.beanutils.version>
+        <apiman.version>1.2.0.Alpha3</apiman.version>
         <docker.assembly.exportBaseDir>false</docker.assembly.exportBaseDir>
         <!-- TODO this can be removed once we upgrade the docker maven plugin -->
         <docker.assembly.exportBase>false</docker.assembly.exportBase>
-        <docker.maven.plugin.version>0.13.3</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.13.5</docker.maven.plugin.version>
         <fabric8.dockerPrefix>docker.io/</fabric8.dockerPrefix>
         <fabric8.dockerUser>fabric8/</fabric8.dockerUser>
         <exec-maven-plugin.version>1.2.1</exec-maven-plugin.version>
         <maven.surefire.plugin.version>2.17</maven.surefire.plugin.version>
         <jube.version>2.2.0</jube.version>
         <junit.version>4.12</junit.version>
-        <fabric8.version>2.2.26</fabric8.version>
+        <fabric8.version>2.2.47</fabric8.version>
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
         <maven.require.version>3.1.1</maven.require.version>
         <maven.enforcer.plugin.version>1.4</maven.enforcer.plugin.version>
+
+
+        <activemq.container.port>6194</activemq.container.port>
+        <activemq.service.port>6163</activemq.service.port>
+        <amqbroker.container.port>7162</amqbroker.container.port>
+        <amqbroker.service.port>7163</amqbroker.service.port>
+
+        <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk</docker.from>
+        <docker.image>${fabric8.dockerPrefix}${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+        <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
+        <docker.port.container.jolokia>8778</docker.port.container.jolokia>
     </properties>
 
     <modules>
+        <module>amqbroker</module>
         <module>api-registry</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
         <module>fabric8</module>
+        <module>fabric8mq</module>
+        <module>fabric8mq-producer</module>
+        <module>fabric8mq-consumer</module>
+        <module>qpid-dispatch</module>
+        <module>packages</module>
     </modules>
-    
+
     <distributionManagement>
       <repository>
         <id>oss-sonatype-staging</id>
@@ -150,6 +170,14 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>1.5</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.plugin.version}</version>
+            <configuration>
+                <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
           </plugin>
         </plugins>
       </pluginManagement>
@@ -285,10 +313,23 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>fabric8-cdi</artifactId>
+                <version>${fabric8.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <!-- netty add until next release-->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty</artifactId>
+                <version>3.9.9.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -297,8 +338,8 @@
         <profile>
           <id>fabric8-snapshot</id>
           <properties>
-            <fabric8.version>2.3-SNAPSHOT</fabric8.version>
-            <fabric8.release.version>2.2.22</fabric8.release.version>
+            <fabric8.version>2.2.44-SNAPSHOT</fabric8.version>
+            <fabric8.release.version>2.2.44-SNAPSHOT</fabric8.release.version>
             <fabric8.dockerPrefix />
           </properties>
         </profile>
@@ -363,16 +404,15 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.3</version>
-                        <configuration>
-                            <additionalparam>${javadoc.opts}</additionalparam>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
+                                <configuration>
+                                    <additionalparam>${javadoc.opts}</additionalparam>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -456,6 +496,14 @@
                 </pluginManagement>
             </build>
         </profile>
+        <profile>
+          <id>doclint-java8-disable</id>
+          <activation>
+            <jdk>[1.8,)</jdk>
+          </activation>
+          <properties>
+              <javadoc.opts>-Xdoclint:none</javadoc.opts>
+          </properties>
+        </profile>
     </profiles>
 </project>
-

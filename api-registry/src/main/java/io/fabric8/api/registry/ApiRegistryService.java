@@ -16,7 +16,7 @@
 package io.fabric8.api.registry;
 
 
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.annotations.Api;
 import io.fabric8.api.registry.rules.SwaggerHelpers;
 import io.fabric8.swagger.model.ApiDeclaration;
 import io.fabric8.swagger.model.Api_;

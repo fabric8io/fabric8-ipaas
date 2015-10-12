@@ -20,9 +20,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.fabric8.apps.ipaas</groupId>
+    <groupId>io.fabric8.ipaas.apps</groupId>
     <artifactId>fabric8-ipaas</artifactId>
-    <version>2.3-SNAPSHOT</version>
+    <version>2.2.47-SNAPSHOT</version>
   </parent>
 
   <artifactId>api-registry</artifactId>
@@ -209,8 +209,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.wordnik</groupId>
-      <artifactId>swagger-jaxrs_2.10</artifactId>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-jaxrs</artifactId>
       <optional>true</optional>
       <exclusions>
         <exclusion>
@@ -440,7 +440,7 @@
     <profile>
       <id>fabric8-snapshot</id>
       <properties>
-        <fabric8.version>2.3-SNAPSHOT</fabric8.version>
+        <fabric8.version>2.2.44-SNAPSHOT</fabric8.version>
       </properties>
     </profile>
   </profiles>
