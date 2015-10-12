@@ -338,16 +338,11 @@
           </images>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>io.fabric8.jube</groupId>
-        <artifactId>jube-maven-plugin</artifactId>
-        <version>${jube.version}</version>
-      </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
+        <version>1.4.0</version>
         <configuration>
           <mainClass>io.fabric8.api.registry.Main</mainClass>
           <includePluginDependencies>false</includePluginDependencies>
@@ -410,38 +405,5 @@
       </build>
     </profile>
 
-    <profile>
-      <id>jube</id>
-      <activation>
-        <property>
-          <name>jube.plugin.enabled</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8.jube</groupId>
-            <artifactId>jube-maven-plugin</artifactId>
-            <version>${jube.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>fabric8-snapshot</id>
-      <properties>
-        <fabric8.version>2.2.44-SNAPSHOT</fabric8.version>
-      </properties>
-    </profile>
   </profiles>
 </project>
