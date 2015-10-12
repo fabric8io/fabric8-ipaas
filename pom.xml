@@ -111,14 +111,15 @@
     </properties>
 
     <modules>
-        <module>amqbroker</module>
+        <!-- amq/mq modules not supported in redhat branch -->
+        <!--<module>amqbroker</module>-->
         <module>api-registry</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
-        <module>fabric8</module>
-        <module>fabric8mq</module>
-        <module>fabric8mq-producer</module>
-        <module>fabric8mq-consumer</module>
+        <!--<module>fabric8</module>-->
+        <!--<module>fabric8mq</module>-->
+        <!--<module>fabric8mq-producer</module>-->
+        <!--<module>fabric8mq-consumer</module>-->
         <module>qpid-dispatch</module>
         <module>packages</module>
     </modules>
