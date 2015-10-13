@@ -1,23 +1,34 @@
 package io.fabric8.apiman.gateway;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
+import io.apiman.gateway.engine.es.PollCachingESRegistry;
 import io.apiman.gateway.platforms.war.WarEngineConfig;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroService;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroServicePlatform;
 import io.fabric8.utils.Systems;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 public class Fabric8GatewayMicroService extends GatewayMicroService {
+    
+    /**
+     * Constructor.
+     */
+    public Fabric8GatewayMicroService() {
+    }
+    
+    /**
+     * @see io.apiman.gateway.platforms.war.micro.GatewayMicroService#configure()
+     */
+    @Override
+    protected void configure() {
+        System.out.println("** Setting API Manager Configuration Properties **");
+        super.configure();
+        System.out.println("** ******************************************** **");
+    }
 
 	@Override
 	protected void configureGlobalVars() {
-    	
-//        System.setProperty("apiman.es.protocol", "http");
-//        System.setProperty("apiman.es.host", "localhost");
-//        System.setProperty("apiman.es.port", "9200");
-//        System.setProperty("apiman.es.cluster-name", "elasticsearch");
-        
     	String host = null;
 		try {
 			InetAddress initAddress = InetAddress.getByName("ELASTICSEARCH");
@@ -33,28 +44,33 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
     	}
     	String protocol = Systems.getEnvVarOrSystemProperty("ELASTICSEARCH_PROTOCOL", "http");
     	
-    	 if (Systems.getEnvVarOrSystemProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT) == null) {
-            String kubernetesDomain = System.getProperty("KUBERNETES_DOMAIN", "vagrant.f8");
-            System.setProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT, "http://apiman-gateway." + kubernetesDomain + "/gateway/");
+    	// Discover and set the gateway endpoint.
+    	if (Systems.getEnvVarOrSystemProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT) == null) {
+    	    String kubernetesDomain = System.getProperty("KUBERNETES_DOMAIN", "vagrant.f8");
+    	    System.setProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT, "http://apiman-gateway." + kubernetesDomain + "/gateway/");
         }
-    	 
-        if (Systems.getEnvVarOrSystemProperty("apiman.es.protocol") == null)
-        	System.setProperty("apiman.es.protocol", protocol);
-        if (Systems.getEnvVarOrSystemProperty("apiman.es.host") == null)
-        	System.setProperty("apiman.es.host", host);
-        if (Systems.getEnvVarOrSystemProperty("apiman.es.port") == null)
-        	System.setProperty("apiman.es.port", hp[1]);
-        if (Systems.getEnvVarOrSystemProperty("apiman.es.cluster-name") == null)
-        	System.setProperty("apiman.es.cluster-name", "elasticsearch");
-        if (Systems.getEnvVarOrSystemProperty(WarEngineConfig.APIMAN_GATEWAY_REGISTRY_CLASS) == null) 
-        	System.setProperty(WarEngineConfig.APIMAN_GATEWAY_METRICS_CLASS,"io.apiman.gateway.engine.es.PollCachingESRegistry");
-        
-        System.out.print("Elastic " + System.getProperty("apiman.es.host"));
-        System.out.print(System.getProperty("apiman.es.port"));
-        System.out.print(System.getProperty("apiman.es.protocol"));
-        System.out.println(System.getProperty("apiman.es.cluster-name"));
-        System.out.println("Gateway Registry: " + System.getProperty(WarEngineConfig.APIMAN_GATEWAY_REGISTRY_CLASS));
-        System.out.println("Gateway Endpoint: " + System.getProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT));
+
+        setConfigProperty("apiman.es.protocol", protocol);
+        setConfigProperty("apiman.es.host", host);
+        setConfigProperty("apiman.es.port", hp[1]);
+        setConfigProperty("apiman.es.username", "");
+        setConfigProperty("apiman.es.password", "");
+	}
+	
+	/**
+	 * @see io.apiman.gateway.platforms.war.micro.GatewayMicroService#configureRegistry()
+	 */
+	@Override
+	protected void configureRegistry() {
+        setConfigProperty(WarEngineConfig.APIMAN_GATEWAY_METRICS_CLASS, PollCachingESRegistry.class.getName());
+	    super.configureRegistry();
 	}
 
+    protected void setConfigProperty(String propName, String propValue) {
+        if (Systems.getEnvVarOrSystemProperty(propName) == null) {
+            System.setProperty(propName, propValue);
+        }
+        System.out.println("\t" + propName + "=" + System.getProperty(propName));
+    }
+    
 }
