@@ -21,7 +21,6 @@ import io.apiman.manager.api.beans.summary.AvailableServiceBean;
 import io.apiman.manager.api.core.IServiceCatalog;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Template;
@@ -79,10 +78,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 	private List<AvailableServiceBean> searchKube(String keyword){
 		List<AvailableServiceBean> availableServiceBeans = new ArrayList<AvailableServiceBean>();
 		//Obtain a list from Kubernetes, using the Kubernetes API
-		String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER", "https://172.28.128.4:8443");
-		String kubernetesNamespace = Systems.getEnvVarOrSystemProperty("KUBERNETES_NAMESPACE", "default");
-		if (Systems.getEnvVarOrSystemProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY) == null)
-			System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
+		String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER");
 		OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetesMasterUrl);
 		TemplateList templateList = osClient.templates().list();
 		Map<String,String> descriptions = new HashMap<String,String>();
@@ -98,6 +94,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		osClient.close();
 
 		KubernetesClient kubernetes = new DefaultKubernetesClient(kubernetesMasterUrl);
+		String kubernetesNamespace = kubernetes.getNamespace();
 		Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes, kubernetesNamespace);
 
 	    for (String serviceName : serviceMap.keySet()) {
