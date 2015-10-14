@@ -21,7 +21,6 @@ import io.apiman.manager.api.beans.summary.AvailableServiceBean;
 import io.apiman.manager.api.core.IServiceCatalog;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Template;
@@ -79,11 +78,15 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 	private List<AvailableServiceBean> searchKube(String keyword){
 		List<AvailableServiceBean> availableServiceBeans = new ArrayList<AvailableServiceBean>();
 		//Obtain a list from Kubernetes, using the Kubernetes API
-		String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER", "https://172.28.128.4:8443");
-		String kubernetesNamespace = Systems.getEnvVarOrSystemProperty("KUBERNETES_NAMESPACE", "default");
-		if (Systems.getEnvVarOrSystemProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY) == null)
-			System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetesMasterUrl);
+		KubernetesClient kubernetes = null;
+		String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER");
+		if (kubernetesMasterUrl!=null) {
+			kubernetes = new DefaultKubernetesClient(kubernetesMasterUrl);
+		} else {
+			kubernetes = new DefaultKubernetesClient();
+		}
+		
+		OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetes.getMasterUrl().toExternalForm());
 		TemplateList templateList = osClient.templates().list();
 		Map<String,String> descriptions = new HashMap<String,String>();
 		for(Template template : templateList.getItems()) {
@@ -97,8 +100,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		}
 		osClient.close();
 
-		KubernetesClient kubernetes = new DefaultKubernetesClient(kubernetesMasterUrl);
-		Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes, kubernetesNamespace);
+		Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes);
 
 	    for (String serviceName : serviceMap.keySet()) {
 			if (keyword==null || keyword.equals("") || keyword.equals("*") || serviceName.toLowerCase().contains(keyword.toLowerCase())) {
@@ -108,7 +110,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				String port = KubernetesHelper.serviceToPort(service.getMetadata().getName());
 				if (port!=null && port.endsWith("443")) scheme = "https";
 				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) scheme = annotations.get(SERVICE_SCHEME);
-				String serviceUrl = KubernetesHelper.getServiceURL(kubernetes, service.getMetadata().getName(),kubernetesNamespace, scheme, true);
+				String serviceUrl = KubernetesHelper.getServiceURL(kubernetes, service.getMetadata().getName(),kubernetes.getNamespace(), scheme, true);
 				if (! serviceUrl.endsWith("/")) serviceUrl += "/";
 				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl);
 
