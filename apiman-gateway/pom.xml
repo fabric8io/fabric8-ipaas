@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-     <groupId>io.fabric8.ipaas.apps</groupId>
-     <artifactId>fabric8-ipaas</artifactId>
-    <version>2.2.47-SNAPSHOT</version>
+    <groupId>io.fabric8.ipaas.apps</groupId>
+    <artifactId>fabric8-ipaas</artifactId>
+    <version>2.2.49-SNAPSHOT</version>
   </parent>
   <artifactId>apiman-gateway</artifactId>
   <name>Apiman Gateway</name>
@@ -18,7 +19,7 @@
     <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
     <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
 
-    <http.port>7777</http.port>    
+    <http.port>7777</http.port>
     <docker.from>fabric8/java</docker.from>
     <docker.image>${fabric8.dockerPrefix}${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
@@ -34,48 +35,40 @@
     <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
   </properties>
 
-<dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.apiman</groupId>
+        <artifactId>apiman</artifactId>
+        <version>${apiman.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
+  <dependencies>
     <dependency>
       <groupId>io.apiman</groupId>
       <artifactId>apiman-gateway-platforms-war-micro</artifactId>
       <type>jar</type>
       <version>${apiman.version}</version>
     </dependency>
-    
+
     <!-- fabric8 -->
     <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>kubernetes-api</artifactId>
-    </dependency>
-    
-    <!-- overriding versions from dependencyManagement -->
-    <dependency>
-     <groupId>javax.servlet</groupId>
-     <artifactId>javax.servlet-api</artifactId>
-     <version>3.1.0</version>
-    </dependency>
-    <dependency>
-     <groupId>commons-logging</groupId>
-     <artifactId>commons-logging</artifactId>
-     <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore-nio</artifactId>
-      <version>4.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-      <version>4.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-core </artifactId>
-      <version>4.10.4</version>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-api</artifactId>
     </dependency>
 
-</dependencies>
+    <!-- overriding versions from dependencyManagement -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+
+  </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>

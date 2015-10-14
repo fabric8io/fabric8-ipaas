@@ -3,7 +3,7 @@
   <parent>
     <groupId>io.fabric8.ipaas.apps</groupId>
     <artifactId>fabric8-ipaas</artifactId>
-    <version>2.2.47-SNAPSHOT</version>
+    <version>2.2.49-SNAPSHOT</version>
   </parent>
   <artifactId>apiman</artifactId>
   <name>Apiman Manager</name>
@@ -37,6 +37,18 @@
     <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.apiman</groupId>
+        <artifactId>apiman</artifactId>
+        <version>${apiman.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
 <dependencies>
     <dependency>
       <groupId>io.apiman</groupId>
@@ -47,7 +59,6 @@
     <dependency>
       <groupId>io.apiman</groupId>
       <artifactId>apiman-distro-data</artifactId>
-      <version>${apiman.version}</version>
     </dependency>
     
     <!-- fabric8 -->
@@ -62,27 +73,8 @@
      <artifactId>javax.servlet-api</artifactId>
      <version>3.1.0</version>
     </dependency>
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore-nio</artifactId>
-      <version>4.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-      <version>4.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-core </artifactId>
-      <version>4.10.4</version>
-    </dependency>
     
+    <!-- testing -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

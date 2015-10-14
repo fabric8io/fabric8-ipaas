@@ -15,7 +15,6 @@
  */
 package io.fabric8.apiman;
 
-import io.apiman.manager.api.micro.ManagerApiMicroServiceConfig;
 import io.fabric8.utils.Systems;
 
 import java.net.InetAddress;
@@ -43,28 +42,47 @@ public class ApimanStarter {
     }
     
     public static void setFabric8Props() {
-    	
-    	String[] esLocation = discoverServiceLocation("ELASTICSEARCH","9200");
-    	
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL, esLocation[0]);
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST, esLocation[1]);
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT, esLocation[2]);
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME) == null) 
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME, "elasticsearch");
-        if (Systems.getEnvVarOrSystemProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE) == null)
-        	System.setProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE, "io.fabric8.apiman.KubernetesServiceCatalog");
-        
-        System.out.println("Elastic Connection Properties set to:");
-        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL) + "://");
-        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_HOST) + ":");
-        System.out.print(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_PORT) + " ");
-        System.out.println(System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_STORAGE_ES_CLUSTER_NAME));
-        System.out.println("Service Catalog Type " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
-        System.out.println("Gateway Registry Class: " + System.getProperty(ManagerApiMicroServiceConfig.APIMAN_MANAGER_SERVICE_CATALOG_TYPE));
-        
+        String[] esLocation = discoverServiceLocation("ELASTICSEARCH", "9200");
+        String esProtocol = esLocation[0];
+        String esHost = esLocation[1];
+        String esPort = esLocation[2];
+
+        System.out.println("** Setting API Manager Configuration Properties **");
+
+        setConfigProp("apiman.plugins.repositories",
+                "http://repository.jboss.org/nexus/content/groups/public/");
+
+        setConfigProp("apiman.es.protocol", esProtocol);
+        setConfigProp("apiman.es.host", esHost);
+        setConfigProp("apiman.es.port", esPort);
+        setConfigProp("apiman.es.username", "");
+        setConfigProp("apiman.es.password", "");
+
+        setConfigProp("apiman-manager.storage.type", "es");
+        setConfigProp("apiman-manager.storage.es.protocol", "${apiman.es.protocol}");
+        setConfigProp("apiman-manager.storage.es.host", "${apiman.es.host}");
+        setConfigProp("apiman-manager.storage.es.port", "${apiman.es.port}");
+        setConfigProp("apiman-manager.storage.es.username", "${apiman.es.username}");
+        setConfigProp("apiman-manager.storage.es.password", "${apiman.es.password}");
+        setConfigProp("apiman-manager.storage.es.initialize", "true");
+
+        setConfigProp("apiman-manager.metrics.type", "es");
+        setConfigProp("apiman-manager.metrics.es.protocol", "${apiman.es.protocol}");
+        setConfigProp("apiman-manager.metrics.es.host", "${apiman.es.host}");
+        setConfigProp("apiman-manager.metrics.es.port", "${apiman.es.port}");
+        setConfigProp("apiman-manager.metrics.es.username", "${apiman.es.username}");
+        setConfigProp("apiman-manager.metrics.es.password", "${apiman.es.password}");
+
+        setConfigProp("apiman-manager.service-catalog.type", KubernetesServiceCatalog.class.getName());
+
+        System.out.println("** ******************************************** **");
+    }
+
+    private static final void setConfigProp(String propName, String propValue) {
+        if (Systems.getEnvVarOrSystemProperty(propName) == null) {
+            System.setProperty(propName, propValue);
+        }
+        System.out.println("\t" + propName + "=" + System.getProperty(propName));
     }
     
     public static String[] discoverServiceLocation(String serviceName, String defaultPort) {
