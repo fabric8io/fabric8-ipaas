@@ -112,13 +112,12 @@ public class BearerTokenFilter implements Filter {
 				}
 				sendInvalidTokenResponse((HttpServletResponse)response, errMsg);
 			}
+		} else if (("/".equals(req.getPathInfo())) || ("/swagger.json".equals(req.getPathInfo()))
+		        || ("/swagger.yaml".equals(req.getPathInfo()))) {
+			//allow anonymous requests to the root or swagger document
+			chain.doFilter(request, response);
 		} else {
-			//I think it makes sense to have the next filter be the AuthenticationFilter
-			//to also allow basic Auth, but that filter does not support this filter
-			//allowing access. So for now let's not support it.
-			
-			//no bearer token present - go to the next filter
-			//chain.doFilter(request, response);
+			//no bearer token present
 			sendInvalidTokenResponse((HttpServletResponse)response, "No BearerToken");
 		}
 	}
