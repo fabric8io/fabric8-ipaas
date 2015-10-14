@@ -16,8 +16,11 @@
 package io.fabric8.apiman;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.apiman.common.auth.AuthPrincipal;
 import io.fabric8.kubernetes.api.KubernetesHelper;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.OAuthClientAuthorizationList;
 import io.fabric8.utils.Systems;
 import io.fabric8.utils.ssl.TrustEverythingSSLTrustManager;
@@ -27,6 +30,7 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -58,6 +62,7 @@ public class BearerTokenFilter implements Filter {
 	public static final String KUBERNETES_SERVICE_PORT = "KUBERNETES_SERVICE_PORT";
 	URL kubernetesOsapiUrl = null;
 	boolean kubernetesTrustCert = false;
+	KubernetesClient kubernetes = null;
 
 	/**
 	 * Constructor.
@@ -70,11 +75,17 @@ public class BearerTokenFilter implements Filter {
 	 */
 	@Override
 	public void init(FilterConfig config) throws ServletException {
-		String kubernetesHostAndPort = Systems.getServiceHostAndPort(
-				"KUBERNETES", "172.28.128.4", "8443");
+	    
+        String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER");
+        if (kubernetesMasterUrl!=null) {
+            kubernetes = new DefaultKubernetesClient(kubernetesMasterUrl);
+        } else {
+            kubernetes = new DefaultKubernetesClient();
+        }
+        kubernetesTrustCert = kubernetes.getConfiguration().isTrustCerts();
 		kubernetesTrustCert = Boolean.parseBoolean(Systems.getEnvVarOrSystemProperty("KUBERNETES_TRUST_CERT", "true"));
 		try {
-			kubernetesOsapiUrl = new URL("https://" + kubernetesHostAndPort
+			kubernetesOsapiUrl = new URL(kubernetes.getMasterUrl() 
 					+ KUBERNETES_OSAPI_URL + "/users/");
 		} catch (MalformedURLException e) {
 			throw new ServletException(e);
@@ -103,6 +114,7 @@ public class BearerTokenFilter implements Filter {
 				request = wrapTheRequest(request, principal);
 				chain.doFilter(request, response);
 			} catch (IOException e) {
+			    e.printStackTrace();
 				String errMsg = e.getMessage();
 				if (e.getMessage().contains("Server returned HTTP response code")) {
 					errMsg = "Invalid BearerToken";
@@ -143,6 +155,8 @@ public class BearerTokenFilter implements Filter {
 		String userName = userList.getItems().get(0).getMetadata().getName();
 		return userName;
 	}
+	
+	
 
 	/**
 	 * Wrap the request to provide the principal.
