@@ -137,13 +137,10 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				} else {
 					bean.setDefinitionType(ServiceDefinitionType.None);
 				}
-				if (log.isDebugEnabled()) {
-					log.debug(bean.getName() + ":" + bean.getDescription());
-					log.debug("  " + bean.getEndpoint() + ":" + bean.getEndpointType());
-					log.debug("  " + bean.getDefinitionUrl() + ":" + bean.getDefinitionType());
-				}
+				log.info(bean.getName() + " : " + bean.getDescription());
+				log.info("  " + bean.getEndpoint() + " : " + bean.getEndpointType());
+				log.info("  " + bean.getDefinitionUrl() + " : " + bean.getDefinitionType());
 				availableServiceBeans.add(bean);
-
 			}
 		}
 	    kubernetes.close();
