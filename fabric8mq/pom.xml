@@ -83,10 +83,12 @@
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
         </dependency>
-        <dependency>
+
+      <!-- TODO: remove version when upgrading to next fabric8 release -->
+      <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-stomp</artifactId>
-            <version>5.11.1</version>
+            <version>5.12.1</version>
         </dependency>
 
         <dependency>
@@ -130,15 +132,17 @@
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-broker</artifactId>
         </dependency>
+
+        <!-- TODO: remove version when upgrading to next fabric8 release -->
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>3.1.1</version>
+            <version>3.1.2</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-json</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.2</version>
         </dependency>
 
         <dependency>
@@ -153,7 +157,8 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
+      <!-- TODO: remove version when upgrading to next fabric8 release -->
+      <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>
             <version>2.6.0</version>
@@ -196,9 +201,11 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TODO: upgrade to netty4 -->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
+            <version>3.9.9.Final</version>
         </dependency>
     </dependencies>
 
