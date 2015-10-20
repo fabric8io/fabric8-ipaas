@@ -38,6 +38,8 @@
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
+
+    <!-- Unsupported modules (excluded from the release)
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>api-registry</artifactId>
@@ -73,6 +75,7 @@
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
+    -->
   </dependencies>
 
   <build>
