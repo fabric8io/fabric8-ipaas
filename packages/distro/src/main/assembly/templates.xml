@@ -21,7 +21,7 @@
       <dependencySet>
         <useTransitiveDependencies>false</useTransitiveDependencies>
         <includes>
-          <include>io.fabric8.devops.apps:*:json:kubernetes:*</include>
+          <include>io.fabric8.ipaas.apps:*:json:kubernetes:*</include>
         </includes>
         <outputDirectory>/microservices</outputDirectory>
         <outputFileNameMapping>${artifact.artifactId}-${artifact.version}.json</outputFileNameMapping>
