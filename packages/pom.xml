@@ -35,7 +35,6 @@
 
   <modules>
     <module>apiman</module>
-
     <module>distro</module>
   </modules>
 
