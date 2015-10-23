@@ -35,7 +35,7 @@
   <properties>
     <fabric8.qpiddispatch.version>latest</fabric8.qpiddispatch.version>
 
-    <docker.image>${fabric8.dockerPrefix}${fabric8.dockerUser}qpid-dispatch:${fabric8.qpiddispatch.version}</docker.image>
+    <docker.image>${fabric8.dockerUser}qpid-dispatch:${fabric8.qpiddispatch.version}</docker.image>
 
     <fabric8.label.component>qpid</fabric8.label.component>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
