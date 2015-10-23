@@ -87,7 +87,6 @@
         <commons.beanutils.version>1.9.2</commons.beanutils.version>
         <docker.assembly.exportBaseDir>false</docker.assembly.exportBaseDir>
         <docker.maven.plugin.version>0.13.6</docker.maven.plugin.version>
-        <fabric8.dockerPrefix>docker.io/</fabric8.dockerPrefix>
         <fabric8.dockerUser>fabric8/</fabric8.dockerUser>
         <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
         <junit.version>4.12</junit.version>
@@ -100,7 +99,7 @@
         <amqbroker.service.port>7163</amqbroker.service.port>
 
         <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk</docker.from>
-        <docker.image>${fabric8.dockerPrefix}${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+        <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
         <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
         <docker.port.container.jolokia>8778</docker.port.container.jolokia>
     </properties>
@@ -331,7 +330,6 @@
           <properties>
             <fabric8.version>2.2.55-SNAPSHOT</fabric8.version>
             <fabric8.release.version>2.2.40</fabric8.release.version>
-            <fabric8.dockerPrefix />
           </properties>
         </profile>
         <profile>
