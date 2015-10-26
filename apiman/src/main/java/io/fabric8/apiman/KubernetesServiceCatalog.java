@@ -91,12 +91,14 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		Map<String,String> descriptions = new HashMap<String,String>();
 		for(Template template : templateList.getItems()) {
 			String name = template.getMetadata().getName();
-			for (String annotation : template.getMetadata().getAnnotations().keySet()) {
-				if (annotation.contains("summary")) {
-					String description = template.getMetadata().getAnnotations().get(annotation);
-					descriptions.put(name, description);
-				}
-			}
+			if (template.getMetadata().getAnnotations() != null) {
+    			for (String annotationKey : template.getMetadata().getAnnotations().keySet()) {
+    				if (annotationKey.contains("summary")) {
+    					String description = template.getMetadata().getAnnotations().get(annotationKey);
+    					descriptions.put(name, description);
+    				}
+    			}
+		    }
 		}
 		osClient.close();
 
