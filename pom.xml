@@ -106,9 +106,9 @@
     </properties>
 
     <modules>
-        <!-- amq/mq modules not supported in redhat branch -->
+        <!-- amq/mq/api-registry modules not supported in redhat branch -->
         <!--<module>amqbroker</module>-->
-        <module>api-registry</module>
+        <!--<module>api-registry</module>-->
         <module>apiman-gateway</module>
         <module>apiman</module>
         <!--<module>fabric8</module>-->
