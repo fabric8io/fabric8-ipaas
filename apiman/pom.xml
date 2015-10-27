@@ -21,15 +21,15 @@
     <timestamp>${maven.build.timestamp}</timestamp>
 
     <http.port>7070</http.port>    
-    <docker.from>fabric8/java</docker.from>
+    <docker.from>fabric8/s2i-java:1.1.5</docker.from>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
     <docker.env.MAIN>io.fabric8.apiman.ApimanStarter</docker.env.MAIN>
     <docker.port.container.http>${http.port}</docker.port.container.http>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
+    <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
     <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
-    <fabric8.env.MAIN>${docker.env.MAIN}</fabric8.env.MAIN>
     <fabric8.label.component>ApimanManagerAPI</fabric8.label.component>
     <fabric8.label.group>defaultGatewayGroup</fabric8.label.group>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
@@ -103,6 +103,18 @@
 
     <plugins>
       <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>hawt-app-maven-plugin</artifactId>
+        <version>${fabric8.version}</version>
+        <executions>
+          <execution>
+            <id>hawt-app</id>
+            <goals><goal>build</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.jolokia</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <version>${docker.maven.plugin.version}</version>
@@ -113,10 +125,12 @@
               <build>
                 <from>${docker.from}</from>
                 <assembly>
-                  <descriptorRef>${docker.assemblyDescriptorRef}</descriptorRef>
+                  <basedir>/deployments</basedir>
+                  <descriptorRef>hawt-app</descriptorRef>
                 </assembly>
                 <env>
-                  <MAIN>${docker.env.MAIN}</MAIN>
+                  <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
+                  <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
                   <HTTP_PORT>${http.port}</HTTP_PORT>
                 </env>
                 <ports>
@@ -141,51 +155,40 @@
     </plugins>
   </build>
 
+<!--
+  Default sample commands:
+
+  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
+  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
+  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
+
+  For individual goal usage please consult the fabric8 documentation
+  -->
   <profiles>
     <profile>
-      <id>docker-build</id>
+      <id>f8-build</id>
       <build>
-        <plugins>
-          <plugin>
-            <groupId>org.jolokia</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    
-    <profile>
-      <id>docker-push</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.jolokia</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>build</goal>
-                  <goal>push</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
+        <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
       </build>
     </profile>
     <profile>
-      <id>docker-public</id>
+      <id>f8-deploy</id>
       <properties>
+        <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
+        <fabric8.recreate>true</fabric8.recreate>
       </properties>
+      <build>
+        <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
+      </build>
+    </profile>
+    <profile>
+      <id>f8-local-deploy</id>
+      <properties>
+        <fabric8.recreate>true</fabric8.recreate>
+      </properties>
+      <build>
+        <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
+      </build>
     </profile>
   </profiles>
 
