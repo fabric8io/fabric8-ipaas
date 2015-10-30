@@ -44,7 +44,7 @@ public class Fabric8MQStatus implements Fabric8MQStatusMBean {
     @ConfigProperty(name = "CONTROLLER_HOST", defaultValue = "0.0.0.0")
     private String controllerHost;
     @Inject
-    @ConfigProperty(name = "VIRTUAL_HOST", defaultValue = "")
+    @ConfigProperty(name = "VIRTUAL_HOST")
     private String defaultVirtualHost;
 
     @ConfigProperty(name = "CAMEL_ROUTES", defaultValue = "<from uri=\"mq:topic:>\"/> <to uri=\"mq:queue:>\"/>")
