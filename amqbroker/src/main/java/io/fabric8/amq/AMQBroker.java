@@ -16,16 +16,13 @@
 package io.fabric8.amq;
 
 import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.broker.jmx.ManagementContext;
 import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
 import org.apache.activemq.util.ServiceStopper;
 import org.apache.activemq.util.ServiceSupport;
 import org.apache.deltaspike.core.api.config.ConfigProperty;
 
 import javax.inject.Inject;
-import javax.management.MBeanServer;
 import java.io.File;
-import java.lang.management.ManagementFactory;
 
 public class AMQBroker extends ServiceSupport {
     @Inject
@@ -235,15 +232,16 @@ public class AMQBroker extends ServiceSupport {
 
     @Override
     protected void doStart() throws Exception{
-        brokerService = new BrokerService();
 
         long maxMemory = Runtime.getRuntime().maxMemory();
         long brokerMemory = (long) (maxMemory * 0.7);
 
-        brokerService.getSystemUsage().getMemoryUsage().setLimit(brokerMemory);
+        brokerService = new BrokerService();
         brokerService.setBrokerName(getBrokerName());
-        brokerService.setAdvisorySupport(isAdvisorySupport());
-        if (isPersistent()) {
+        boolean persistent = isPersistent();
+
+        brokerService.setPersistent(persistent);
+        if (persistent) {
             brokerService.setDataDirectory(getDataDirectory());
             KahaDBPersistenceAdapter persistenceAdapter = new KahaDBPersistenceAdapter();
             persistenceAdapter.setDirectory(new File(getDataDirectory()));
@@ -261,12 +259,8 @@ public class AMQBroker extends ServiceSupport {
                 brokerService.setDeleteAllMessagesOnStartup(isDeleteAllMessagesOnStartup());
             brokerService.setPersistenceAdapter(persistenceAdapter);
         }
-
-        //we create our own ManagementContext - so ActiveMQ doesn't create a needless JMX Connector
-        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        ManagementContext managementContext = new ManagementContext(server);
-        managementContext.setCreateConnector(false);
-        brokerService.setManagementContext(managementContext);
+        brokerService.getSystemUsage().getMemoryUsage().setLimit(brokerMemory);
+        brokerService.setAdvisorySupport(isAdvisorySupport());
 
         String connector = "tcp://" + getHost() + ":" + getPort();
         System.out.println("Starting AMQ Broker on " + connector);
