@@ -44,7 +44,7 @@ public class AMQKubernetes {
     public void testKubernetes() throws Exception {
         String serviceName = "amqbroker";
         assertThat(client).replicationController(serviceName, session.getNamespace()).isNotNull();
-        assertThat(client).hasServicePort(serviceName, session.getNamespace(), 7163);
+        assertThat(client).hasServicePort(serviceName, session.getNamespace(), 6163);
 
         assertThat(client).pods()
             .runningStatus()
