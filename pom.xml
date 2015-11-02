@@ -95,8 +95,6 @@
 
         <activemq.container.port>6194</activemq.container.port>
         <activemq.service.port>6163</activemq.service.port>
-        <amqbroker.container.port>7162</amqbroker.container.port>
-        <amqbroker.service.port>7163</amqbroker.service.port>
 
         <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk</docker.from>
         <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
