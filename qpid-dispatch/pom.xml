@@ -36,9 +36,18 @@
     <fabric8.qpiddispatch.version>latest</fabric8.qpiddispatch.version>
 
     <docker.image>${fabric8.dockerUser}qpid-dispatch:${fabric8.qpiddispatch.version}</docker.image>
-
     <fabric8.label.component>qpid</fabric8.label.component>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
+
+      <fabric8.service.port>5672</fabric8.service.port>
+      <fabric8.service.containerPort>5672</fabric8.service.containerPort>
+      <fabric8.service.type>LoadBalancer</fabric8.service.type>
+
+      <fabric8.label.component>qpid-dispatch</fabric8.label.component>
+      <fabric8.label.group>qpid-dispatch</fabric8.label.group>
+      <fabric8.label.provider>fabric8</fabric8.label.provider>
+      <fabric8.iconRef>icons/activemq.svg</fabric8.iconRef>
+
   </properties>
 
     <dependencies>
