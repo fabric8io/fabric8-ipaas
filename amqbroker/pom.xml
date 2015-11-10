@@ -143,23 +143,17 @@
         </configuration>
       </plugin>
 
+
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.10</version>
+        <groupId>io.fabric8</groupId>
+        <artifactId>hawt-app-maven-plugin</artifactId>
+        <version>${fabric8.version}</version>
         <executions>
           <execution>
-            <id>add-classpath</id>
-            <phase>package</phase>
-            <goals>
-              <!--  create target/classpath for docker-maven-plugin's assembly to pick up  -->
-              <goal>build-classpath</goal>
-            </goals>
+            <id>hawt-app</id>
+            <goals><goal>build</goal></goals>
             <configuration>
-              <prefix>.</prefix>
-              <pathSeparator>:</pathSeparator>
-              <includeScope>runtime</includeScope>
-              <outputFile>${project.build.directory}/classpath</outputFile>
+              <javaMainClass>${docker.env.MAIN}</javaMainClass>
             </configuration>
           </execution>
         </executions>
@@ -176,11 +170,11 @@
               <build>
                 <from>${docker.from}</from>
                 <assembly>
-                  <basedir>/app</basedir>
-                  <descriptorRef>artifact-with-dependencies</descriptorRef>
+                  <basedir>/deployments</basedir>
+                  <descriptorRef>hawt-app</descriptorRef>
                 </assembly>
                 <env>
-                  <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
+                  <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
                   <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
                   <AMQ_PORT>${activemq.container.port}</AMQ_PORT>
                   <AMQ_DATA_DIRECTORY>/var/activemq</AMQ_DATA_DIRECTORY>
