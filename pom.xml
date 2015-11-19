@@ -110,6 +110,7 @@
         <!--<module>api-registry</module>-->
         <module>apiman-gateway</module>
         <module>apiman</module>
+        <module>elasticsearch</module>
         <!--<module>fabric8</module>-->
         <!--<module>fabric8mq</module>-->
         <!--<module>fabric8mq-producer</module>-->
