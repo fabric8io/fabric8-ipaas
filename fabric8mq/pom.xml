@@ -37,7 +37,7 @@
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
         <docker.env.MAIN>io.fabric8.mq.Main</docker.env.MAIN>
 
-        <fabric8.service.port>${activemq.container.port}</fabric8.service.port>
+        <fabric8.service.port>${activemq.service.port}</fabric8.service.port>
         <fabric8.service.containerPort>${activemq.container.port}</fabric8.service.containerPort>
         <fabric8.service.type>LoadBalancer</fabric8.service.type>
 
