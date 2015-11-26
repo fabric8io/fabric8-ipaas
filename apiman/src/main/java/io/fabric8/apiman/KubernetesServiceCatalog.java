@@ -19,6 +19,7 @@ import io.apiman.manager.api.beans.services.EndpointType;
 import io.apiman.manager.api.beans.services.ServiceDefinitionType;
 import io.apiman.manager.api.beans.summary.AvailableServiceBean;
 import io.apiman.manager.api.core.IServiceCatalog;
+import io.fabric8.utils.KubernetesServices;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -109,7 +110,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				Service service = serviceMap.get(serviceName);
 				Map<String,String> annotations = service.getMetadata().getAnnotations();
 				String scheme = "http";
-				String port = KubernetesHelper.serviceToPort(service.getMetadata().getName());
+				String port = KubernetesServices.serviceToPortOrBlank(service.getMetadata().getName());
 				if (port!=null && port.endsWith("443")) scheme = "https";
 				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) scheme = annotations.get(SERVICE_SCHEME);
 				String serviceUrl = KubernetesHelper.getServiceURL(kubernetes, service.getMetadata().getName(),kubernetes.getNamespace(), scheme, true);
