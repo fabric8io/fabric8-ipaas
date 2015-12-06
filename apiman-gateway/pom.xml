@@ -22,6 +22,7 @@
     <docker.from>fabric8/s2i-java:1.1.5</docker.from>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
+    <docker.env.JAVA_OPTIONS>-Dhttp.keepAlive=false</docker.env.JAVA_OPTIONS>
     <docker.port.container.http>${http.port}</docker.port.container.http>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
@@ -106,6 +107,7 @@
                 <env>
                   <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
                   <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
+                  <JAVA_OPTIONS>${docker.env.JAVA_OPTIONS}</JAVA_OPTIONS>
                   <HTTP_PORT>${http.port}</HTTP_PORT>
                 </env>
                 <ports>
