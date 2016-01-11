@@ -23,7 +23,6 @@ import io.apiman.manager.api.beans.idm.PermissionType;
 import io.apiman.manager.api.beans.idm.RoleBean;
 import io.apiman.manager.api.beans.policies.PolicyDefinitionBean;
 import io.apiman.manager.api.beans.summary.PolicyDefinitionSummaryBean;
-import io.apiman.manager.api.core.IIdmStorage;
 import io.apiman.manager.api.core.IStorage;
 import io.apiman.manager.api.core.IStorageQuery;
 import io.apiman.manager.api.core.exceptions.StorageException;
@@ -66,9 +65,6 @@ public class BootstrapFilter implements Filter {
 	
 	@Inject
 	IStorageQuery storageQuery;
-	
-	@Inject
-	IIdmStorage idmStorage;
 	
 	@Inject @ApimanLogger(BootstrapFilter.class)
 	IApimanLogger logger;
@@ -157,7 +153,7 @@ public class BootstrapFilter implements Filter {
 			Date now = new Date();
 			//Organization Owner
 			String name = "Organization Owner";
-			if (idmStorage.getRole(name) == null) {
+			if (storage.getRole(name) == null) {
 				logger.info("Creating Organization Owner Role");
 				RoleBean roleBean = new RoleBean();
 				roleBean.setAutoGrant(true);
@@ -170,22 +166,22 @@ public class BootstrapFilter implements Filter {
 				permissions.add(PermissionType.orgAdmin);
 				permissions.add(PermissionType.orgEdit);
 				permissions.add(PermissionType.orgView);
-				permissions.add(PermissionType.appAdmin);
-				permissions.add(PermissionType.appEdit);
-				permissions.add(PermissionType.appView);
+				permissions.add(PermissionType.clientAdmin);
+				permissions.add(PermissionType.clientEdit);
+				permissions.add(PermissionType.clientView);
 				permissions.add(PermissionType.planAdmin);
 				permissions.add(PermissionType.planEdit);
 				permissions.add(PermissionType.planView);
-				permissions.add(PermissionType.svcAdmin);
-				permissions.add(PermissionType.svcEdit);
-				permissions.add(PermissionType.svcView);
+				permissions.add(PermissionType.apiAdmin);
+				permissions.add(PermissionType.apiEdit);
+				permissions.add(PermissionType.apiView);
 				roleBean.setPermissions(permissions);
-				idmStorage.createRole(roleBean);
+				storage.createRole(roleBean);
 			}
 			
 			//Application Developer
 			name = "Application Developer";
-			if (idmStorage.getRole(name) == null) {
+			if (storage.getRole(name) == null) {
 				logger.info("Creating Application Developer Role");
 				RoleBean roleBean = new RoleBean();
 				roleBean.setCreatedBy("admin");
@@ -194,16 +190,16 @@ public class BootstrapFilter implements Filter {
 				roleBean.setName("Application Developer");
 				roleBean.setDescription("Users responsible for creating and managing applications should be granted this role within an Organization.");
 				Set<PermissionType> permissions = new HashSet<PermissionType>();
-				permissions.add(PermissionType.appAdmin);
-				permissions.add(PermissionType.appEdit);
-				permissions.add(PermissionType.appView);
+				permissions.add(PermissionType.clientAdmin);
+				permissions.add(PermissionType.clientEdit);
+				permissions.add(PermissionType.clientView);
 				roleBean.setPermissions(permissions);
-				idmStorage.createRole(roleBean);
+				storage.createRole(roleBean);
 			}
 			
 			//Service Developer
 			name = "Service Developer";
-			if (idmStorage.getRole(name) == null) {
+			if (storage.getRole(name) == null) {
 				logger.info("Creating Service Developer Role");
 				RoleBean roleBean = new RoleBean();
 				roleBean.setCreatedBy("admin");
@@ -215,11 +211,11 @@ public class BootstrapFilter implements Filter {
 				permissions.add(PermissionType.planAdmin);
 				permissions.add(PermissionType.planEdit);
 				permissions.add(PermissionType.planView);
-				permissions.add(PermissionType.svcAdmin);
-				permissions.add(PermissionType.svcEdit);
-				permissions.add(PermissionType.svcView);
+				permissions.add(PermissionType.apiAdmin);
+				permissions.add(PermissionType.apiEdit);
+				permissions.add(PermissionType.apiView);
 				roleBean.setPermissions(permissions);
-				idmStorage.createRole(roleBean);
+				storage.createRole(roleBean);
 			}
 			
 		} catch (StorageException e) {

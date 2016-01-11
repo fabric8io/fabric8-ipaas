@@ -18,15 +18,18 @@ package io.fabric8.apiman;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import io.apiman.manager.api.beans.summary.AvailableApiBean;
 import io.fabric8.apiman.KubernetesServiceCatalog;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class KubernetesServiceCatalogTest {
 
-	@Test
+	@Test @Ignore
 	public void singleServiceAnnotations() {
 		String serviceUrl = "http://localhost:8080/";
 		KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
@@ -43,5 +46,16 @@ public class KubernetesServiceCatalogTest {
 		assertEquals("wsdl", sc.getDescriptionType());
 	}
 	
+	@Test @Ignore
+	public void kube() {
+	    
+	    System.getProperties().put("KUBERNETES_MASTER", "https://192.168.100.37:8443");
+	    System.getProperties().put("KUBERNETES_TRUST_CERTIFICATE", "true");
+	    KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
+	    List<AvailableApiBean> beans = catalog.search("*");
+	    for (AvailableApiBean availableServiceBean : beans) {
+            System.out.println("Bean=" + availableServiceBean.getDescription());
+        }
+	}
 
 }

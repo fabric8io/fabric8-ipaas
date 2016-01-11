@@ -77,10 +77,10 @@
         <fabric8.version>2.2.85</fabric8.version>
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
         <fabric8.devops.version>2.2.54</fabric8.devops.version>
-        <apiman.version>1.2.0.Beta1</apiman.version>
+        <apiman.version>1.2.0.Final</apiman.version>
 
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
 
         <arquillian.version>1.1.10.Final</arquillian.version>
@@ -107,6 +107,7 @@
         <module>api-registry</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
+        <module>elasticsearch</module>
         <module>fabric8</module>
         <module>fabric8mq</module>
         <module>fabric8mq-producer</module>

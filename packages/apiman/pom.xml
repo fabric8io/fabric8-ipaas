@@ -35,9 +35,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.fabric8.devops.apps</groupId>
-      <artifactId>elasticsearch</artifactId>
-      <version>${fabric8.devops.version}</version>
+      <groupId>io.fabric8.ipaas.apps</groupId>
+      <artifactId>elasticsearch-1</artifactId>
+      <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>

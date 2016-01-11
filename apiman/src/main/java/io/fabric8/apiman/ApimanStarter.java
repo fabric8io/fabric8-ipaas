@@ -42,7 +42,7 @@ public class ApimanStarter {
     }
     
     public static void setFabric8Props() {
-        String[] esLocation = discoverServiceLocation("ELASTICSEARCH", "9200");
+        String[] esLocation = discoverServiceLocation("ELASTICSEARCH-1", "9200");
         String esProtocol = esLocation[0];
         String esHost = esLocation[1];
         String esPort = esLocation[2];
@@ -73,7 +73,7 @@ public class ApimanStarter {
         setConfigProp("apiman-manager.metrics.es.username", "${apiman.es.username}");
         setConfigProp("apiman-manager.metrics.es.password", "${apiman.es.password}");
 
-        setConfigProp("apiman-manager.service-catalog.type", KubernetesServiceCatalog.class.getName());
+        setConfigProp("apiman-manager.api-catalog.type", KubernetesServiceCatalog.class.getName());
 
         System.out.println("** ******************************************** **");
     }

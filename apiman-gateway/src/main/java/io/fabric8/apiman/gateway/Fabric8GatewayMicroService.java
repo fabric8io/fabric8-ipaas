@@ -31,12 +31,12 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
 	protected void configureGlobalVars() {
     	String host = null;
 		try {
-			InetAddress initAddress = InetAddress.getByName("ELASTICSEARCH");
+			InetAddress initAddress = InetAddress.getByName("ELASTICSEARCH-1");
 			host = initAddress.getCanonicalHostName();
 		} catch (UnknownHostException e) {
-		    System.out.println("Could not resolve DNS for ELASTICSEARCH, trying ENV settings next.");
+		    System.out.println("Could not resolve DNS for ELASTICSEARCH-1, trying ENV settings next.");
 		}
-    	String hostAndPort = Systems.getServiceHostAndPort("ELASTICSEARCH", "localhost", "9200");
+    	String hostAndPort = Systems.getServiceHostAndPort("ELASTICSEARCH-1", "localhost", "9200");
     	String[] hp = hostAndPort.split(":");
     	if (host == null) {
     	    System.out.println("ELASTICSEARCH host:port is set to " + hostAndPort + " using ENV settings.");
@@ -62,7 +62,7 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
 	 */
 	@Override
 	protected void configureRegistry() {
-        setConfigProperty(WarEngineConfig.APIMAN_GATEWAY_METRICS_CLASS, PollCachingESRegistry.class.getName());
+        setConfigProperty(WarEngineConfig.APIMAN_GATEWAY_REGISTRY_CLASS, PollCachingESRegistry.class.getName());
 	    super.configureRegistry();
 	}
 

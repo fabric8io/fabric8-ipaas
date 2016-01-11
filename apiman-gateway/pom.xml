@@ -47,6 +47,12 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- aligning with apiman -->
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>2.2.4</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   

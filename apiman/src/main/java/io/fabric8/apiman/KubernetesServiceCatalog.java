@@ -15,11 +15,10 @@
  */
 package io.fabric8.apiman;
 
-import io.apiman.manager.api.beans.services.EndpointType;
-import io.apiman.manager.api.beans.services.ServiceDefinitionType;
-import io.apiman.manager.api.beans.summary.AvailableServiceBean;
-import io.apiman.manager.api.core.IServiceCatalog;
-import io.fabric8.utils.KubernetesServices;
+import io.apiman.manager.api.beans.apis.ApiDefinitionType;
+import io.apiman.manager.api.beans.apis.EndpointType;
+import io.apiman.manager.api.beans.summary.AvailableApiBean;
+import io.apiman.manager.api.core.IApiCatalog;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -28,6 +27,7 @@ import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateList;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.utils.KubernetesServices;
 import io.fabric8.utils.Systems;
 
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ import org.apache.commons.logging.LogFactory;
 	     <li>apiman.io/descriptionpath,</li>
 	     <li>apiman.io/descriptiontype</li>
  */
-public class KubernetesServiceCatalog implements IServiceCatalog  {
+public class KubernetesServiceCatalog implements IApiCatalog  {
 
 	final private static Log log = LogFactory.getLog(KubernetesServiceCatalog.class);
 
@@ -68,7 +68,7 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 	final public static String DESCRIPTION_TYPE = "apiman.io/descriptiontype";
 
 	@Override
-	public List<AvailableServiceBean> search(String keyword) {
+	public List<AvailableApiBean> search(String keyword) {
 		log.info("Searching in Kubernetes with service keyword " + keyword);
 		return searchKube(keyword);
 	}
@@ -76,8 +76,8 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 	/**
 	 *
 	 */
-	private List<AvailableServiceBean> searchKube(String keyword){
-		List<AvailableServiceBean> availableServiceBeans = new ArrayList<AvailableServiceBean>();
+	private List<AvailableApiBean> searchKube(String keyword){
+		List<AvailableApiBean> availableServiceBeans = new ArrayList<AvailableApiBean>();
 		//Obtain a list from Kubernetes, using the Kubernetes API
 		KubernetesClient kubernetes = null;
 		String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER");
@@ -86,22 +86,26 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 		} else {
 			kubernetes = new DefaultKubernetesClient();
 		}
-		
-		OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetes.getMasterUrl().toExternalForm());
-		TemplateList templateList = osClient.templates().list();
-		Map<String,String> descriptions = new HashMap<String,String>();
-		for(Template template : templateList.getItems()) {
-			String name = template.getMetadata().getName();
-			if (template.getMetadata().getAnnotations() != null) {
-    			for (String annotationKey : template.getMetadata().getAnnotations().keySet()) {
-    				if (annotationKey.contains("summary")) {
-    					String description = template.getMetadata().getAnnotations().get(annotationKey);
-    					descriptions.put(name, description);
-    				}
-    			}
-		    }
-		}
-		osClient.close();
+		Map<String,String> iconUrls = new HashMap<String,String>();
+	    OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetes.getMasterUrl().toExternalForm());
+//
+// This is how we'd get all namespaces for the current user. For now we require one apiman per namespace
+//	    ProjectList projectList = osClient.projects().list();
+//	    for (Project item: projectList.getItems()) {
+//	        String namespace = item.getMetadata().getName();
+//	    }
+	    TemplateList templateList = osClient.templates().list();
+	    for (Template item: templateList.getItems()) {
+	        if (item.getMetadata().getAnnotations() != null) {
+    	        for (String annotationName:item.getMetadata().getAnnotations().keySet()) {
+    	            if (annotationName.endsWith("/iconUrl")) {
+    	                String iconUrl = item.getMetadata().getAnnotations().get(annotationName);
+    	                iconUrls.put(annotationName, iconUrl);
+    	            }
+    	        }
+	        }
+	    }
+	    osClient.close();
 
 		Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes);
 
@@ -117,9 +121,16 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				if (! serviceUrl.endsWith("/")) serviceUrl += "/";
 				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl);
 
-				AvailableServiceBean bean = new AvailableServiceBean();
-				bean.setName(service.getMetadata().getName());
-				bean.setDescription(descriptions.get(service.getMetadata().getName()));
+				AvailableApiBean bean = new AvailableApiBean();
+				String name = service.getMetadata().getName();
+				bean.setName(name);
+				String iconUrlKey = "fabric8." + name + "/iconUrl";
+				bean.setIcon(iconUrls.get(iconUrlKey));
+				String summaryKey = "fabric8." + name + "/summary";
+                if (service.getMetadata().getAnnotations()!=null && service.getMetadata().getAnnotations().keySet().contains(summaryKey)) {
+                    String description = service.getMetadata().getAnnotations().get(summaryKey);
+                    bean.setDescription(description);
+                }
 				bean.setEndpoint(serviceContract.getServiceUrl());
 				if (serviceContract.getServiceType()!=null) {
 					for (EndpointType type: EndpointType.values()) {
@@ -132,17 +143,19 @@ public class KubernetesServiceCatalog implements IServiceCatalog  {
 				}
 				bean.setDefinitionUrl(serviceContract.getDescriptionUrl());
 				if (serviceContract.getDescriptionType()!=null) {
-					for (ServiceDefinitionType type: ServiceDefinitionType.values()) {
+					for (ApiDefinitionType type: ApiDefinitionType.values()) {
 						if (type.toString().equalsIgnoreCase(serviceContract.getDescriptionType())) {
-							bean.setDefinitionType(ServiceDefinitionType.valueOf(type.name()));
+							bean.setDefinitionType(ApiDefinitionType.valueOf(type.name()));
 						}
 					}
 				} else {
-					bean.setDefinitionType(ServiceDefinitionType.None);
+					bean.setDefinitionType(ApiDefinitionType.None);
 				}
-				log.info(bean.getName() + " : " + bean.getDescription());
-				log.info("  " + bean.getEndpoint() + " : " + bean.getEndpointType());
-				log.info("  " + bean.getDefinitionUrl() + " : " + bean.getDefinitionType());
+				if (log.isDebugEnabled()) {
+    				log.debug(bean.getName() + " : " + bean.getDescription());
+    				log.debug("  " + bean.getEndpoint() + " : " + bean.getEndpointType());
+    				log.debug("  " + bean.getDefinitionUrl() + " : " + bean.getDefinitionType());
+				}
 				availableServiceBeans.add(bean);
 			}
 		}
