@@ -21,6 +21,7 @@ import io.apiman.common.auth.AuthPrincipal;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.OAuthClientAuthorization;
 import io.fabric8.openshift.api.model.OAuthClientAuthorizationList;
 import io.fabric8.utils.Systems;
 import io.fabric8.utils.ssl.TrustEverythingSSLTrustManager;
@@ -86,7 +87,7 @@ public class BearerTokenFilter implements Filter {
 		kubernetesTrustCert = Boolean.parseBoolean(Systems.getEnvVarOrSystemProperty("KUBERNETES_TRUST_CERT", "true"));
 		try {
 			kubernetesOsapiUrl = new URL(kubernetes.getMasterUrl() 
-					+ KUBERNETES_OSAPI_URL + "/users/");
+					+ KUBERNETES_OSAPI_URL + "/users/~");
 		} catch (MalformedURLException e) {
 			throw new ServletException(e);
 		}
@@ -151,8 +152,8 @@ public class BearerTokenFilter implements Filter {
 		con.setRequestProperty("Content-Type","application/json");
 		if (kubernetesTrustCert) TrustEverythingSSLTrustManager.trustAllSSLCertificates(con);
 		con.connect();
-		OAuthClientAuthorizationList userList = mapper.readValue(con.getInputStream(), OAuthClientAuthorizationList.class); 
-		String userName = userList.getItems().get(0).getMetadata().getName();
+		OAuthClientAuthorization currentUser = mapper.readValue(con.getInputStream(), OAuthClientAuthorization.class); 
+		String userName = currentUser.getMetadata().getName();
 		return userName;
 	}
 	
