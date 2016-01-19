@@ -15,9 +15,11 @@
  */
 package io.fabric8.apiman;
 
+import io.fabric8.utils.KubernetesServices;
 import io.fabric8.utils.Systems;
 
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 
 /**
@@ -42,21 +44,16 @@ public class ApimanStarter {
     }
     
     public static void setFabric8Props() {
-        String[] esLocation = discoverServiceLocation("ELASTICSEARCH-1", "9200");
-        String esProtocol = esLocation[0];
-        String esHost = esLocation[1];
-        String esPort = esLocation[2];
+        URL elasticEndpoint = resolveServiceEndpoint("elasticsearch-v1", "9200");
 
         System.out.println("** Setting API Manager Configuration Properties **");
 
         setConfigProp("apiman.plugins.repositories",
                 "http://repository.jboss.org/nexus/content/groups/public/");
 
-        setConfigProp("apiman.es.protocol", esProtocol);
-        setConfigProp("apiman.es.host", esHost);
-        setConfigProp("apiman.es.port", esPort);
-        setConfigProp("apiman.es.username", "");
-        setConfigProp("apiman.es.password", "");
+        setConfigProp("apiman.es.protocol", elasticEndpoint.getProtocol());
+        setConfigProp("apiman.es.host", elasticEndpoint.getHost());
+        setConfigProp("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
 
         setConfigProp("apiman-manager.storage.type", "es");
         setConfigProp("apiman-manager.storage.es.protocol", "${apiman.es.protocol}");
@@ -85,25 +82,39 @@ public class ApimanStarter {
         System.out.println("\t" + propName + "=" + System.getProperty(propName));
     }
     
-    public static String[] discoverServiceLocation(String serviceName, String defaultPort) {
-    	String[] location = new String[3];
-    	String host = null;
-		try {
-			InetAddress initAddress = InetAddress.getByName(serviceName);
-			host = initAddress.getCanonicalHostName();
-		} catch (UnknownHostException e) {
-		    System.out.println("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
-		}
-    	String hostAndPort = Systems.getServiceHostAndPort(serviceName, "localhost", defaultPort);
-    	String[] hp = hostAndPort.split(":");
-    	if (host == null) {
-    	    System.out.println(serviceName + " host:port is set to " + hostAndPort + " using ENV settings.");
-    		host = hp[0];
-    	}
-    	String protocol = Systems.getEnvVarOrSystemProperty(serviceName + "_PROTOCOL", "http");
-    	location[0] = protocol;
-    	location[1] = host;
-    	location[2] = hp[1];
-    	return location;
+    public static URL resolveServiceEndpoint(String serviceName, String defaultPort) {
+        URL endpoint = null;
+        String host = "localhost";
+        String port = defaultPort;
+        try {
+            //lookup in the current namespace
+            InetAddress initAddress = InetAddress.getByName(serviceName);
+            host = initAddress.getCanonicalHostName();
+            System.out.println("Resolved host using DNS: " + host);
+        } catch (UnknownHostException e) {
+            System.out.println("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
+            host = KubernetesServices.serviceToHostOrBlank(serviceName);
+            if ("".equals(host)) {
+                host = "localhost";
+                System.out.println("Defaulting " + serviceName + " host to: " + host);
+            } else {
+                System.out.println("Resolved " + serviceName + " host using ENV: " + host);
+            }
+        }
+        port = KubernetesServices.serviceToPortOrBlank(serviceName);
+        if ("".equals(port)) {
+            port = defaultPort;
+            System.out.println("Defaulting " + serviceName + " port to: " + port);
+        } else {
+            System.out.println("Resolved " + serviceName + " port using ENV: " + port);
+        }
+        String scheme = "http";
+        if (port.endsWith("443")) scheme = "https";
+        try {
+            endpoint = new URL(scheme, host, Integer.valueOf(port), "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return endpoint;
     }
 }

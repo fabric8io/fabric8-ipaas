@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.OAuthClientAuthorization;
-import io.fabric8.openshift.api.model.OAuthClientAuthorizationList;
 import io.fabric8.utils.Systems;
 import io.fabric8.utils.ssl.TrustEverythingSSLTrustManager;
 

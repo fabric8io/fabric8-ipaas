@@ -30,6 +30,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.utils.KubernetesServices;
 import io.fabric8.utils.Systems;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,11 +114,13 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 			if (keyword==null || keyword.equals("") || keyword.equals("*") || serviceName.toLowerCase().contains(keyword.toLowerCase())) {
 				Service service = serviceMap.get(serviceName);
 				Map<String,String> annotations = service.getMetadata().getAnnotations();
-				String scheme = "http";
-				String port = KubernetesServices.serviceToPortOrBlank(service.getMetadata().getName());
-				if (port!=null && port.endsWith("443")) scheme = "https";
-				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) scheme = annotations.get(SERVICE_SCHEME);
-				String serviceUrl = KubernetesHelper.getServiceURL(kubernetes, service.getMetadata().getName(),kubernetes.getNamespace(), scheme, true);
+				String port = "";
+				if (service.getSpec().getPorts().size() > 0) port = String.valueOf(service.getSpec().getPorts().get(0).getPort());
+				URL url = ApimanStarter.resolveServiceEndpoint(serviceName, port);
+				String serviceUrl = url.toExternalForm();
+				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) {
+				    serviceUrl = serviceUrl.replace(url.getProtocol(), annotations.get(SERVICE_SCHEME));
+				}
 				if (! serviceUrl.endsWith("/")) serviceUrl += "/";
 				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl);
 

@@ -25,7 +25,7 @@
     <version>2.2.90-SNAPSHOT</version>
   </parent>
 
-  <artifactId>elasticsearch-1</artifactId>
+  <artifactId>elasticsearch-v1</artifactId>
 
   <name>Elasticsearch-1</name>
   <description>
@@ -38,27 +38,27 @@
     <docker.port.container.transport>9300</docker.port.container.transport>
     <docker.port.container.jolokia />
 
-    <fabric8.env.SERVICE_DNS>elasticsearch-masters</fabric8.env.SERVICE_DNS>
+    <fabric8.env.SERVICE_DNS>elasticsearch-v1-masters</fabric8.env.SERVICE_DNS>
 
     <fabric8.service.port>9200</fabric8.service.port>
     <fabric8.service.containerPort>9200</fabric8.service.containerPort>
     <fabric8.service.type>LoadBalancer</fabric8.service.type>
 
-    <fabric8.service.elasticsearch-masters.port>9300</fabric8.service.elasticsearch-masters.port>
-    <fabric8.service.elasticsearch-masters.containerPort>9300</fabric8.service.elasticsearch-masters.containerPort>
-    <fabric8.service.elasticsearch-masters.headless>true</fabric8.service.elasticsearch-masters.headless>
+    <fabric8.service.elasticsearch-v1-masters.port>9300</fabric8.service.elasticsearch-v1-masters.port>
+    <fabric8.service.elasticsearch-v1-masters.containerPort>9300</fabric8.service.elasticsearch-v1-masters.containerPort>
+    <fabric8.service.elasticsearch-v1-masters.headless>true</fabric8.service.elasticsearch-v1-masters.headless>
 
     <fabric8.label.project>elasticsearch</fabric8.label.project>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
 
     <fabric8.volume.elasticsearch-data.emptyDir />
-    <fabric8.volume.elasticsearch-data.mountPath>/usr/share/elasticsearch/data</fabric8.volume.elasticsearch-data.mountPath>
+    <fabric8.volume.elasticsearch-data.mountPath>/usr/share/elasticsearch-v1/data</fabric8.volume.elasticsearch-data.mountPath>
 
     <fabric8.livenessProbe.port>9300</fabric8.livenessProbe.port>
-    <fabric8.livenessProbe.initialDelaySeconds>60</fabric8.livenessProbe.initialDelaySeconds>
+    <fabric8.livenessProbe.initialDelaySeconds>30</fabric8.livenessProbe.initialDelaySeconds>
     <fabric8.readinessProbe.httpGet.path>/</fabric8.readinessProbe.httpGet.path>
     <fabric8.readinessProbe.httpGet.port>9200</fabric8.readinessProbe.httpGet.port>
-    <fabric8.readinessProbe.initialDelaySeconds>60</fabric8.readinessProbe.initialDelaySeconds>
+    <fabric8.readinessProbe.initialDelaySeconds>30</fabric8.readinessProbe.initialDelaySeconds>
   </properties>
 
   <build>

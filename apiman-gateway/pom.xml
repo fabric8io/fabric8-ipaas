@@ -13,8 +13,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.compiler.plugin>2.3.1</version.compiler.plugin>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <maven.compiler.source>1.7</maven.compiler.source>
     <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
     <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
 
@@ -26,6 +24,7 @@
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
     <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
+    <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
     <fabric8.label.component>ApimanGateway</fabric8.label.component>
     <fabric8.label.group>defaultGatewayGroup</fabric8.label.group>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
