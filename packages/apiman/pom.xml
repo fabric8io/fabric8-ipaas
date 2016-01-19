@@ -36,7 +36,7 @@
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>elasticsearch-1</artifactId>
+      <artifactId>elasticsearch-v1</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
