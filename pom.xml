@@ -112,6 +112,7 @@
         <module>fabric8mq</module>
         <module>fabric8mq-producer</module>
         <module>fabric8mq-consumer</module>
+        <module>fabric8-msm</module>
         <module>qpid-dispatch</module>
         <module>packages</module>
     </modules>
