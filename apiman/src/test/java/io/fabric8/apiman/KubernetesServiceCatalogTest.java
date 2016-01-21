@@ -15,21 +15,16 @@
  */
 package io.fabric8.apiman;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import io.apiman.manager.api.beans.summary.AvailableApiBean;
-import io.fabric8.apiman.KubernetesServiceCatalog;
-
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class KubernetesServiceCatalogTest {
 
-	@Test @Ignore
+	@Test
 	public void singleServiceAnnotations() {
 		String serviceUrl = "http://localhost:8080/";
 		KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
@@ -38,24 +33,12 @@ public class KubernetesServiceCatalogTest {
 		annotations.put("apiman.io/servicetype", "rest");
 		annotations.put("apiman.io/descriptionpath", "_?wsdl");
 		annotations.put("apiman.io/descriptiontype", "wsdl");
-		KubernetesServiceCatalog.ServiceContract sc = catalog.createServiceContract(annotations, serviceUrl);
+		KubernetesServiceCatalog.ServiceContract sc = catalog.createServiceContract(annotations, serviceUrl, null);
 	
-		assertEquals("http://localhost:8080/cxfcdi", sc.getServiceUrl());
-		assertEquals("rest", sc.getServiceType());
-		assertEquals("http://localhost:8080/_?wsdl", sc.getDescriptionUrl());
-		assertEquals("wsdl", sc.getDescriptionType());
-	}
-	
-	@Test @Ignore
-	public void kube() {
-	    
-	    System.getProperties().put("KUBERNETES_MASTER", "https://192.168.100.37:8443");
-	    System.getProperties().put("KUBERNETES_TRUST_CERTIFICATE", "true");
-	    KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
-	    List<AvailableApiBean> beans = catalog.search("*");
-	    for (AvailableApiBean availableServiceBean : beans) {
-            System.out.println("Bean=" + availableServiceBean.getDescription());
-        }
+		assertEquals("http://localhost:8080/cxfcdi", sc.serviceUrl);
+		assertEquals("rest", sc.serviceType);
+		assertEquals("http://localhost:8080/_?wsdl", sc.descriptionUrl);
+		assertEquals("wsdl", sc.descriptionType);
 	}
 
 }

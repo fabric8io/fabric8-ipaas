@@ -23,11 +23,12 @@ import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.api.model.RouteList;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateList;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.utils.KubernetesServices;
 import io.fabric8.utils.Systems;
 
 import java.net.URL;
@@ -88,6 +89,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 			kubernetes = new DefaultKubernetesClient();
 		}
 		Map<String,String> iconUrls = new HashMap<String,String>();
+		Map<String,String> routeUrls= new HashMap<String,String>();
 	    OpenShiftClient osClient = new DefaultOpenShiftClient(kubernetes.getMasterUrl().toExternalForm());
 //
 // This is how we'd get all namespaces for the current user. For now we require one apiman per namespace
@@ -95,6 +97,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 //	    for (Project item: projectList.getItems()) {
 //	        String namespace = item.getMetadata().getName();
 //	    }
+	    
 	    TemplateList templateList = osClient.templates().list();
 	    for (Template item: templateList.getItems()) {
 	        if (item.getMetadata().getAnnotations() != null) {
@@ -105,6 +108,10 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
     	            }
     	        }
 	        }
+	    }
+	    RouteList routeList = osClient.routes().list();
+	    for (Route route: routeList.getItems()) {
+	        routeUrls.put(route.getMetadata().getName(), route.getSpec().getHost());
 	    }
 	    osClient.close();
 
@@ -118,15 +125,22 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 				if (service.getSpec().getPorts().size() > 0) port = String.valueOf(service.getSpec().getPorts().get(0).getPort());
 				URL url = ApimanStarter.resolveServiceEndpoint(serviceName, port);
 				String serviceUrl = url.toExternalForm();
+				String scheme = url.getProtocol();
 				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) {
-				    serviceUrl = serviceUrl.replace(url.getProtocol(), annotations.get(SERVICE_SCHEME));
+				    scheme = annotations.get(SERVICE_SCHEME);
+				    serviceUrl = serviceUrl.replace(url.getProtocol(), scheme);
 				}
-				if (! serviceUrl.endsWith("/")) serviceUrl += "/";
-				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl);
+				String routeUrl = routeUrls.get(serviceName);
+				if (routeUrl!=null) routeUrl = scheme + "://" + routeUrl;
+				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl, routeUrl);
 
 				AvailableApiBean bean = new AvailableApiBean();
 				String name = service.getMetadata().getName();
 				bean.setName(name);
+				
+				if (routeUrl!=null) {
+				    bean.setEndpoint(scheme + "://" + routeUrl + "/");
+				}
 				String iconUrlKey = "fabric8." + name + "/iconUrl";
 				bean.setIcon(iconUrls.get(iconUrlKey));
 				String summaryKey = "fabric8." + name + "/summary";
@@ -134,20 +148,22 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
                     String description = service.getMetadata().getAnnotations().get(summaryKey);
                     bean.setDescription(description);
                 }
-				bean.setEndpoint(serviceContract.getServiceUrl());
-				if (serviceContract.getServiceType()!=null) {
+				bean.setEndpoint(serviceContract.serviceUrl);
+				//apiman-1.2.1 bean.setRouteEndpoint(serviceContract.serviceRouteUrl);
+				if (serviceContract.serviceType!=null) {
 					for (EndpointType type: EndpointType.values()) {
-						if (type.toString().equalsIgnoreCase(serviceContract.getServiceType())) {
+						if (type.toString().equalsIgnoreCase(serviceContract.serviceType)) {
 							bean.setEndpointType(EndpointType.valueOf(type.name()));
 						}
 					}
 				} else {
 					bean.setEndpointType(null);
 				}
-				bean.setDefinitionUrl(serviceContract.getDescriptionUrl());
-				if (serviceContract.getDescriptionType()!=null) {
+				bean.setDefinitionUrl(serviceContract.descriptionUrl);
+				//apiman-1.2.1 bean.setRouteDefinitionUrl(serviceContract.descriptionRouteUrl);
+				if (serviceContract.descriptionType!=null) {
 					for (ApiDefinitionType type: ApiDefinitionType.values()) {
-						if (type.toString().equalsIgnoreCase(serviceContract.getDescriptionType())) {
+						if (type.toString().equalsIgnoreCase(serviceContract.descriptionType)) {
 							bean.setDefinitionType(ApiDefinitionType.valueOf(type.name()));
 						}
 					}
@@ -166,16 +182,20 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 	    return availableServiceBeans;
 	}
 
-	protected ServiceContract createServiceContract(Map<String,String> annotations, String serviceUrl) {
+	protected ServiceContract createServiceContract(Map<String,String> annotations, String serviceUrl, String routeUrl) {
 
+	    if (! serviceUrl.endsWith("/")) serviceUrl += "/";
+	    if (routeUrl!=null && !routeUrl.endsWith("/")) routeUrl += "/";
 		ServiceContract serviceContract = new ServiceContract();
 		if (annotations!=null) {
-			serviceContract.setServiceUrl(serviceUrl + annotations.get(SERVICE_PATH));
-			serviceContract.setServiceType(annotations.get(SERVICE_TYPE));
-			serviceContract.setDescriptionUrl(serviceUrl + annotations.get(DESCRIPTION_PATH));
-			serviceContract.setDescriptionType(annotations.get(DESCRIPTION_TYPE));
+			serviceContract.serviceUrl           = serviceUrl + annotations.get(SERVICE_PATH);
+			serviceContract.serviceRouteUrl      = routeUrl + annotations.get(SERVICE_PATH);
+			serviceContract.serviceType          = annotations.get(SERVICE_TYPE);
+			serviceContract.descriptionUrl       = serviceUrl + annotations.get(DESCRIPTION_PATH);
+			serviceContract.descriptionRouteUrl  = routeUrl + annotations.get(DESCRIPTION_PATH);
+			serviceContract.descriptionType      = annotations.get(DESCRIPTION_TYPE);
 		} else {
-			serviceContract.setServiceUrl(serviceUrl);
+			serviceContract.serviceUrl = serviceUrl;
 		}
 		return serviceContract;
 	}
@@ -183,35 +203,11 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 	protected class ServiceContract {
 
 		String serviceUrl;
+		String serviceRouteUrl;
 		String serviceType;
 		String descriptionUrl;
+		String descriptionRouteUrl;
 		String descriptionType;
-
-		public void setServiceUrl(String serviceUrl) {
-			this.serviceUrl = serviceUrl;
-		}
-		public String getServiceUrl() {
-			return serviceUrl;
-		}
-		public String getServiceType() {
-			return serviceType;
-		}
-		public void setServiceType(String serviceType) {
-			this.serviceType = serviceType;
-		}
-		public String getDescriptionUrl() {
-			return descriptionUrl;
-		}
-		public void setDescriptionUrl(String descriptionUrl) {
-			this.descriptionUrl = descriptionUrl;
-		}
-		public String getDescriptionType() {
-			return descriptionType;
-		}
-		public void setDescriptionType(String descriptionType) {
-			this.descriptionType = descriptionType;
-		}
-
 	}
 
 
