@@ -149,7 +149,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
                     bean.setDescription(description);
                 }
 				bean.setEndpoint(serviceContract.serviceUrl);
-				//apiman-1.2.1 bean.setRouteEndpoint(serviceContract.serviceRouteUrl);
+				//waiting for apiman-1.2.2 bean.setRouteEndpoint(serviceContract.serviceRouteUrl);
 				if (serviceContract.serviceType!=null) {
 					for (EndpointType type: EndpointType.values()) {
 						if (type.toString().equalsIgnoreCase(serviceContract.serviceType)) {
@@ -160,7 +160,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 					bean.setEndpointType(null);
 				}
 				bean.setDefinitionUrl(serviceContract.descriptionUrl);
-				//apiman-1.2.1 bean.setRouteDefinitionUrl(serviceContract.descriptionRouteUrl);
+				//waiting for apiman-1.2.2 bean.setRouteDefinitionUrl(serviceContract.descriptionRouteUrl);
 				if (serviceContract.descriptionType!=null) {
 					for (ApiDefinitionType type: ApiDefinitionType.values()) {
 						if (type.toString().equalsIgnoreCase(serviceContract.descriptionType)) {
