@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>qpid-dispatch</artifactId>
+      <artifactId>fabric8-msm</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
