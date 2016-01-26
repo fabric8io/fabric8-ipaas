@@ -22,6 +22,9 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Starts the API Manager as a jetty8 micro service.
  */
@@ -30,6 +33,7 @@ public class ApimanStarter {
 	public final static String APIMAN_GATEWAY_USER     = "apiman-gateway.default.user";
 	public final static String APIMAN_GATEWAY_PASSWORD = "apiman-gateway.default.password";
 	
+	final private static Log log = LogFactory.getLog(ApimanStarter.class);
     /**
      * Main entry point for the API Manager micro service.
      * @param args the arguments
@@ -46,7 +50,7 @@ public class ApimanStarter {
     public static void setFabric8Props() {
         URL elasticEndpoint = resolveServiceEndpoint("elasticsearch-v1", "9200");
 
-        System.out.println("** Setting API Manager Configuration Properties **");
+        log.info("** Setting API Manager Configuration Properties **");
 
         setConfigProp("apiman.plugins.repositories",
                 "http://repository.jboss.org/nexus/content/groups/public/");
@@ -72,14 +76,14 @@ public class ApimanStarter {
 
         setConfigProp("apiman-manager.api-catalog.type", KubernetesServiceCatalog.class.getName());
 
-        System.out.println("** ******************************************** **");
+        log.info("** ******************************************** **");
     }
 
     private static final void setConfigProp(String propName, String propValue) {
         if (Systems.getEnvVarOrSystemProperty(propName) == null) {
             System.setProperty(propName, propValue);
         }
-        System.out.println("\t" + propName + "=" + System.getProperty(propName));
+        log.info("\t" + propName + "=" + System.getProperty(propName));
     }
     
     public static URL resolveServiceEndpoint(String serviceName, String defaultPort) {
@@ -90,30 +94,30 @@ public class ApimanStarter {
             //lookup in the current namespace
             InetAddress initAddress = InetAddress.getByName(serviceName);
             host = initAddress.getCanonicalHostName();
-            System.out.println("Resolved host using DNS: " + host);
+            log.info("Resolved host using DNS: " + host);
         } catch (UnknownHostException e) {
-            System.out.println("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
+            log.warn("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
             host = KubernetesServices.serviceToHostOrBlank(serviceName);
             if ("".equals(host)) {
                 host = "localhost";
-                System.out.println("Defaulting " + serviceName + " host to: " + host);
+                log.info("Defaulting " + serviceName + " host to: " + host);
             } else {
-                System.out.println("Resolved " + serviceName + " host using ENV: " + host);
+                log.info("Resolved " + serviceName + " host using ENV: " + host);
             }
         }
         port = KubernetesServices.serviceToPortOrBlank(serviceName);
         if ("".equals(port)) {
             port = defaultPort;
-            System.out.println("Defaulting " + serviceName + " port to: " + port);
+            log.info("Defaulting " + serviceName + " port to: " + port);
         } else {
-            System.out.println("Resolved " + serviceName + " port using ENV: " + port);
+            log.info("Resolved " + serviceName + " port using ENV: " + port);
         }
         String scheme = "http";
         if (port.endsWith("443")) scheme = "https";
         try {
             endpoint = new URL(scheme, host, Integer.valueOf(port), "");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
         }
         return endpoint;
     }

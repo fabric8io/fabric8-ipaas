@@ -4,6 +4,7 @@ import io.apiman.gateway.engine.es.PollCachingESRegistry;
 import io.apiman.gateway.platforms.war.WarEngineConfig;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroService;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroServicePlatform;
+import io.fabric8.apiman.ApimanStarter;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Route;
@@ -15,10 +16,13 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class Fabric8GatewayMicroService extends GatewayMicroService {
     
     String gatewayRoute = "http://apiman-gateway";
-    
+    final private static Log log = LogFactory.getLog(Fabric8GatewayMicroService.class);
     /**
      * @see io.apiman.gateway.platforms.war.micro.GatewayMicroService#configure()
      */
@@ -36,7 +40,7 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
             kubernetes.close();
         }
         super.configure();
-        System.out.println("** **********CONFIG COMPLETED*********** **");
+        log.info("** **********CONFIG COMPLETED*********** **");
     }
 
 	@Override
@@ -45,7 +49,7 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
 	    URL elasticEndpoint = resolveServiceEndpoint("elasticsearch-v1", "9200");
     	// Discover and set the gateway endpoint.
     	if (Systems.getEnvVarOrSystemProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT) == null) {
-    	    System.out.println("Using Gateway Route " + gatewayRoute);
+    	    log.info("Using Gateway Route " + gatewayRoute);
     	    System.setProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT, gatewayRoute + "/gateway/");
         }
         setConfigProperty("apiman.es.protocol", elasticEndpoint.getProtocol());
@@ -66,7 +70,7 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
         if (Systems.getEnvVarOrSystemProperty(propName) == null) {
             System.setProperty(propName, propValue);
         }
-        System.out.println("\t" + propName + "=" + System.getProperty(propName));
+        log.info("\t" + propName + "=" + System.getProperty(propName));
     }
     
     public URL resolveServiceEndpoint(String serviceName, String defaultPort) {
@@ -77,23 +81,23 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
             //lookup in the current namespace
             InetAddress initAddress = InetAddress.getByName(serviceName);
             host = initAddress.getCanonicalHostName();
-            System.out.println("Resolved host using DNS: " + host);
+            log.info("Resolved host using DNS: " + host);
         } catch (UnknownHostException e) {
-            System.out.println("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
+            log.warn("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
             host = KubernetesServices.serviceToHostOrBlank(serviceName);
             if ("".equals(host)) {
                 host = "localhost";
-                System.out.println("Defaulting " + serviceName + " host to: " + host);
+                log.info("Defaulting " + serviceName + " host to: " + host);
             } else {
-                System.out.println("Resolved " + serviceName + " host using ENV: " + host);
+                log.info("Resolved " + serviceName + " host using ENV: " + host);
             }
         }
         port = KubernetesServices.serviceToPortOrBlank(serviceName);
         if ("".equals(port)) {
             port = defaultPort;
-            System.out.println("Defaulting " + serviceName + " port to: " + port);
+            log.info("Defaulting " + serviceName + " port to: " + port);
         } else {
-            System.out.println("Resolved " + serviceName + " port using ENV: " + port);
+            log.info("Resolved " + serviceName + " port using ENV: " + port);
         }
         String scheme = "http";
         if (port.endsWith("443")) scheme = "https";
