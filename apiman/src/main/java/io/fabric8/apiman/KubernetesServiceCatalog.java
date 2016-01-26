@@ -188,11 +188,11 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 	    if (routeUrl!=null && !routeUrl.endsWith("/")) routeUrl += "/";
 		ServiceContract serviceContract = new ServiceContract();
 		if (annotations!=null) {
-			serviceContract.serviceUrl           = serviceUrl + annotations.get(SERVICE_PATH);
-			serviceContract.serviceRouteUrl      = routeUrl + annotations.get(SERVICE_PATH);
+			serviceContract.serviceUrl           = serviceUrl + (annotations.get(SERVICE_PATH)==null ? "" : annotations.get(SERVICE_PATH));
+			serviceContract.serviceRouteUrl      = routeUrl + (annotations.get(SERVICE_PATH)==null ? "" : annotations.get(SERVICE_PATH));
 			serviceContract.serviceType          = annotations.get(SERVICE_TYPE);
-			serviceContract.descriptionUrl       = serviceUrl + annotations.get(DESCRIPTION_PATH);
-			serviceContract.descriptionRouteUrl  = routeUrl + annotations.get(DESCRIPTION_PATH);
+			serviceContract.descriptionUrl       = serviceUrl + (annotations.get(DESCRIPTION_PATH)==null ? "" : annotations.get(DESCRIPTION_PATH));
+			serviceContract.descriptionRouteUrl  = routeUrl + (annotations.get(DESCRIPTION_PATH)==null ? "" : annotations.get(DESCRIPTION_PATH));
 			serviceContract.descriptionType      = annotations.get(DESCRIPTION_TYPE);
 		} else {
 			serviceContract.serviceUrl = serviceUrl;
