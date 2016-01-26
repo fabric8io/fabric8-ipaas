@@ -115,7 +115,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 	    }
 	    osClient.close();
 
-		Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes);
+	    Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(kubernetes, osClient.getNamespace());
 
 	    for (String serviceName : serviceMap.keySet()) {
 			if (keyword==null || keyword.equals("") || keyword.equals("*") || serviceName.toLowerCase().contains(keyword.toLowerCase())) {
