@@ -97,6 +97,11 @@
       <artifactId>artemis-mqtt-protocol</artifactId>
       <version>${artemis.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jms-server</artifactId>
+      <version>${artemis.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.google.guava</groupId>

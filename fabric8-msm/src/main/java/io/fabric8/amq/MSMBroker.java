@@ -19,8 +19,9 @@ import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.remoting.impl.netty.NettyAcceptorFactory;
-import org.apache.activemq.artemis.core.server.ActiveMQServer;
-import org.apache.activemq.artemis.core.server.ActiveMQServers;
+import org.apache.activemq.artemis.jms.server.config.JMSConfiguration;
+import org.apache.activemq.artemis.jms.server.config.impl.JMSConfigurationImpl;
+import org.apache.activemq.artemis.jms.server.embedded.EmbeddedJMS;
 import org.apache.deltaspike.core.api.config.ConfigProperty;
 
 import javax.inject.Inject;
@@ -28,14 +29,15 @@ import java.util.HashMap;
 
 public class MSMBroker {
 
+
     @ConfigProperty(name = "AMQ_HOST", defaultValue = "0.0.0.0")
-    private String host;
+    private String host = "0.0.0.0";
     @Inject
     @ConfigProperty(name = "AMQ_PORT", defaultValue = "61616")
-    private int port;
+    private int port = 61616;
 
 
-    private ActiveMQServer server;
+    private EmbeddedJMS server;
     private Configuration configuration;
 
 
@@ -56,18 +58,27 @@ public class MSMBroker {
         this.port = port;
     }
 
+    public String getOpenWireBrokerURL(){
+        return "tcp://" + getHost() + ":" + getPort();
+    }
+
 
     public void start() throws Exception{
 
         HashMap<String, Object> configMap = new HashMap<>();
         configMap.put("host", host);
         configMap.put("port",port);
-        TransportConfiguration transportConfiguration = new TransportConfiguration(NettyAcceptorFactory.class.getName(),configMap,"fabric8-msm");
+        TransportConfiguration transportConfiguration = new TransportConfiguration(NettyAcceptorFactory.class.getName(),configMap,"fabric8-msg-gateway");
         configuration = new ConfigurationImpl().setJournalDirectory("data")
-         .setPersistenceEnabled(false).setSecurityEnabled(false)
+                            .setPersistenceEnabled(false).setSecurityEnabled(false)
                             .addAcceptorConfiguration(transportConfiguration);
 
-        server = ActiveMQServers.newActiveMQServer(configuration);
+
+        JMSConfiguration jmsConfig = new JMSConfigurationImpl();
+
+        server = new EmbeddedJMS();
+        server.setConfiguration(configuration);
+        server.setJmsConfiguration(jmsConfig);
         try {
             server.start();
         }
@@ -79,7 +90,7 @@ public class MSMBroker {
 
     public void stop() throws  Exception{
         if (server != null){
-            server.stop(true);
+            server.stop();
         }
     }
 }
