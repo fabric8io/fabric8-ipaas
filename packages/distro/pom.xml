@@ -33,6 +33,13 @@
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.packages</groupId>
+      <artifactId>amq</artifactId>
+      <version>${project.version}</version>
+      <classifier>kubernetes</classifier>
+      <type>json</type>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8.ipaas.packages</groupId>
       <artifactId>apiman</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
