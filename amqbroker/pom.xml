@@ -51,7 +51,6 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-cdi</artifactId>
-
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
@@ -83,42 +82,39 @@
       <artifactId>arquillian-junit-container</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+<!--
+    TODO not sure why this dependency was here but it breaks hawt-app as it gets included and then breaks Weld
+
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>fabric8-cdi</artifactId>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+-->
+    <dependency>
+      <groupId>org.jboss.arquillian.container</groupId>
+      <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
+      <version>1.0.0.CR8</version>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-arquillian</artifactId>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-assertions</artifactId>
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.weld</groupId>
-      <artifactId>weld-core</artifactId>
-      <version>2.2.5.Final</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.weld.se</groupId>
-      <artifactId>weld-se</artifactId>
-      <version>2.2.5.Final</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.arquillian.container</groupId>
-      <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
-      <version>1.0.0.CR8</version>
-    </dependency>
   </dependencies>
 
   <build>
@@ -155,7 +151,7 @@
       </plugin>
 
       <plugin>
-        <groupId>io.fabric8</groupId>
+        <groupId>org.jolokia</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <version>${docker.maven.plugin.version}</version>
         <configuration>
@@ -167,7 +163,6 @@
                 <assembly>
                   <basedir>/deployments</basedir>
                   <descriptorRef>hawt-app</descriptorRef>
-
                 </assembly>
                 <env>
                   <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
