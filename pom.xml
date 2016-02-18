@@ -74,7 +74,7 @@
         <integrationTestPattern>**/*KubernetesTest*.java</integrationTestPattern>
 
         <!-- upstream vs redhat versions of dependencies goes here -->
-        <fabric8.version>2.2.93</fabric8.version>
+        <fabric8.version>2.2.94</fabric8.version>
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
         <fabric8.devops.version>2.2.54</fabric8.devops.version>
         <apiman.version>1.2.1.Final</apiman.version>
@@ -327,7 +327,7 @@
         <profile>
           <id>fabric8-snapshot</id>
           <properties>
-            <fabric8.version>2.2.94-SNAPSHOT</fabric8.version>
+            <fabric8.version>2.2.95-SNAPSHOT</fabric8.version>
             <fabric8.release.version>2.2.40</fabric8.release.version>
           </properties>
         </profile>
