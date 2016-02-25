@@ -86,7 +86,7 @@
         <arquillian.version>1.1.10.Final</arquillian.version>
         <commons.beanutils.version>1.9.2</commons.beanutils.version>
         <docker.assembly.exportBaseDir>false</docker.assembly.exportBaseDir>
-        <docker.maven.plugin.version>0.13.6</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.14.1</docker.maven.plugin.version>
         <fabric8.dockerUser>fabric8/</fabric8.dockerUser>
         <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
         <junit.version>4.12</junit.version>
@@ -370,7 +370,7 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.jolokia</groupId>
+                        <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>${docker.maven.plugin.version}</version>
                         <executions>
@@ -456,7 +456,7 @@
                 <pluginManagement>
                     <plugins>
                         <plugin>
-                            <groupId>org.jolokia</groupId>
+                            <groupId>io.fabric8</groupId>
                             <artifactId>docker-maven-plugin</artifactId>
                             <version>${docker.maven.plugin.version}</version>
                             <executions>
