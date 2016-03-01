@@ -234,7 +234,7 @@ public class BootstrapFilter implements Filter {
 		    try {
 		        //retrying initialization in case the indexes have not yet been created
 		        //because Elastic was down.
-                //storage.initialize();
+                storage.initialize();
             } catch (RuntimeException e) {}
 			if (loadDefaultPolicies() && loadDefaultRoles() && createApimanGateway()) {
 				isLoaded = true;
