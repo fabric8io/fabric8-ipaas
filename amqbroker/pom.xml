@@ -39,7 +39,7 @@
 
     <fabric8.service.port>${activemq.service.port}</fabric8.service.port>
     <fabric8.service.containerPort>${activemq.container.port}</fabric8.service.containerPort>
-
+    <docker.from>fabric8/s2i-java</docker.from>
     <fabric8.label.component>amqbroker</fabric8.label.component>
     <fabric8.label.group>amqbroker</fabric8.label.group>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
@@ -50,6 +50,7 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-cdi</artifactId>
+
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
@@ -86,13 +87,6 @@
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-arquillian</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>fabric8-cdi</artifactId>
-      <scope>test</scope>
-      <type>test-jar</type>
     </dependency>
 
     <dependency>
@@ -172,6 +166,7 @@
                 <assembly>
                   <basedir>/deployments</basedir>
                   <descriptorRef>hawt-app</descriptorRef>
+
                 </assembly>
                 <env>
                   <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
