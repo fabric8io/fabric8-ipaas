@@ -22,6 +22,7 @@
     <groupId>io.fabric8.ipaas.apps</groupId>
     <artifactId>fabric8-ipaas</artifactId>
     <version>2.2.94-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>amqbroker</artifactId>
@@ -50,6 +51,7 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-cdi</artifactId>
+
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
@@ -86,13 +88,6 @@
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-arquillian</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>fabric8-cdi</artifactId>
-      <scope>test</scope>
-      <type>test-jar</type>
     </dependency>
 
     <dependency>
@@ -172,6 +167,7 @@
                 <assembly>
                   <basedir>/deployments</basedir>
                   <descriptorRef>hawt-app</descriptorRef>
+
                 </assembly>
                 <env>
                   <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
