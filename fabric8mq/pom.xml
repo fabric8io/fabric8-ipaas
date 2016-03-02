@@ -33,7 +33,7 @@
     <properties>
         <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
         <guava.version>15.0</guava.version>
-
+        <docker.from>fabric8/s2i-java</docker.from>
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
         <docker.env.MAIN>io.fabric8.mq.Main</docker.env.MAIN>
 
@@ -248,6 +248,20 @@
                 </execution>
               </executions>
             </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>hawt-app-maven-plugin</artifactId>
+                <version>${fabric8.version}</version>
+                <executions>
+                    <execution>
+                        <id>hawt-app</id>
+                        <goals><goal>build</goal></goals>
+                        <configuration>
+                            <javaMainClass>${docker.env.MAIN}</javaMainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>io.fabric8</groupId>
@@ -260,8 +274,8 @@
                             <build>
                                 <from>${docker.from}</from>
                                 <assembly>
-                                  <basedir>/app</basedir>
-                                  <descriptorRef>artifact-with-dependencies</descriptorRef>
+                                  <basedir>/deployments</basedir>
+                                  <descriptorRef>hawt-app</descriptorRef>
                                 </assembly>
                                 <env>
                                     <AMQ_PORT>${activemq.container.port}</AMQ_PORT>
