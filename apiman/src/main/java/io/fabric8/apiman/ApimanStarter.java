@@ -15,6 +15,7 @@
  */
 package io.fabric8.apiman;
 
+import io.apiman.manager.api.core.config.ApiManagerConfig;
 import io.fabric8.utils.KubernetesServices;
 import io.fabric8.utils.Systems;
 
@@ -55,33 +56,38 @@ public class ApimanStarter {
         setConfigProp("apiman.plugins.repositories",
                 "http://repository.jboss.org/nexus/content/groups/public/");
 
-        setConfigProp("apiman.es.protocol", elasticEndpoint.getProtocol());
-        setConfigProp("apiman.es.host", elasticEndpoint.getHost());
+        setConfigProp("apiman.es.protocol",            elasticEndpoint.getProtocol());
+        setConfigProp("apiman.es.host",                elasticEndpoint.getHost());
         setConfigProp("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
+        
+        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix");
+        if (esIndexPrefix != null) {
+            setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INDEX_NAME, esIndexPrefix + "manager");
+        }
+        
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_TYPE, "es");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL, "${apiman.es.protocol}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_HOST,     "${apiman.es.host}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PORT,     "${apiman.es.port}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_USERNAME, "${apiman.es.username}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PASSWORD, "${apiman.es.password}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INITIALIZE, "true");
 
-        setConfigProp("apiman-manager.storage.type", "es");
-        setConfigProp("apiman-manager.storage.es.protocol", "${apiman.es.protocol}");
-        setConfigProp("apiman-manager.storage.es.host", "${apiman.es.host}");
-        setConfigProp("apiman-manager.storage.es.port", "${apiman.es.port}");
-        setConfigProp("apiman-manager.storage.es.username", "${apiman.es.username}");
-        setConfigProp("apiman-manager.storage.es.password", "${apiman.es.password}");
-        setConfigProp("apiman-manager.storage.es.initialize", "true");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_TYPE, "es");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_PROTOCOL, "${apiman.es.protocol}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_HOST,     "${apiman.es.host}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_PORT,     "${apiman.es.port}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_USERNAME, "${apiman.es.username}");
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_PASSWORD, "${apiman.es.password}");
 
-        setConfigProp("apiman-manager.metrics.type", "es");
-        setConfigProp("apiman-manager.metrics.es.protocol", "${apiman.es.protocol}");
-        setConfigProp("apiman-manager.metrics.es.host", "${apiman.es.host}");
-        setConfigProp("apiman-manager.metrics.es.port", "${apiman.es.port}");
-        setConfigProp("apiman-manager.metrics.es.username", "${apiman.es.username}");
-        setConfigProp("apiman-manager.metrics.es.password", "${apiman.es.password}");
-
-        setConfigProp("apiman-manager.api-catalog.type", KubernetesServiceCatalog.class.getName());
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_API_CATALOG_TYPE, KubernetesServiceCatalog.class.getName());
 
         log.info("** ******************************************** **");
     }
 
-    private static final void setConfigProp(String propName, String propValue) {
+    static final void setConfigProp(String propName, String defaultValue) {
         if (Systems.getEnvVarOrSystemProperty(propName) == null) {
-            System.setProperty(propName, propValue);
+            System.setProperty(propName, defaultValue);
         }
         log.info("\t" + propName + "=" + System.getProperty(propName));
     }
