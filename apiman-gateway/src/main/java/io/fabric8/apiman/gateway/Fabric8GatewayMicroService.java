@@ -27,14 +27,14 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
      */
     @Override
     protected void configure() {
-        System.out.println("** Setting API Manager Configuration Properties **");
+        log.info("** Setting API Manager Configuration Properties **");
         KubernetesClient kubernetes = new DefaultKubernetesClient();
         try {
             OpenShiftClient osClient = kubernetes.adapt(OpenShiftClient.class);
             Route route = osClient.routes().withName("apiman-gateway").get();
             gatewayRoute = "http://" + route.getSpec().getHost();
         } catch (Exception e) {
-            System.out.println("Warning: Not an Openshift client - no route info can be looked up");
+            log.warn("Warning: Not an Openshift client - no route info can be looked up");
         } finally {
             kubernetes.close();
         }
@@ -54,6 +54,16 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
         setConfigProperty("apiman.es.protocol", elasticEndpoint.getProtocol());
         setConfigProperty("apiman.es.host", elasticEndpoint.getHost());
         setConfigProperty("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
+        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix");
+        if (esIndexPrefix != null) {
+            //https://issues.jboss.org/browse/APIMAN-1010
+            setConfigProperty("apiman-gateway.registry.index.name" , esIndexPrefix + "gateway");
+            setConfigProperty("apiman-gateway.metrics.index.name" , esIndexPrefix + "metrics");
+            setConfigProperty("apiman-gateway.components.ICacheStoreComponent.client.index"  , esIndexPrefix + "cache");
+//            setConfigProperty(ESConstants.GATEWAY_INDEX_NAME , esIndexPrefix + "gateway");
+//            setConfigProperty(ESConstants.METRICS_INDEX_NAME , esIndexPrefix + "metrics");
+//            setConfigProperty(ESConstants.CACHE_INDEX_NAME   , esIndexPrefix + "cache");
+        }
 	}
 	
 	/**
