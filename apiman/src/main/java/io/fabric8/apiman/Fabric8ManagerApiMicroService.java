@@ -37,6 +37,11 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
     protected Resource getConfigResource(String path) {
         return super.getConfigResource("/apimanui/apiman/f8-config.js");
     }
+    
+    @Override
+    protected Resource getTranslationsResource(String path) {
+        return super.getTranslationsResource("/apimanui/apiman/f8-translations.js");
+    }
 
 	@Override
 	protected void addAuthFilter(ServletContextHandler apiManServer) {
