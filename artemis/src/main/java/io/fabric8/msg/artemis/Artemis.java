@@ -23,18 +23,22 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.NettyAcceptorFactory
 import org.apache.activemq.artemis.jms.server.config.JMSConfiguration;
 import org.apache.activemq.artemis.jms.server.config.impl.JMSConfigurationImpl;
 import org.apache.activemq.artemis.jms.server.embedded.EmbeddedJMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 
 @SpringBootApplication
 public class Artemis {
+    private static final Logger LOG = LoggerFactory.getLogger(Artemis.class);
     private EmbeddedJMS broker;
 
+    @PostConstruct
     public void start() throws Exception {
 
-        broker = new EmbeddedJMS();
         String port = Systems.getEnvVarOrSystemProperty("AMQ_PORT","AMQ_PORT","61616");
         String dataDirectory = Systems.getEnvVarOrSystemProperty("AMQ_DATA_DIRECTORY","AMQ_DATA_DIRECTORY","data");
 
@@ -54,6 +58,7 @@ public class Artemis {
         broker.setConfiguration(configuration);
         broker.setJmsConfiguration(jmsConfig);
         broker.start();
+        LOG.info("Artemis initialized and running ...");
     }
 
 

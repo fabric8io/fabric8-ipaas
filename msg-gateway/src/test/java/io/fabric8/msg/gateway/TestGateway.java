@@ -13,14 +13,16 @@
  *
  */
 
-package io.fabric8.artemis;
+package io.fabric8.msg.gateway;
 
-import io.fabric8.msg.artemis.Artemis;
+import io.fabric8.msg.gateway.brokers.impl.TestBrokerControlImpl;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.jms.Connection;
 import javax.jms.Destination;
@@ -29,33 +31,35 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 
-public class TestArtemis {
-    private Artemis artemis;
+
+public class TestGateway implements ApplicationContextInitializer {
+    private MsgGateway msgGateway;
 
     @Before
     public void doStart() throws Exception {
-        artemis = new Artemis();
-        artemis.start();
+        msgGateway = new MsgGateway();
+        msgGateway.setBrokerControl(new TestBrokerControlImpl());
+        msgGateway.start();
     }
 
     @After
     public void doStop() throws Exception {
-        if (artemis != null) {
-            artemis.stop();
+        if (msgGateway != null) {
+            msgGateway.stop();
         }
     }
 
     @Test
     public void simpleTest() throws Exception {
         int numberOfMessages = 10;
-        String destinationName = "test.foo";
-        String brokerURL = "tcp://localhost:61616";
+        String destinationName = "jms.queue.test.foo";
+        String brokerURL = "tcp://0.0.0.0:61616";
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerURL);
 
         Connection consumerConnection = factory.createConnection();
         consumerConnection.start();
         Session consumerSession = consumerConnection.createSession(false,Session.AUTO_ACKNOWLEDGE);
-        Destination consumerDestination = consumerSession.createQueue("#");
+        Destination consumerDestination = consumerSession.createQueue(destinationName);
         MessageConsumer messageConsumer = consumerSession.createConsumer(consumerDestination);
 
 
@@ -68,6 +72,8 @@ public class TestArtemis {
         for (int i = 0; i < numberOfMessages;i++){
             Message message = producerSession.createTextMessage("test message: " + i);
             producer.send(message);
+            //System.err.println("Sent message " + message);
+
         }
 
         Message message;
@@ -75,9 +81,15 @@ public class TestArtemis {
         for (int i = 0; i < numberOfMessages; i++){
             message = messageConsumer.receive(5000);
             Assert.assertNotNull(message);
+            //System.err.println("Got Message " + message);
 
         }
         messageConsumer.close();
+
+    }
+
+    @Override
+    public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
 
     }
 }
