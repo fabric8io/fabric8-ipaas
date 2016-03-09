@@ -15,198 +15,209 @@
  */
 package io.fabric8.apiman;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.concurrent.TimeUnit;
 
-import io.apiman.common.auth.AuthPrincipal;
-import io.fabric8.kubernetes.api.KubernetesHelper;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.openshift.api.model.OAuthClientAuthorization;
-import io.fabric8.utils.Systems;
-import io.fabric8.utils.ssl.TrustEverythingSSLTrustManager;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.Principal;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
+import io.apiman.common.auth.AuthPrincipal;
+import io.fabric8.kubernetes.api.KubernetesHelper;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.openshift.api.model.SubjectAccessReview;
+import io.fabric8.openshift.api.model.SubjectAccessReview.ApiVersion;
+import io.fabric8.openshift.api.model.SubjectAccessReviewBuilder;
+import io.fabric8.openshift.api.model.SubjectAccessReviewResponse;
+import io.fabric8.openshift.api.model.User;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.utils.Systems;
 
 /**
  * A simple implementation of an bearer token filter that checks the validity of
  * an incoming bearer token with the OpenShift issuer. The OpenShift call
  * returns a JSON from which the UserPrincipal can be set.
  * 
- * A great way to test is to use
- * 
- * curl https://172.30.0.2:443/oapi/v1/users/ -k -H "Authorization: Bearer NVy_uBscz-Efm4s4h3zYfTvDUh_BvGP1d8S-g-oGuJY"
- * 
- * where the IP address needs to be the one of your KUBERNETES_SERVICE_HOST, and
- * off course you need to set a valid Bearer token.
- * 
  * TODO:
- * 1. switch the kubernetesTrustCert default to false
- * 2. Set the roles on the principle?
- * 3. Enable BasicAuth, as the next filter?
- * 4. Cache the result of validation test for a certain amount of time?
+ * Enable BasicAuth, as the next filter?
  */
 public class BearerTokenFilter implements Filter {
 
-	public static final String KUBERNETES_OSAPI_URL = "/oapi/"
-			+ KubernetesHelper.defaultOsApiVersion;
-	public static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
-	public static final String KUBERNETES_SERVICE_PORT = "KUBERNETES_SERVICE_PORT";
-	URL kubernetesOsapiUrl = null;
-	boolean kubernetesTrustCert = false;
-	KubernetesClient kubernetes = null;
+    public static final String KUBERNETES_OSAPI_URL = "/oapi/"
+            + KubernetesHelper.defaultOsApiVersion;
 
-	/**
-	 * Constructor.
-	 */
-	public BearerTokenFilter() {
-	}
+    public static final String BEARER_TOKEN_TTL           = "BEARER_TOKEN_CACHE_TTL";
+    public static final String BEARER_TOKEN_CACHE_MAXSIZE = "BEARER_TOKEN_CACHE_MAXSIZE";
 
-	/**
-	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
-	 */
-	@Override
-	public void init(FilterConfig config) throws ServletException {
-	    
-        String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER");
-        if (kubernetesMasterUrl!=null) {
-            kubernetes = new DefaultKubernetesClient(kubernetesMasterUrl);
+    private static LoadingCache<String, UserInfo> bearerTokenCache = null;
+    final private static Log log = LogFactory.getLog(BearerTokenFilter.class);
+
+    /**
+     * Constructor.
+     */
+    public BearerTokenFilter() {
+    }
+
+    /**
+     * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+     */
+    @Override
+    public void init(FilterConfig config) throws ServletException {
+        // maximum 10000 tokens in the cache
+        Number bearerTokenCacheMaxsize = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_TTL, 10);
+        // cache for 10  min
+        Number bearerTokenTTL = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_CACHE_MAXSIZE, 10000);
+
+        bearerTokenCache = CacheBuilder.newBuilder()
+                .concurrencyLevel(4)                                               // allowed concurrency among update operations 
+                .maximumSize(bearerTokenCacheMaxsize.longValue())                  
+                .expireAfterWrite(bearerTokenTTL.longValue(), TimeUnit.MINUTES)    
+                .build(
+                        new CacheLoader<String, UserInfo>() {
+                            public UserInfo load(String authHeader) throws Exception {
+                                return getUserInfoFromK8s(authHeader.substring(7));
+                            }
+                        });
+    }
+    /**
+     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
+     *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
+     */
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
+    ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader != null && authHeader.toUpperCase().startsWith("BEARER")) {
+            //validate token with issuer
+            try {
+                UserInfo userInfo = bearerTokenCache.get(authHeader);
+                AuthPrincipal principal = new AuthPrincipal(userInfo.username);
+                // roles should come from keycloak, but for now we hard code.
+                principal.addRole("apiuser");
+                if (userInfo.isClusterAdmin) {
+                    principal.addRole("apiadmin");
+                }
+                request = wrapTheRequest(request, principal);
+                chain.doFilter(request, response);
+            } catch (Exception e) {
+                e.printStackTrace();
+                String errMsg = e.getMessage();
+                if (e.getMessage().contains("Server returned HTTP response code")) {
+                    errMsg = "Invalid BearerToken";
+                } else {
+                    errMsg = "Cannot validate BearerToken";
+                    log.error(errMsg, e);
+                }
+                sendInvalidTokenResponse((HttpServletResponse)response, errMsg);
+            }
+        } else if (("/".equals(req.getPathInfo())) || ("/swagger.json".equals(req.getPathInfo()))
+                || ("/swagger.yaml".equals(req.getPathInfo()))) {
+            //allow anonymous requests to the root or swagger document
+            chain.doFilter(request, response);
         } else {
-            kubernetes = new DefaultKubernetesClient();
+            //no bearer token present
+            sendInvalidTokenResponse((HttpServletResponse)response, "No BearerToken");
         }
-        kubernetesTrustCert = kubernetes.getConfiguration().isTrustCerts();
-		kubernetesTrustCert = Boolean.parseBoolean(Systems.getEnvVarOrSystemProperty("KUBERNETES_TRUST_CERT", "true"));
-		try {
-			kubernetesOsapiUrl = new URL(kubernetes.getMasterUrl() 
-					+ KUBERNETES_OSAPI_URL + "/users/~");
-		} catch (MalformedURLException e) {
-			throw new ServletException(e);
-		}
-	}
+    }
+    /**
+     * Wrap the request to provide the principal.
+     * 
+     * @param request
+     *            the request
+     * @param principal
+     *            the principal
+     */
+    private HttpServletRequest wrapTheRequest(final ServletRequest request,
+            final AuthPrincipal principal) {
+        HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper(
+                (HttpServletRequest) request) {
+            @Override
+            public Principal getUserPrincipal() {
+                return principal;
+            }
 
-	/**
-	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
-	 *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
-	 */
-	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-	ServletException {
-		HttpServletRequest req = (HttpServletRequest) request;
-		String authHeader = req.getHeader("Authorization"); //$NON-NLS-1$
-		if (authHeader != null && authHeader.toUpperCase().startsWith("BEARER")) {
-			//validate with issuer
-			try {
-				String username = validateBearerToken(authHeader);
-				AuthPrincipal principal = new AuthPrincipal(username);
-				// roles should come from keycloak, but for now we hard code.
-				principal.addRole("apiuser");
-				if ("admin".equals(username)) {
-					principal.addRole("apiadmin");
-				}
-				request = wrapTheRequest(request, principal);
-				chain.doFilter(request, response);
-			} catch (IOException e) {
-			    e.printStackTrace();
-				String errMsg = e.getMessage();
-				if (e.getMessage().contains("Server returned HTTP response code")) {
-					errMsg = "Invalid BearerToken";
-				} else {
-					errMsg = "Cannot validate BearerToken";
-					e.printStackTrace();
-				}
-				sendInvalidTokenResponse((HttpServletResponse)response, errMsg);
-			}
-		} else if (("/".equals(req.getPathInfo())) || ("/swagger.json".equals(req.getPathInfo()))
-		        || ("/swagger.yaml".equals(req.getPathInfo()))) {
-			//allow anonymous requests to the root or swagger document
-			chain.doFilter(request, response);
-		} else {
-			//no bearer token present
-			sendInvalidTokenResponse((HttpServletResponse)response, "No BearerToken");
-		}
-	}
-	
-	/**
-	 * Validates the bearer token with the kubernetes oapi and returns the username
-	 * if it is a valid token.
-	 * 
-	 * @param bearerHeader
-	 * @return username of the user to whom the token was issued to
-	 * @throws IOException - when the token is invalid, or oapi cannot be reached.
-	 */
-	protected String validateBearerToken(String bearerHeader) throws IOException {
-		ObjectMapper mapper = new ObjectMapper();
-		HttpsURLConnection con = (HttpsURLConnection) kubernetesOsapiUrl.openConnection();
-		con.setRequestProperty("Authorization", bearerHeader);
-		con.setConnectTimeout(10000);  
-		con.setReadTimeout(10000);
-		con.setRequestProperty("Content-Type","application/json");
-		if (kubernetesTrustCert) TrustEverythingSSLTrustManager.trustAllSSLCertificates(con);
-		con.connect();
-		OAuthClientAuthorization currentUser = mapper.readValue(con.getInputStream(), OAuthClientAuthorization.class); 
-		String userName = currentUser.getMetadata().getName();
-		return userName;
-	}
-	
-	
+            @Override
+            public boolean isUserInRole(String role) {
+                return principal.getRoles().contains(role);
+            }
 
-	/**
-	 * Wrap the request to provide the principal.
-	 * 
-	 * @param request
-	 *            the request
-	 * @param principal
-	 *            the principal
-	 */
-	private HttpServletRequest wrapTheRequest(final ServletRequest request,
-			final AuthPrincipal principal) {
-		HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper(
-				(HttpServletRequest) request) {
-			@Override
-			public Principal getUserPrincipal() {
-				return principal;
-			}
+            @Override
+            public String getRemoteUser() {
+                return principal.getName();
+            }
+        };
+        return wrapper;
+    }
 
-			@Override
-			public boolean isUserInRole(String role) {
-				return principal.getRoles().contains(role);
-			}
+    /**
+     * Sends a response that tells the client that authentication is required.
+     * 
+     * @param response
+     *            the response
+     * @throws IOException
+     *             when an error cannot be sent
+     */
+    private void sendInvalidTokenResponse(HttpServletResponse response, String errMsg)
+            throws IOException {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
+    }
 
-			@Override
-			public String getRemoteUser() {
-				return principal.getName();
-			}
-		};
-		return wrapper;
-	}
+    /**
+     * @see javax.servlet.Filter#destroy()
+     */
+    @Override
+    public void destroy() {
+    }
 
-	/**
-	 * Sends a response that tells the client that authentication is required.
-	 * 
-	 * @param response
-	 *            the response
-	 * @throws IOException
-	 *             when an error cannot be sent
-	 */
-	private void sendInvalidTokenResponse(HttpServletResponse response, String errMsg)
-			throws IOException {
-		
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
-	}
+    /**
+     * Given a token is 
+     * @param token
+     * @return
+     */
+    public UserInfo getUserInfoFromK8s(final String token){
+        if (log.isDebugEnabled()) log.debug("Calling k8s to validate header abd obtain username and role for token " + token);
+        UserInfo userInfo = new UserInfo();
+        ConfigBuilder builder = new ConfigBuilder().withOauthToken(token);
+        OpenShiftClient osClient = null;
+        try {
+            osClient = new DefaultOpenShiftClient(builder.build());
+            //get the userName of the current user
+            User user = osClient.inAnyNamespace().users().withName("~").get();
+            if (log.isDebugEnabled()) log.debug("user: " + user);
+            //check to see if this user has the clusterAdmin role
+            SubjectAccessReview request = new SubjectAccessReviewBuilder().withVerb("*").withResource("*")
+                    .withApiVersion(ApiVersion.V_1).build();
+            SubjectAccessReviewResponse response = osClient.subjectAccessReviews().create(request);
+            if (log.isDebugEnabled()) log.debug("isAdminResponse: " + response);
+            userInfo.isClusterAdmin = response.getAllowed();
+            userInfo.username = user.getMetadata().getName();
+        }catch(Exception e){
+            log.error("Exception determining user's info. ", e);
+        }finally {
+            if (osClient!=null) osClient.close();
+        }
+        return userInfo;
+    }
 
-	/**
-	 * @see javax.servlet.Filter#destroy()
-	 */
-	@Override
-	public void destroy() {
-	}
+    protected class UserInfo {
+        String username;
+        boolean isClusterAdmin;
+    }
 
 }
