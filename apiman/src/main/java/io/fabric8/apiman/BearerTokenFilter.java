@@ -127,8 +127,9 @@ public class BearerTokenFilter implements Filter {
                 sendInvalidTokenResponse((HttpServletResponse)response, errMsg);
             }
         } else if (("/".equals(req.getPathInfo())) || ("/swagger.json".equals(req.getPathInfo()))
-                || ("/swagger.yaml".equals(req.getPathInfo()))) {
+                || ("/swagger.yaml".equals(req.getPathInfo())) || (req.getPathInfo().startsWith("/downloads/"))) {
             //allow anonymous requests to the root or swagger document
+            log.debug("Allowing anonymous access to " + req.getPathInfo());
             chain.doFilter(request, response);
         } else {
             //no bearer token present
