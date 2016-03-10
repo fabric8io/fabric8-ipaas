@@ -63,11 +63,11 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 
 	final private static Log log = LogFactory.getLog(KubernetesServiceCatalog.class);
 
-	final public static String SERVICE_PATH     = "apiman.io/servicepath";
-	final public static String SERVICE_TYPE     = "apiman.io/servicetype";
-	final public static String SERVICE_SCHEME   = "apiman.io/servicescheme";
-	final public static String DESCRIPTION_PATH = "apiman.io/descriptionpath";
-	final public static String DESCRIPTION_TYPE = "apiman.io/descriptiontype";
+	final public static String SERVICE_PATH         = "api.service.kubernetes.io/path";
+	final public static String SERVICE_PROTOCOL     = "api.service.kubernetes.io/protocol";
+	final public static String SERVICE_SCHEME       = "api.service.kubernetes.io/scheme";
+	final public static String DESCRIPTION_PATH     = "api.service.kubernetes.io/description-path";
+	final public static String DESCRIPTION_LANGUAGE = "api.service.kubernetes.io/description-language";
 
 	@Override
 	public List<AvailableApiBean> search(String keyword) {
@@ -150,9 +150,9 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
                 }
 				bean.setEndpoint(serviceContract.serviceUrl);
 				bean.setRouteEndpoint(serviceContract.serviceRouteUrl);
-				if (serviceContract.serviceType!=null) {
+				if (serviceContract.serviceProtocol!=null) {
 					for (EndpointType type: EndpointType.values()) {
-						if (type.toString().equalsIgnoreCase(serviceContract.serviceType)) {
+						if (type.toString().equalsIgnoreCase(serviceContract.serviceProtocol)) {
 							bean.setEndpointType(EndpointType.valueOf(type.name()));
 						}
 					}
@@ -161,15 +161,16 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 				}
 				bean.setDefinitionUrl(serviceContract.descriptionUrl);
 				bean.setRouteDefinitionUrl(serviceContract.descriptionRouteUrl);
-				if (serviceContract.descriptionType!=null) {
+				if (serviceContract.descriptionLanguage!=null) {
 					for (ApiDefinitionType type: ApiDefinitionType.values()) {
-						if (type.toString().equalsIgnoreCase(serviceContract.descriptionType)) {
+						if (type.toString().equalsIgnoreCase(serviceContract.descriptionLanguage)) {
 							bean.setDefinitionType(ApiDefinitionType.valueOf(type.name()));
 						}
 					}
 				} else {
 					bean.setDefinitionType(ApiDefinitionType.None);
 				}
+				log.info(bean.getName() + " with definition set to " + bean.getRouteDefinitionUrl());
 				if (log.isDebugEnabled()) {
     				log.debug(bean.getName() + " : " + bean.getDescription());
     				log.debug("  " + bean.getEndpoint() + " : " + bean.getEndpointType());
@@ -190,10 +191,10 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 		if (annotations!=null) {
 			serviceContract.serviceUrl           = serviceUrl + (annotations.get(SERVICE_PATH)==null ? "" : annotations.get(SERVICE_PATH));
 			serviceContract.serviceRouteUrl      = routeUrl + (annotations.get(SERVICE_PATH)==null ? "" : annotations.get(SERVICE_PATH));
-			serviceContract.serviceType          = annotations.get(SERVICE_TYPE);
+			serviceContract.serviceProtocol      = annotations.get(SERVICE_PROTOCOL);
 			serviceContract.descriptionUrl       = serviceUrl + (annotations.get(DESCRIPTION_PATH)==null ? "" : annotations.get(DESCRIPTION_PATH));
 			serviceContract.descriptionRouteUrl  = routeUrl + (annotations.get(DESCRIPTION_PATH)==null ? "" : annotations.get(DESCRIPTION_PATH));
-			serviceContract.descriptionType      = annotations.get(DESCRIPTION_TYPE);
+			serviceContract.descriptionLanguage  = annotations.get(DESCRIPTION_LANGUAGE);
 		} else {
 			serviceContract.serviceUrl = serviceUrl;
 		}
@@ -204,10 +205,10 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 
 		String serviceUrl;
 		String serviceRouteUrl;
-		String serviceType;
+		String serviceProtocol;
 		String descriptionUrl;
 		String descriptionRouteUrl;
-		String descriptionType;
+		String descriptionLanguage;
 	}
 
 

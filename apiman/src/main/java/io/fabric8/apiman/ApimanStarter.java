@@ -100,23 +100,23 @@ public class ApimanStarter {
             //lookup in the current namespace
             InetAddress initAddress = InetAddress.getByName(serviceName);
             host = initAddress.getCanonicalHostName();
-            log.info("Resolved host using DNS: " + host);
+            log.debug("Resolved host using DNS: " + host);
         } catch (UnknownHostException e) {
             log.warn("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
             host = KubernetesServices.serviceToHostOrBlank(serviceName);
             if ("".equals(host)) {
                 host = "localhost";
-                log.info("Defaulting " + serviceName + " host to: " + host);
+                log.debug("Defaulting " + serviceName + " host to: " + host);
             } else {
-                log.info("Resolved " + serviceName + " host using ENV: " + host);
+                log.debug("Resolved " + serviceName + " host using ENV: " + host);
             }
         }
         port = KubernetesServices.serviceToPortOrBlank(serviceName);
         if ("".equals(port)) {
             port = defaultPort;
-            log.info("Defaulting " + serviceName + " port to: " + port);
+            log.debug("Defaulting " + serviceName + " port to: " + port);
         } else {
-            log.info("Resolved " + serviceName + " port using ENV: " + port);
+            log.debug("Resolved " + serviceName + " port using ENV: " + port);
         }
         String scheme = "http";
         if (port.endsWith("443")) scheme = "https";
