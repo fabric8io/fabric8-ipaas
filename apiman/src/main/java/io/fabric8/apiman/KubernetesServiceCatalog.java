@@ -120,63 +120,68 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
 	    for (String serviceName : serviceMap.keySet()) {
 			if (keyword==null || keyword.equals("") || keyword.equals("*") || serviceName.toLowerCase().contains(keyword.toLowerCase())) {
 				Service service = serviceMap.get(serviceName);
-				Map<String,String> annotations = service.getMetadata().getAnnotations();
-				String port = "";
-				if (service.getSpec().getPorts().size() > 0) port = String.valueOf(service.getSpec().getPorts().get(0).getPort());
-				URL url = ApimanStarter.resolveServiceEndpoint(serviceName, port);
-				String serviceUrl = url.toExternalForm();
-				String scheme = url.getProtocol();
-				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) {
-				    scheme = annotations.get(SERVICE_SCHEME);
-				    serviceUrl = serviceUrl.replace(url.getProtocol(), scheme);
-				}
-				String routeUrl = routeUrls.get(serviceName);
-				if (routeUrl!=null) routeUrl = scheme + "://" + routeUrl;
-				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl, routeUrl);
-
-				AvailableApiBean bean = new AvailableApiBean();
-				String name = service.getMetadata().getName();
-				bean.setName(name);
-				
-				if (routeUrl!=null) {
-				    bean.setEndpoint(scheme + "://" + routeUrl + "/");
-				}
-				String iconUrlKey = "fabric8." + name + "/iconUrl";
-				bean.setIcon(iconUrls.get(iconUrlKey));
-				String summaryKey = "fabric8." + name + "/summary";
-                if (service.getMetadata().getAnnotations()!=null && service.getMetadata().getAnnotations().keySet().contains(summaryKey)) {
-                    String description = service.getMetadata().getAnnotations().get(summaryKey);
-                    bean.setDescription(description);
-                }
-				bean.setEndpoint(serviceContract.serviceUrl);
-				bean.setRouteEndpoint(serviceContract.serviceRouteUrl);
-				if (serviceContract.serviceProtocol!=null) {
-					for (EndpointType type: EndpointType.values()) {
-						if (type.toString().equalsIgnoreCase(serviceContract.serviceProtocol)) {
-							bean.setEndpointType(EndpointType.valueOf(type.name()));
-						}
-					}
+				String clusterIP = service.getSpec().getClusterIP();
+				if ("None".equals(clusterIP)) {
+				    log.debug("Ignoring headless service " + serviceName);
 				} else {
-					bean.setEndpointType(null);
+    				Map<String,String> annotations = service.getMetadata().getAnnotations();
+    				String port = "";
+    				if (service.getSpec().getPorts().size() > 0) port = String.valueOf(service.getSpec().getPorts().get(0).getPort());
+    				URL url = ApimanStarter.resolveServiceEndpoint(serviceName, port);
+    				String serviceUrl = url.toExternalForm();
+    				String scheme = url.getProtocol();
+    				if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) {
+    				    scheme = annotations.get(SERVICE_SCHEME);
+    				    serviceUrl = serviceUrl.replace(url.getProtocol(), scheme);
+    				}
+    				String routeUrl = routeUrls.get(serviceName);
+    				if (routeUrl!=null) routeUrl = scheme + "://" + routeUrl;
+    				ServiceContract serviceContract = createServiceContract(annotations, serviceUrl, routeUrl);
+    
+    				AvailableApiBean bean = new AvailableApiBean();
+    				String name = service.getMetadata().getName();
+    				bean.setName(name);
+    				
+    				if (routeUrl!=null) {
+    				    bean.setEndpoint(scheme + "://" + routeUrl + "/");
+    				}
+    				String iconUrlKey = "fabric8." + name + "/iconUrl";
+    				bean.setIcon(iconUrls.get(iconUrlKey));
+    				String summaryKey = "fabric8." + name + "/summary";
+                    if (service.getMetadata().getAnnotations()!=null && service.getMetadata().getAnnotations().keySet().contains(summaryKey)) {
+                        String description = service.getMetadata().getAnnotations().get(summaryKey);
+                        bean.setDescription(description);
+                    }
+    				bean.setEndpoint(serviceContract.serviceUrl);
+    				bean.setRouteEndpoint(serviceContract.serviceRouteUrl);
+    				if (serviceContract.serviceProtocol!=null) {
+    					for (EndpointType type: EndpointType.values()) {
+    						if (type.toString().equalsIgnoreCase(serviceContract.serviceProtocol)) {
+    							bean.setEndpointType(EndpointType.valueOf(type.name()));
+    						}
+    					}
+    				} else {
+    					bean.setEndpointType(null);
+    				}
+    				bean.setDefinitionUrl(serviceContract.descriptionUrl);
+    				bean.setRouteDefinitionUrl(serviceContract.descriptionRouteUrl);
+    				if (serviceContract.descriptionLanguage!=null) {
+    					for (ApiDefinitionType type: ApiDefinitionType.values()) {
+    						if (type.toString().equalsIgnoreCase(serviceContract.descriptionLanguage)) {
+    							bean.setDefinitionType(ApiDefinitionType.valueOf(type.name()));
+    						}
+    					}
+    				} else {
+    					bean.setDefinitionType(ApiDefinitionType.None);
+    				}
+    				log.info(bean.getName() + " with definition set to " + bean.getRouteDefinitionUrl());
+    				if (log.isDebugEnabled()) {
+        				log.debug(bean.getName() + " : " + bean.getDescription());
+        				log.debug("  " + bean.getEndpoint() + " : " + bean.getEndpointType());
+        				log.debug("  " + bean.getDefinitionUrl() + " : " + bean.getDefinitionType());
+    				}
+    				availableServiceBeans.add(bean);
 				}
-				bean.setDefinitionUrl(serviceContract.descriptionUrl);
-				bean.setRouteDefinitionUrl(serviceContract.descriptionRouteUrl);
-				if (serviceContract.descriptionLanguage!=null) {
-					for (ApiDefinitionType type: ApiDefinitionType.values()) {
-						if (type.toString().equalsIgnoreCase(serviceContract.descriptionLanguage)) {
-							bean.setDefinitionType(ApiDefinitionType.valueOf(type.name()));
-						}
-					}
-				} else {
-					bean.setDefinitionType(ApiDefinitionType.None);
-				}
-				log.info(bean.getName() + " with definition set to " + bean.getRouteDefinitionUrl());
-				if (log.isDebugEnabled()) {
-    				log.debug(bean.getName() + " : " + bean.getDescription());
-    				log.debug("  " + bean.getEndpoint() + " : " + bean.getEndpointType());
-    				log.debug("  " + bean.getDefinitionUrl() + " : " + bean.getDefinitionType());
-				}
-				availableServiceBeans.add(bean);
 			}
 		}
 	    kubernetes.close();
