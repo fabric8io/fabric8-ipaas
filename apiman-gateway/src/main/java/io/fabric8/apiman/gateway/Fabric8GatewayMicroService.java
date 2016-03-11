@@ -54,15 +54,12 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
         setConfigProperty("apiman.es.protocol", elasticEndpoint.getProtocol());
         setConfigProperty("apiman.es.host", elasticEndpoint.getHost());
         setConfigProperty("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
-        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix");
+        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix",".apiman_");
         if (esIndexPrefix != null) {
-            //https://issues.jboss.org/browse/APIMAN-1010
-            setConfigProperty("apiman-gateway.registry.index.name" , esIndexPrefix + "gateway");
-            setConfigProperty("apiman-gateway.metrics.index.name" , esIndexPrefix + "metrics");
+            log.info("Setting index prefix to " + esIndexPrefix);
+            setConfigProperty("apiman-gateway.registry.client.index" , esIndexPrefix + "gateway");
+            setConfigProperty("apiman-gateway.metrics.client.index" , esIndexPrefix + "metrics");
             setConfigProperty("apiman-gateway.components.ICacheStoreComponent.client.index"  , esIndexPrefix + "cache");
-//            setConfigProperty(ESConstants.GATEWAY_INDEX_NAME , esIndexPrefix + "gateway");
-//            setConfigProperty(ESConstants.METRICS_INDEX_NAME , esIndexPrefix + "metrics");
-//            setConfigProperty(ESConstants.CACHE_INDEX_NAME   , esIndexPrefix + "cache");
         }
 	}
 	
