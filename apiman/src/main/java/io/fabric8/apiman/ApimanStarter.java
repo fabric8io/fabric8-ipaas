@@ -60,7 +60,7 @@ public class ApimanStarter {
         setConfigProp("apiman.es.host",                elasticEndpoint.getHost());
         setConfigProp("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
         
-        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix");
+        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix","apiman.");
         if (esIndexPrefix != null) {
             setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INDEX_NAME, esIndexPrefix + "manager");
         }
