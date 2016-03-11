@@ -54,7 +54,7 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
         setConfigProperty("apiman.es.protocol", elasticEndpoint.getProtocol());
         setConfigProperty("apiman.es.host", elasticEndpoint.getHost());
         setConfigProperty("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
-        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix","apiman.");
+        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix",".apiman_");
         if (esIndexPrefix != null) {
             log.info("Setting index prefix to " + esIndexPrefix);
             setConfigProperty("apiman-gateway.registry.client.index" , esIndexPrefix + "gateway");
