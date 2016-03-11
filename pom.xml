@@ -96,7 +96,7 @@
         <activemq.container.port>6194</activemq.container.port>
         <activemq.service.port>6163</activemq.service.port>
 
-        <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk</docker.from>
+        <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk:1.0.10</docker.from>
         <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
         <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
         <docker.port.container.jolokia>8778</docker.port.container.jolokia>
