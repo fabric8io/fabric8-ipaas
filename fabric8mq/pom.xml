@@ -33,7 +33,6 @@
     <properties>
         <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
         <guava.version>15.0</guava.version>
-        <docker.from>fabric8/s2i-java</docker.from>
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
         <docker.env.MAIN>io.fabric8.mq.Main</docker.env.MAIN>
 

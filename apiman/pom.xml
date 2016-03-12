@@ -19,7 +19,6 @@
     <timestamp>${maven.build.timestamp}</timestamp>
 
     <http.port>7070</http.port>    
-    <docker.from>fabric8/s2i-java:1.1.5</docker.from>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
     <docker.env.MAIN>io.fabric8.apiman.ApimanStarter</docker.env.MAIN>

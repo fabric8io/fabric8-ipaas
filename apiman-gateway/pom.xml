@@ -17,7 +17,6 @@
     <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
 
     <http.port>7777</http.port>
-    <docker.from>fabric8/s2i-java:1.1.5</docker.from>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
     <docker.port.container.http>${http.port}</docker.port.container.http>
