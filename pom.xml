@@ -104,7 +104,6 @@
 
     <modules>
         <module>amqbroker</module>
-        <module>api-registry</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
         <module>elasticsearch</module>
@@ -113,7 +112,7 @@
         <module>fabric8mq-producer</module>
         <module>fabric8mq-consumer</module>
         <module>fabric8-msm</module>
-		<module>artemis</module>
+        <module>artemis</module>
         <module>msg-gateway</module>
         <module>qpid-dispatch</module>
         <module>packages</module>
