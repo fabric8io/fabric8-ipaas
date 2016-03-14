@@ -19,12 +19,7 @@ import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.jms.ActiveMQJMSClient;
 import org.apache.activemq.artemis.api.jms.JMSFactoryType;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSConsumer;
-import javax.jms.JMSContext;
-import javax.jms.Message;
-import javax.jms.MessageListener;
+import javax.jms.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +34,8 @@ public class ArtemisClient {
     private AtomicBoolean started = new AtomicBoolean();
     private final int port;
     private final String host;
-    private JMSContext jmsContext;
+    private Connection connection;
+    private MessageProducer messageProducer;
     private Map<Destination,ProxyConsumer> consumerMap = new ConcurrentHashMap<>();
 
     public ArtemisClient(String host,int port){
@@ -63,21 +59,23 @@ public class ArtemisClient {
                                               connectionParams);
 
             ConnectionFactory connectionFactory = ActiveMQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, transportConfiguration);
-            jmsContext = connectionFactory.createContext();
-            jmsContext.start();
+            connection = connectionFactory.createConnection();
+            connection.start();
+            Session session = connection.createSession();
+            messageProducer = session.createProducer(null);
         }
     }
 
     public void stop() throws Exception{
         if (started.compareAndSet(true,false)){
-            if (jmsContext != null) {
-                jmsContext.stop();
+            if (connection != null) {
+                connection.stop();
             }
         }
     }
 
     public void send(Destination destination,Message message) throws Exception{
-        jmsContext.createProducer().send(destination,message);
+        messageProducer.send(destination,message);
     }
 
     public void addConsumer(Destination destination, MessageListener listener){
@@ -86,8 +84,13 @@ public class ArtemisClient {
             proxyConsumer = new ProxyConsumer();
             proxyConsumer.listener=listener;
             proxyConsumer.destination=destination;
-            proxyConsumer.jmsConsumer = jmsContext.createConsumer(destination);
-            proxyConsumer = consumerMap.putIfAbsent(destination,proxyConsumer);
+            try {
+                Session session = connection.createSession();
+                proxyConsumer.messageConsumer = session.createConsumer(destination);
+                proxyConsumer = consumerMap.putIfAbsent(destination,proxyConsumer);
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
         }
         proxyConsumer.count.incrementAndGet();
     }
@@ -98,7 +101,10 @@ public class ArtemisClient {
             if (proxyConsumer.count.decrementAndGet()<= 0){
                 proxyConsumer=consumerMap.remove(destination);
                 if (proxyConsumer != null) {
-                    proxyConsumer.jmsConsumer.close();
+                    try {
+                        proxyConsumer.messageConsumer.close();
+                    } catch (JMSException e) {
+                    }
                 }
             }
         }
@@ -109,7 +115,7 @@ public class ArtemisClient {
         Destination destination;
         AtomicInteger count = new AtomicInteger();
         MessageListener listener;
-        JMSConsumer jmsConsumer;
+        MessageConsumer messageConsumer;
     }
 
     public int hashCode(){

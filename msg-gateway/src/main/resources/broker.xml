@@ -39,13 +39,13 @@
         <management-notification-address>jms.topic.notificationsTopic</management-notification-address>
 
         <connectors>
-            <connector name="in-vm">vm://0</connector>
+            <connector name="in-vm">vm://1</connector>
         </connectors>
 
         <acceptors>
+            <acceptor name="in-vm">vm://1</acceptor>
             <!-- Netty standard TCP acceptor -->
             <acceptor name="netty">tcp://0.0.0.0:61616</acceptor>
-            <acceptor name="in-vm">vm://0</acceptor>
         </acceptors>
 
         <!--  Other configs -->
