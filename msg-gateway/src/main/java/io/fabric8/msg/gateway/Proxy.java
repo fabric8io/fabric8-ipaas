@@ -19,14 +19,7 @@ import io.fabric8.msg.gateway.brokers.BrokerControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSConsumer;
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
-import javax.jms.JMSProducer;
-import javax.jms.Message;
-import javax.jms.MessageListener;
+import javax.jms.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,8 +34,8 @@ public class Proxy implements MessageListener {
     private final AtomicBoolean started = new AtomicBoolean();
     private final ConnectionFactory connectionFactory;
     private final BrokerControl brokerControl;
-    private JMSContext jmsContext;
-    private JMSProducer jmsProducer;
+    private Connection connection;
+    private MessageProducer messageProducer;
 
     public Proxy(ConnectionFactory connectionFactory, BrokerControl brokerControl){
         this.connectionFactory = connectionFactory;
@@ -60,8 +53,8 @@ public class Proxy implements MessageListener {
 
     public void start() throws  Exception{
         if (started.compareAndSet(false,true)){
-            jmsContext = connectionFactory.createContext();
-            jmsContext.start();
+            connection = connectionFactory.createConnection();
+            connection.start();
 
             MessageListener gatewayListener = new MessageListener() {
                 @Override
@@ -70,15 +63,18 @@ public class Proxy implements MessageListener {
                 }
             };
             //listen to the MessageGateway for messages
-            Destination topics = jmsContext.createTopic(WILD_CARD_NAME);
-            JMSConsumer topicConsumer = jmsContext.createConsumer(topics);
+            Session topicSession = connection.createSession();
+            Destination topics = topicSession.createTopic(WILD_CARD_NAME);
+            MessageConsumer topicConsumer = topicSession.createConsumer(topics);
             topicConsumer.setMessageListener(gatewayListener);
 
-            Destination queues = jmsContext.createQueue(WILD_CARD_NAME);
-            JMSConsumer queueConsumer = jmsContext.createConsumer(queues);
+            Session queueSession = connection.createSession();
+            Destination queues = queueSession.createQueue(WILD_CARD_NAME);
+            MessageConsumer queueConsumer = queueSession.createConsumer(queues);
             queueConsumer.setMessageListener(gatewayListener);
 
-            jmsProducer = jmsContext.createProducer();
+            Session producerSession = connection.createSession();
+            messageProducer = producerSession.createProducer(null);
 
 
         }
@@ -86,8 +82,8 @@ public class Proxy implements MessageListener {
 
     public void stop() throws  Exception{
         if (started.compareAndSet(true,false)){
-            if (jmsContext != null){
-                jmsContext.stop();
+            if (connection != null){
+                connection.stop();
             }
         }
     }
@@ -100,7 +96,7 @@ public class Proxy implements MessageListener {
     public void onMessage(Message message) {
         if (started.get()){
             try {
-                jmsProducer.send(message.getJMSDestination(), message);
+                messageProducer.send(message.getJMSDestination(), message);
             }catch(Throwable e){
                 LOG.error("Failed to send message[" + message + "] to the gateway ",e);
             }

@@ -45,7 +45,6 @@ public class MsgGateway  {
         broker = new EmbeddedJMS();
         broker.start();
 
-
         LOG.info("EmbeddedJMS started");
         JMSServerManager jmsServerManager = broker.getJMSServerManager();
         List<String> connectors = new ArrayList<>();

@@ -19,12 +19,13 @@ import org.apache.activemq.artemis.api.core.management.CoreNotificationType;
 import org.apache.activemq.artemis.api.core.management.ManagementHelper;
 import org.apache.activemq.artemis.jms.client.ActiveMQDestination;
 
+import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSConsumer;
-import javax.jms.JMSContext;
 import javax.jms.Message;
+import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.Session;
 import javax.jms.Topic;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ class NotificationListener implements MessageListener {
     private AtomicBoolean started = new AtomicBoolean();
     private final ConnectionFactory connectionFactory;
     private final Proxy proxy;
-    private JMSContext jmsContext;
+    private Connection connection;
     private Map<String,AtomicInteger> consumerMap = new ConcurrentHashMap<>();
 
 
@@ -50,10 +51,12 @@ class NotificationListener implements MessageListener {
        if (started.compareAndSet(false,true)){
            Topic notificationsTopic = ActiveMQDestination.createTopic(Constants.NOTIFICATION_TOPIC_NAME);
 
-           jmsContext = connectionFactory.createContext();
-           jmsContext.start();
+           connection = connectionFactory.createConnection();
+           connection.start();
 
-           JMSConsumer consumer = jmsContext.createConsumer(notificationsTopic);
+           Session session = connection.createSession();
+
+           MessageConsumer consumer = session.createConsumer(notificationsTopic);
            consumer.setMessageListener(this);
 
        }
@@ -61,8 +64,8 @@ class NotificationListener implements MessageListener {
 
     public void stop() throws Exception{
         if (started.compareAndSet(true,false)){
-            if (jmsContext != null){
-                jmsContext.close();
+            if (connection != null){
+                connection.close();
             }
         }
     }
