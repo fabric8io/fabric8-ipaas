@@ -44,6 +44,7 @@ public class Artemis {
 
         HashMap<String, Object> configMap = new HashMap<>();
         configMap.put("port",port);
+        configMap.put("host","0.0.0.0");
         TransportConfiguration transportConfiguration = new TransportConfiguration(NettyAcceptorFactory.class.getName(),configMap,"artemis");
         Configuration configuration = new ConfigurationImpl().setJournalDirectory("data")
                             .setPersistenceEnabled(false).setSecurityEnabled(false)

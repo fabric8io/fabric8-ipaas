@@ -16,13 +16,8 @@
 package io.fabric8.msg.gateway.brokers.impl;
 
 import io.fabric8.kubernetes.api.KubernetesHelper;
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.msg.gateway.ArtemisClient;
 import io.fabric8.msg.gateway.brokers.BrokerControl;
 import org.slf4j.Logger;
@@ -31,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import javax.jms.Destination;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executors;
@@ -43,9 +39,8 @@ public class KubernetesBrokerControl implements BrokerControl {
     private final AtomicBoolean started = new AtomicBoolean();
     private String brokerSelector = "component=artemis,group=artemis,project=artemis,provider=fabric8";
     private String artemisName = "artemis";
-    private String portName = "61616";
+    private String artemisPort = "61616";
     private String namespace = KubernetesHelper.defaultNamespace();
-    private int ARTEMIS_PORT = 61616;
     private KubernetesClient kubernetesClient;
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private ConcurrentLinkedDeque<ArtemisClient> artemisClients = new ConcurrentLinkedDeque<>();
@@ -96,14 +91,6 @@ public class KubernetesBrokerControl implements BrokerControl {
         this.namespace = namespace;
     }
 
-    public int getARTEMIS_PORT() {
-        return ARTEMIS_PORT;
-    }
-
-    public void setARTEMIS_PORT(int ARTEMIS_PORT) {
-        this.ARTEMIS_PORT = ARTEMIS_PORT;
-    }
-
     public String getArtemisName() {
         return artemisName;
     }
@@ -112,44 +99,26 @@ public class KubernetesBrokerControl implements BrokerControl {
         this.artemisName = artemisName;
     }
 
-    public String getPortName() {
-        return portName;
+
+    public String getArtemisPort() {
+        return artemisPort;
     }
 
-    public void setPortName(String portName) {
-        this.portName = portName;
+    public void setArtemisPort(String artemisPort) {
+        this.artemisPort = artemisPort;
     }
+
 
     protected void lookupBrokers() {
-        System.err.println("LOOKUP BROKERS CALLED");
         try {
-
-            Endpoints endpoints = kubernetesClient.endpoints().inNamespace(getNamespace()).withName(getArtemisName()).get();
-    System.err.println("ENDPOINTS = " + endpoints);
-
             HashSet<ArtemisClient> set = new HashSet<>();
-            if (endpoints != null) {
-                for (EndpointSubset subset : endpoints.getSubsets()) {
-                    if (subset.getPorts().size() == 1) {
-                        EndpointPort port = subset.getPorts().get(0);
-                        for (EndpointAddress address : subset.getAddresses()) {
-                            ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
-                            set.add(artemisClient);
-                        }
-                    } else {
-                        for (EndpointPort port : subset.getPorts()) {
-                            if (Utils.isNullOrEmpty(portName) || portName.endsWith(port.getName())) {
-                                for (EndpointAddress address : subset.getAddresses()) {
-                                    ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
-                                    set.add(artemisClient);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            Set<String> brokers = KubernetesHelper.lookupServiceInDns(getArtemisName());
+            brokers.forEach(broker -> {
+                    System.err.println("Broker = " + broker);
+                ArtemisClient artemisClient = new ArtemisClient(broker, getArtemisPort());
+                set.add(artemisClient);
+                });
 
-            System.err.println("LOOKUP SET SIZE = " + set.size());
 
             for (ArtemisClient artemisClient : set) {
                 if (!artemisClients.contains(artemisClient)) {
@@ -166,7 +135,7 @@ public class KubernetesBrokerControl implements BrokerControl {
                 }
             }
         } catch (Throwable e) {
-            LOG.error("lookupBrokers", e);
+            LOG.error("FAILED lookupBrokers", e);
         }
 
     }

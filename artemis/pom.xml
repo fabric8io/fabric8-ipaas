@@ -46,6 +46,9 @@
         <fabric8.service.port>${activemq.service.port}</fabric8.service.port>
         <fabric8.service.containerPort>${activemq.container.port}</fabric8.service.containerPort>
 
+        <fabric8.service.name>${project.artifactId}</fabric8.service.name>
+        <fabric8.service.headless>true</fabric8.service.headless>
+
         <fabric8.label.component>artemis</fabric8.label.component>
         <fabric8.label.group>artemis</fabric8.label.group>
         <fabric8.label.provider>fabric8</fabric8.label.provider>

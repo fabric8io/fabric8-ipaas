@@ -43,6 +43,11 @@ public class ArtemisClient {
         this.host=host;
     }
 
+    public ArtemisClient(String host,String port){
+        this.port=Integer.parseInt(port);
+        this.host=host;
+    }
+
 
 
     public void start() throws Exception{
