@@ -16,12 +16,15 @@
 package io.fabric8.msg.gateway.brokers.impl;
 
 import io.fabric8.kubernetes.api.KubernetesHelper;
+import io.fabric8.kubernetes.api.model.DoneableEndpoints;
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.dsl.ClientResource;
 import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.msg.gateway.ArtemisClient;
 import io.fabric8.msg.gateway.brokers.BrokerControl;
@@ -50,6 +53,8 @@ public class KubernetesBrokerControl implements BrokerControl {
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private ConcurrentLinkedDeque<ArtemisClient> artemisClients = new ConcurrentLinkedDeque<>();
     private Map<Destination, ArtemisClient> destinationArtemisClientMap = new ConcurrentHashMap<>();
+    private EndpointWatcher endpointWatcher;
+    private Watch endpointWatch;
 
     @Override
     public ArtemisClient get(Destination destination) {
@@ -69,14 +74,26 @@ public class KubernetesBrokerControl implements BrokerControl {
     public void start() throws Exception {
         if (started.compareAndSet(false, true)) {
             kubernetesClient = new DefaultKubernetesClient();
-            executor.scheduleAtFixedRate(() -> lookupBrokers(), 0, 5, TimeUnit.SECONDS);
+
+            endpointWatcher = new EndpointWatcher(this, kubernetesClient.getNamespace());
+
+            ClientResource<Endpoints, DoneableEndpoints> endpointsClient;
+            endpointsClient = kubernetesClient.endpoints().inNamespace(getNamespace()).withName(getArtemisName());
+            endpointWatch = endpointsClient.watch(endpointWatcher);
+            Endpoints endpoints = endpointsClient.get();
+            if (endpoints != null) {
+                endpointWatcher.onInitialEndpoints(endpoints);
+            }
+
+            // TODO watch for the map of Destination -> Broker
+
             LOG.info("KubernetesBrokerControl started");
         }
     }
 
     public void stop() throws Exception {
-        if (started.compareAndSet(true, false)) {
-            executor.shutdownNow();
+        if (endpointWatch != null) {
+            endpointWatch.close();
         }
     }
 
@@ -120,55 +137,45 @@ public class KubernetesBrokerControl implements BrokerControl {
         this.portName = portName;
     }
 
-    protected void lookupBrokers() {
-        System.err.println("LOOKUP BROKERS CALLED");
-        try {
-
-            Endpoints endpoints = kubernetesClient.endpoints().inNamespace(getNamespace()).withName(getArtemisName()).get();
-    System.err.println("ENDPOINTS = " + endpoints);
-
-            HashSet<ArtemisClient> set = new HashSet<>();
-            if (endpoints != null) {
-                for (EndpointSubset subset : endpoints.getSubsets()) {
-                    if (subset.getPorts().size() == 1) {
-                        EndpointPort port = subset.getPorts().get(0);
-                        for (EndpointAddress address : subset.getAddresses()) {
-                            ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
-                            set.add(artemisClient);
-                        }
-                    } else {
-                        for (EndpointPort port : subset.getPorts()) {
-                            if (Utils.isNullOrEmpty(portName) || portName.endsWith(port.getName())) {
-                                for (EndpointAddress address : subset.getAddresses()) {
-                                    ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
-                                    set.add(artemisClient);
-                                }
+    public void createClientForEndpoints(Endpoints endpoints) throws Exception {
+        HashSet<ArtemisClient> set = new HashSet<>();
+        if (endpoints != null) {
+            for (EndpointSubset subset : endpoints.getSubsets()) {
+                if (subset.getPorts().size() == 1) {
+                    EndpointPort port = subset.getPorts().get(0);
+                    for (EndpointAddress address : subset.getAddresses()) {
+                        ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
+                        set.add(artemisClient);
+                    }
+                } else {
+                    for (EndpointPort port : subset.getPorts()) {
+                        if (Utils.isNullOrEmpty(portName) || portName.endsWith(port.getName())) {
+                            for (EndpointAddress address : subset.getAddresses()) {
+                                ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
+                                set.add(artemisClient);
                             }
                         }
                     }
                 }
             }
-
-            System.err.println("LOOKUP SET SIZE = " + set.size());
-
-            for (ArtemisClient artemisClient : set) {
-                if (!artemisClients.contains(artemisClient)) {
-                    artemisClient.start();
-                    artemisClients.add(artemisClient);
-                }
-            }
-
-            for (ArtemisClient artemisClient : artemisClients) {
-                if (!set.contains(artemisClient)) {
-                    artemisClient.stop();
-                    artemisClients.remove(artemisClient);
-                    LOG.info("Removed stale " + artemisClient);
-                }
-            }
-        } catch (Throwable e) {
-            LOG.error("lookupBrokers", e);
         }
 
+        System.err.println("LOOKUP SET SIZE = " + set.size());
+
+        for (ArtemisClient artemisClient : set) {
+            if (!artemisClients.contains(artemisClient)) {
+                artemisClient.start();
+                artemisClients.add(artemisClient);
+            }
+        }
+
+        for (ArtemisClient artemisClient : artemisClients) {
+            if (!set.contains(artemisClient)) {
+                artemisClient.stop();
+                artemisClients.remove(artemisClient);
+                LOG.info("Removed stale " + artemisClient);
+            }
+        }
     }
 
     private ArtemisClient getNextClient() {
