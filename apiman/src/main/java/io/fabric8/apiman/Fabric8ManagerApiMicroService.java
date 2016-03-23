@@ -15,18 +15,15 @@
  */
 package io.fabric8.apiman;
 
-import io.apiman.manager.api.micro.ManagerApiMicroService;
-
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.SecurityHandler;
-import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.resource.Resource;
+
+import io.apiman.manager.api.micro.ManagerApiMicroService;
 
 public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 
@@ -47,29 +44,14 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 	protected void addAuthFilter(ServletContextHandler apiManServer) {
 		apiManServer.addFilter(BootstrapFilter.class,  "/*", EnumSet.of(DispatcherType.REQUEST));
 		apiManServer.addFilter(BearerTokenFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+		apiManServer.addFilter(Kubernetes2ApimanFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 	}
 
 	@Override
 	protected SecurityHandler createSecurityHandler() {
 	    // Security should be handled through the BearerTokenFilter.  No need for a valid
 	    // login service.
-        HashLoginService l = new HashLoginService();
-
-        // Don't add users to the service!
-//        for (User user : Users.getUsers()) {
-//            String[] roles = user.getRolesAsArray();
-//            if (user.getId().startsWith("admin"))
-//                roles = new String[] { "apiuser", "apiadmin"};
-//            l.putUser(user.getId(), Credential.getCredential(user.getPassword()), roles);
-//        }
-        l.setName("apimanrealm");
-
-        ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
-        csh.setAuthenticator(new BasicAuthenticator());
-        csh.setRealmName("apimanrealm");
-        csh.setLoginService(l);
-
-        return csh;
+        return null;
 	}
 
 

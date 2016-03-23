@@ -1,5 +1,4 @@
 var APIMAN_CONFIG_DATA = {
-    "platform" : "standalone",
     "apiman" : {
         "version" : "f8-${project.version}",
         "builtOn" : "${timestamp}",
@@ -9,8 +8,9 @@ var APIMAN_CONFIG_DATA = {
         "username" : null
     },
     "ui" : {
-        "header" : "f8",
-        "metrics" : true
+        "header" : "ose",
+        "platform" : "f8",
+        "metrics" : false
     },
     "api" : {
         "endpoint" : "/apiman",

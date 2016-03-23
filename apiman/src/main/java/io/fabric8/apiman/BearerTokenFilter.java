@@ -52,9 +52,6 @@ import io.fabric8.utils.Systems;
  * A simple implementation of an bearer token filter that checks the validity of
  * an incoming bearer token with the OpenShift issuer. The OpenShift call
  * returns a JSON from which the UserPrincipal can be set.
- * 
- * TODO:
- * Enable BasicAuth, as the next filter?
  */
 public class BearerTokenFilter implements Filter {
 
@@ -65,6 +62,7 @@ public class BearerTokenFilter implements Filter {
     public static final String BEARER_TOKEN_CACHE_MAXSIZE = "BEARER_TOKEN_CACHE_MAXSIZE";
 
     private static LoadingCache<String, UserInfo> bearerTokenCache = null;
+
     final private static Log log = LogFactory.getLog(BearerTokenFilter.class);
 
     /**
@@ -79,9 +77,9 @@ public class BearerTokenFilter implements Filter {
     @Override
     public void init(FilterConfig config) throws ServletException {
         // maximum 10000 tokens in the cache
-        Number bearerTokenCacheMaxsize = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_TTL, 10);
+        Number bearerTokenCacheMaxsize = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_CACHE_MAXSIZE, 10000);
         // cache for 10  min
-        Number bearerTokenTTL = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_CACHE_MAXSIZE, 10000);
+        Number bearerTokenTTL = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_TTL, 10);
 
         bearerTokenCache = CacheBuilder.newBuilder()
                 .concurrencyLevel(4)                                               // allowed concurrency among update operations 
@@ -89,11 +87,12 @@ public class BearerTokenFilter implements Filter {
                 .expireAfterWrite(bearerTokenTTL.longValue(), TimeUnit.MINUTES)    
                 .build(
                         new CacheLoader<String, UserInfo>() {
-                            public UserInfo load(String authHeader) throws Exception {
-                                return getUserInfoFromK8s(authHeader.substring(7));
+                            public UserInfo load(String authToken) throws Exception {
+                                return getUserInfoFromK8s(authToken);
                             }
                         });
     }
+    
     /**
      * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
      *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
@@ -103,10 +102,14 @@ public class BearerTokenFilter implements Filter {
     ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         String authHeader = req.getHeader("Authorization");
+        AuthToken.set(null);
+        
         if (authHeader != null && authHeader.toUpperCase().startsWith("BEARER")) {
             //validate token with issuer
             try {
-                UserInfo userInfo = bearerTokenCache.get(authHeader);
+                String authToken = authHeader.substring(7);
+                UserInfo userInfo = bearerTokenCache.get(authToken);
+                AuthToken.set(authToken);
                 AuthPrincipal principal = new AuthPrincipal(userInfo.username);
                 // roles should come from keycloak, but for now we hard code.
                 principal.addRole("apiuser");
