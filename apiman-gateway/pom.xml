@@ -25,7 +25,7 @@
     <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
     <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
     <fabric8.label.component>ApimanGateway</fabric8.label.component>
-    <fabric8.label.group>defaultGatewayGroup</fabric8.label.group>
+    <fabric8.label.group>io.fabric8.ipaas.apps</fabric8.label.group>
     <fabric8.label.provider>fabric8</fabric8.label.provider>
     <fabric8.service.port>${http.port}</fabric8.service.port>
     <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
