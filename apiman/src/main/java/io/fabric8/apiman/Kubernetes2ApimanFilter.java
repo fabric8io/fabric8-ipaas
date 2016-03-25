@@ -16,9 +16,9 @@
 package io.fabric8.apiman;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -40,33 +40,18 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import io.apiman.manager.api.beans.BeanUtils;
-import io.apiman.manager.api.beans.audit.data.MembershipData;
+import io.apiman.manager.api.beans.apis.NewApiBean;
 import io.apiman.manager.api.beans.idm.GrantRolesBean;
-import io.apiman.manager.api.beans.idm.PermissionType;
-import io.apiman.manager.api.beans.idm.RoleBean;
-import io.apiman.manager.api.beans.idm.RoleMembershipBean;
 import io.apiman.manager.api.beans.orgs.NewOrganizationBean;
-import io.apiman.manager.api.beans.orgs.OrganizationBean;
-import io.apiman.manager.api.beans.search.SearchCriteriaBean;
-import io.apiman.manager.api.beans.search.SearchCriteriaFilterOperator;
-import io.apiman.manager.api.core.IStorage;
-import io.apiman.manager.api.core.IStorageQuery;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
-import io.apiman.manager.api.rest.contract.exceptions.AbstractRestException;
-import io.apiman.manager.api.rest.contract.exceptions.InvalidNameException;
-import io.apiman.manager.api.rest.contract.exceptions.NotAuthorizedException;
-import io.apiman.manager.api.rest.contract.exceptions.OrganizationAlreadyExistsException;
+import io.apiman.manager.api.beans.summary.ApiSummaryBean;
+import io.apiman.manager.api.beans.summary.AvailableApiBean;
+import io.apiman.manager.api.beans.summary.OrganizationSummaryBean;
+import io.apiman.manager.api.rest.contract.IOrganizationResource;
+import io.apiman.manager.api.rest.contract.IUserResource;
 import io.apiman.manager.api.rest.contract.exceptions.OrganizationNotFoundException;
-import io.apiman.manager.api.rest.contract.exceptions.RoleNotFoundException;
-import io.apiman.manager.api.rest.contract.exceptions.SystemErrorException;
-import io.apiman.manager.api.rest.contract.exceptions.UserNotFoundException;
-import io.apiman.manager.api.rest.impl.audit.AuditUtils;
-import io.apiman.manager.api.rest.impl.i18n.Messages;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.rest.impl.util.FieldValidator;
 import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -88,26 +73,24 @@ import io.fabric8.utils.Systems;
 @SuppressWarnings("nls")
 @ApplicationScoped
 public class Kubernetes2ApimanFilter implements Filter {
-
-    @Inject
-    IStorage storage;
     
     @Inject
-    IStorageQuery storageQuery;
+    IUserResource userResource;
     
-    @Inject @ApimanLogger(BootstrapFilter.class)
-    IApimanLogger logger;
+    @Inject
+    IOrganizationResource organizationResource;
+    
+    final private static Log log = LogFactory.getLog(Kubernetes2ApimanFilter.class);
     
     public static final String NS_TTL           = "NS_CACHE_TTL";
     public static final String NS_CACHE_MAXSIZE = "NS_CACHE_MAXSIZE";
+    public static final String OPENSHIFT_API_MANAGER = "api.service.openshift.io/api-manager";
 
-    private static LoadingCache<String, UserInfo> nsCache = null;
+    private static LoadingCache<String, ApimanInfo> nsCache = null;
 
     private static String kubernetesMasterUrl = Systems.getEnvVarOrSystemProperty("KUBERNETES_MASTER");
     private static boolean isWatching = false;
     
-    final private static Log log = LogFactory.getLog(Kubernetes2ApimanFilter.class);
-
     /**
      * Constructor.
      */
@@ -121,7 +104,7 @@ public class Kubernetes2ApimanFilter implements Filter {
     public void init(FilterConfig config) throws ServletException {
         // maximum 10000 tokens in the cache
         Number nsCacheMaxsize = Systems.getEnvVarOrSystemProperty(NS_CACHE_MAXSIZE, 10000);
-        // cache for 10  min
+        // cache for 60  min
         Number nsTTL = Systems.getEnvVarOrSystemProperty(NS_TTL, 10);
         if (nsCache==null) {
         nsCache = CacheBuilder.newBuilder()
@@ -129,9 +112,9 @@ public class Kubernetes2ApimanFilter implements Filter {
                 .maximumSize(nsCacheMaxsize.longValue())                  
                 .expireAfterWrite(nsTTL.longValue(), TimeUnit.MINUTES)    
                 .build(
-                        new CacheLoader<String, UserInfo>() {
-                            public UserInfo load(String authToken) throws Exception {
-                                return syncKubernetesNamespacesToApiman(authToken);
+                        new CacheLoader<String, ApimanInfo>() {
+                            public ApimanInfo load(String authToken) throws Exception {
+                                return syncKubernetesToApiman(authToken);
                             }
                         });
         }
@@ -174,172 +157,114 @@ public class Kubernetes2ApimanFilter implements Filter {
      * @param token
      * @return
      */
-    public UserInfo syncKubernetesNamespacesToApiman(final String authToken){
-        log.info("KubernetesNamespacesToApiman");
-        UserInfo userInfo = new UserInfo();
-        Config config = new ConfigBuilder().withOauthToken(authToken).build();
-        if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
+    public ApimanInfo syncKubernetesToApiman(final String authToken){
+        log.info("KubernetesToApiman");
+        SudoSecurityContext sudoSecurityContext = new SudoSecurityContext();
+        ApimanInfo apimanInfo = new ApimanInfo();
+
         OpenShiftClient osClient = null;
         try {
+            Config config = new ConfigBuilder().withOauthToken(authToken).build();
+            if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
             osClient = new DefaultOpenShiftClient(config);
             String username = osClient.inAnyNamespace().users().withName("~").get().getMetadata().getName();
-            userInfo.token = authToken;
-            Set<String> apimanOrganizationsForUser = getApimanOrganizations(username);
-            log.info(apimanOrganizationsForUser);
+            apimanInfo.token = authToken;
+
+            List<OrganizationSummaryBean> beans = userResource.getOrganizations(username);
+            Set<String> apimanOrganizationIdsForUser = new HashSet<String>();
+            for (OrganizationSummaryBean bean: beans) {
+                apimanOrganizationIdsForUser.add(bean.getId());
+            }
+            log.info(apimanOrganizationIdsForUser.toString());
             //get k8s projects owned by user
             ProjectList projectList = osClient.projects().list();
+            
             for (Project project : projectList.getItems()) {
                 String orgId = BeanUtils.idFromName(project.getMetadata().getName());
                 log.info("Namespace: " + orgId);
-                if (! apimanOrganizationsForUser.contains(orgId)) {
-                    log.info("User " + username + " is not a member of organizationId '" + orgId + "'");
-                    OrganizationBean apimanOrg = getApimanOrganization(orgId);
-                    if (apimanOrg==null) { // create the organization
-                        log.info("Creating organizationId '" + orgId + "' as it does not yet exist in Apiman");
-                        NewOrganizationBean orgBean = new NewOrganizationBean();
-                        orgBean.setName(project.getMetadata().getName());
-                        orgBean.setDescription("Namespace '" + orgId + "' created by Kubernetes2Apiman");
-                        createApimanOrg(orgBean, username);
-                    } else {
+                if (! apimanOrganizationIdsForUser.contains(orgId)) {
+                    log.info("User " + username + " is not a member of organizationId '" + orgId + "'"); 
+                    try {
+                        organizationResource.get(orgId);
                         log.info("Adding user '" + username + "' as member to organizationId '" + orgId + "'");
                         GrantRolesBean bean = new GrantRolesBean();
                         bean.setUserId(username);
                         Set<String> roleIds = new HashSet<String>();
                         roleIds.add("Service Developer");
                         bean.setRoleIds(roleIds);
-                        grant(orgId, bean);
+                        sudoSecurityContext.sudo(organizationResource, "Kubernetes2Apiman", true);
+                        organizationResource.grant(orgId, bean);
+                        sudoSecurityContext.exit();
+                    } catch (OrganizationNotFoundException e) {
+                        log.info("Creating organizationId '" + orgId + "' as it does not yet exist in Apiman");
+                        NewOrganizationBean orgBean = new NewOrganizationBean();
+                        orgBean.setName(project.getMetadata().getName());
+                        orgBean.setDescription("Namespace '" + orgId + "' created by Kubernetes2Apiman");
+                        sudoSecurityContext.sudo(organizationResource, username, false);
+                        organizationResource.create(orgBean);
+                        sudoSecurityContext.exit();
+                    }
+                    apimanInfo.organizations.add(orgId);
+                }
+
+                List<ApiSummaryBean> apiSummaryBeans = organizationResource.listApi(orgId);
+                Set<String> apimanApiIds = new HashSet<String>();
+                for (ApiSummaryBean bean : apiSummaryBeans) {
+                    apimanApiIds.add(bean.getId());
+                }
+                ServiceList serviceList = osClient.services().inNamespace(orgId).list();
+                sudoSecurityContext.sudo(organizationResource, username, false);
+                Kubernetes2ApimanMapper mapper = new Kubernetes2ApimanMapper(osClient);
+                for (Service service : serviceList.getItems()) {
+                    if (! apimanApiIds.contains(BeanUtils.idFromName(service.getMetadata().getName()))) {
+                        if (isServiceRegisterToApiman(service)) {
+                            log.info("Creating API '" + service.getMetadata().getName() + "' in apiman");
+                            //map service to bean
+                            AvailableApiBean bean = mapper.createAvailableApiBean(service, null);
+                            if (bean!=null) {
+                                NewApiBean newApiBean = new NewApiBean();
+                                newApiBean.setDefinitionType(bean.getDefinitionType());
+                                //APIMAN-1069 newApiBean.setDefinitionUrl(bean.getDefinitionUrl());
+                                newApiBean.setDescription(bean.getDescription());
+                                newApiBean.setEndpoint(bean.getEndpoint());
+                                newApiBean.setEndpointType(bean.getEndpointType());
+                                newApiBean.setInitialVersion("1.0");
+                                newApiBean.setName(bean.getName());
+                                newApiBean.setPublicAPI(true);
+                                log.info("New API: " + newApiBean);
+                                organizationResource.createApi(orgId, newApiBean);
+                                apimanInfo.apis.add(BeanUtils.idFromName(service.getMetadata().getName()));
+                            }
+                        } else {
+                            log.debug("Auto registration not requested for this service");
+                        }
                     }
                 }
+                sudoSecurityContext.exit();
             }
 
         } catch(Exception e){
-            log.error("Exception determining namespace info. ", e);
+            log.error("Kubernetes2Apiman mapping Exception. ", e);
         }finally {
+            sudoSecurityContext.exit();
             if (osClient!=null) osClient.close();
+            
         }
-        return userInfo;
+        return apimanInfo;
     }
 
-    protected class UserInfo {
+    protected class ApimanInfo {
         String token;
+        Set<String> organizations = new HashSet<String>();
+        Set<String> apis = new HashSet<String>();
     }
     
-    public Set<String> getApimanOrganizations(String userId) {
-        Set<String> permittedOrganizations = new HashSet<>();
-        try {
-            Set<RoleMembershipBean> memberships = storageQuery.getUserMemberships(userId);
-            for (RoleMembershipBean membership : memberships) {
-                permittedOrganizations.add(membership.getOrganizationId());
-            }
-            return permittedOrganizations;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
+    private boolean isServiceRegisterToApiman(Service service) {
+        Map<String,String> annotations = service.getMetadata().getAnnotations();
+        if (annotations!=null && annotations.containsKey(OPENSHIFT_API_MANAGER)) {
+            return "apiman".equalsIgnoreCase(annotations.get(OPENSHIFT_API_MANAGER));
         }
-    }
-    
-    public OrganizationBean getApimanOrganization(String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
-        try {
-            storage.beginTx();
-            OrganizationBean organizationBean = storage.getOrganization(organizationId);
-            storage.commitTx();
-            if (organizationBean!=null) log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean)); //$NON-NLS-1$
-            return organizationBean;
-        } catch (AbstractRestException e) {
-            storage.rollbackTx();
-            throw e;
-        } catch (Exception e) {
-            storage.rollbackTx();
-            throw new SystemErrorException(e);
-        }
-    }
-    
-    public OrganizationBean createApimanOrg(NewOrganizationBean bean, String currentUser) throws OrganizationAlreadyExistsException, InvalidNameException {
-        FieldValidator.validateName(bean.getName());
-
-        SudoSecurityContext securityContext = new SudoSecurityContext(currentUser, true);
-        List<RoleBean> autoGrantedRoles;
-        SearchCriteriaBean criteria = new SearchCriteriaBean();
-        criteria.setPage(1);
-        criteria.setPageSize(100);
-        criteria.addFilter("autoGrant", "true", SearchCriteriaFilterOperator.bool_eq); //$NON-NLS-1$ //$NON-NLS-2$
-        try {
-            autoGrantedRoles = storageQuery.findRoles(criteria).getBeans();
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-
-        if ("true".equals(System.getProperty("apiman.manager.require-auto-granted-org", "true"))) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            if (autoGrantedRoles.isEmpty()) {
-                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable")); //$NON-NLS-1$
-            }
-        }
-
-        OrganizationBean orgBean = new OrganizationBean();
-        orgBean.setName(bean.getName());
-        orgBean.setDescription(bean.getDescription());
-        orgBean.setId(BeanUtils.idFromName(bean.getName()));
-        orgBean.setCreatedOn(new Date());
-        orgBean.setCreatedBy(currentUser);
-        orgBean.setModifiedOn(new Date());
-        orgBean.setModifiedBy(currentUser);
-        try {
-            // Store/persist the new organization
-            storage.beginTx();
-            if (storage.getOrganization(orgBean.getId()) != null) {
-                throw ExceptionFactory.organizationAlreadyExistsException(bean.getName());
-            }
-            storage.createOrganization(orgBean);
-            storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
-
-            // Auto-grant memberships in roles to the creator of the organization
-            for (RoleBean roleBean : autoGrantedRoles) {
-                //String currentUser = securityContext.getCurrentUser();
-                String orgId = orgBean.getId();
-                RoleMembershipBean membership = RoleMembershipBean.create(currentUser, roleBean.getId(), orgId);
-                membership.setCreatedOn(new Date());
-                storage.createMembership(membership);
-            }
-            storage.commitTx();
-            log.debug(String.format("Created organization %s: %s", orgBean.getName(), orgBean)); //$NON-NLS-1$
-            return orgBean;
-        } catch (AbstractRestException e) {
-            storage.rollbackTx();
-            throw e;
-        } catch (Exception e) {
-            storage.rollbackTx();
-            throw new SystemErrorException(e);
-        }
-    }
-    
-    public void grant(String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException,
-    RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
-
-        SudoSecurityContext securityContext = new SudoSecurityContext("kubernetes2apiman",true);
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-
-        MembershipData auditData = new MembershipData();
-        auditData.setUserId(bean.getUserId());
-        try {
-            storage.beginTx();
-            for (String roleId : bean.getRoleIds()) {
-                RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), roleId, organizationId);
-                membership.setCreatedOn(new Date());
-                // If the membership already exists, that's fine!
-                if (storage.getMembership(bean.getUserId(), roleId, organizationId) == null) {
-                    storage.createMembership(membership);
-                }
-                auditData.addRole(roleId);
-            }
-            storage.createAuditEntry(AuditUtils.membershipGranted(organizationId, auditData, securityContext));
-            storage.commitTx();
-        } catch (AbstractRestException e) {
-            storage.rollbackTx();
-            throw e;
-        } catch (Exception e) {
-            storage.rollbackTx();
-            throw new SystemErrorException(e);
-        }
+        return false;
     }
     
     public synchronized static void watchNamespaces() {
@@ -365,6 +290,23 @@ public class Kubernetes2ApimanFilter implements Filter {
                     }
                 }
             });
+            k8sClient.services().watch(new Watcher<Service>() {
+                
+                @Override
+                public void onClose(KubernetesClientException cause) {
+                    log.error(cause.getMessage(),cause);
+                }
+                
+                @Override
+                public void eventReceived(Action action, Service resource) {
+                    log.info("Watcher received service " + action.name() + " action");
+                    if (Action.ADDED.equals(action)) {
+                        log.info("Invalidating nsCache");
+                        nsCache.invalidateAll();
+                    }
+                }
+            });
+            
         } finally {
             if (k8sClient!=null) k8sClient.close();
         }

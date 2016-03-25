@@ -15,21 +15,37 @@
  */
 package io.fabric8.apiman;
 
+import java.util.Set;
 
+import io.apiman.manager.api.beans.idm.PermissionType;
+import io.apiman.manager.api.rest.contract.IOrganizationResource;
+import io.apiman.manager.api.rest.impl.OrganizationResourceImpl;
+import io.apiman.manager.api.security.ISecurityContext;
 
-import io.apiman.manager.api.security.impl.AbstractSecurityContext;
+public class SudoSecurityContext implements ISecurityContext {
 
-public class SudoSecurityContext extends AbstractSecurityContext {
-
-    String currentUser;
-    boolean isAdmin;
+    private String currentUser;
+    private boolean isAdmin;
+    private OrganizationResourceImpl organizationResource;
+    private ISecurityContext originalSecurityContext;
     
     /**
      * Constructor.
      */
-    public SudoSecurityContext(String currentUser, boolean isAdmin) {
+    public SudoSecurityContext() {
+    }
+    
+    public void sudo (IOrganizationResource organizationResource, String currentUser, boolean isAdmin) {
         this.currentUser = currentUser;
         this.isAdmin = isAdmin;
+        this.organizationResource = (OrganizationResourceImpl) organizationResource;
+        this.originalSecurityContext = this.organizationResource.getSecurityContext();
+        this.organizationResource.setSecurityContext(this);
+    }
+    public void exit() {
+        this.currentUser = null;
+        this.isAdmin = false;
+        if (this.organizationResource!=null) this.organizationResource.setSecurityContext(originalSecurityContext);
     }
 
     /**
@@ -73,16 +89,22 @@ public class SudoSecurityContext extends AbstractSecurityContext {
     }
 
     /**
-     * Called to clear the current thread local permissions bean.
-     */
-    protected static void clearPermissions() {
-        AbstractSecurityContext.clearPermissions();
-    }
-
-    /**
      * Called to clear the context http servlet request.
      */
     protected static void clearServletRequest() {
+    }
+    @Override
+    public boolean hasPermission(PermissionType permission,
+            String organizationId) {
+        return true;
+    }
+    @Override
+    public boolean isMemberOf(String organizationId) {
+        return true;
+    }
+    @Override
+    public Set<String> getPermittedOrganizations(PermissionType permission) {
+        return null;
     }
 
 }
