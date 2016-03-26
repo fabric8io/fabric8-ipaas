@@ -28,13 +28,13 @@ public class KubernetesServiceCatalogTest {
 	@Test @Ignore
 	public void singleServiceAnnotations() {
 		String serviceUrl = "http://localhost:8080/";
-		KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
+		Kubernetes2ApimanMapper catalog = new Kubernetes2ApimanMapper(null);
 		Map<String,String> annotations = new HashMap<String,String>();
-		annotations.put(KubernetesServiceCatalog.SERVICE_PATH, "cxfcdi");
-		annotations.put(KubernetesServiceCatalog.SERVICE_PROTOCOL, "rest");
-		annotations.put(KubernetesServiceCatalog.DESCRIPTION_PATH, "_?wsdl");
-		annotations.put(KubernetesServiceCatalog.DESCRIPTION_LANGUAGE, "wsdl");
-		KubernetesServiceCatalog.ServiceContract sc = catalog.createServiceContract(annotations, serviceUrl, null);
+		annotations.put(Kubernetes2ApimanMapper.SERVICE_PATH, "cxfcdi");
+		annotations.put(Kubernetes2ApimanMapper.SERVICE_PROTOCOL, "rest");
+		annotations.put(Kubernetes2ApimanMapper.DESCRIPTION_PATH, "_?wsdl");
+		annotations.put(Kubernetes2ApimanMapper.DESCRIPTION_LANGUAGE, "wsdl");
+		Kubernetes2ApimanMapper.ServiceContract sc = catalog.createServiceContract(annotations, serviceUrl, null);
 	
 		assertEquals("http://localhost:8080/cxfcdi", sc.serviceUrl);
 		assertEquals("rest", sc.serviceProtocol);
