@@ -16,6 +16,8 @@
 package io.fabric8.apiman;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +138,10 @@ public class Kubernetes2ApimanFilter implements Filter {
         if (authHeader != null && authHeader.toUpperCase().startsWith("BEARER")) {
             try {
                 //check namespaceCache
-                nsCache.get(authHeader.substring(7));
+                ApimanInfo apimanInfo = nsCache.get(authHeader.substring(7));
+                if (! apimanInfo.isReady) {
+                    nsCache.invalidate(apimanInfo.token);
+                }
             } catch (Exception e) {
                 String errMsg = e.getMessage();
                 log.error(errMsg, e);
@@ -222,9 +227,13 @@ public class Kubernetes2ApimanFilter implements Filter {
                             //map service to bean
                             AvailableApiBean bean = mapper.createAvailableApiBean(service, null);
                             if (bean!=null) {
+                                if (! isReady(bean)) {
+                                    apimanInfo.isReady = false;
+                                    break;
+                                }     
                                 NewApiBean newApiBean = new NewApiBean();
                                 newApiBean.setDefinitionType(bean.getDefinitionType());
-                                //APIMAN-1069 newApiBean.setDefinitionUrl(bean.getDefinitionUrl());
+                                newApiBean.setDefinitionUrl(bean.getDefinitionUrl());
                                 newApiBean.setDescription(bean.getDescription());
                                 newApiBean.setEndpoint(bean.getEndpoint());
                                 newApiBean.setEndpointType(bean.getEndpointType());
@@ -242,7 +251,6 @@ public class Kubernetes2ApimanFilter implements Filter {
                 }
                 sudoSecurityContext.exit();
             }
-
         } catch(Exception e){
             log.error("Kubernetes2Apiman mapping Exception. ", e);
         }finally {
@@ -255,8 +263,39 @@ public class Kubernetes2ApimanFilter implements Filter {
 
     protected class ApimanInfo {
         String token;
+        boolean isReady = true;
         Set<String> organizations = new HashSet<String>();
         Set<String> apis = new HashSet<String>();
+    }
+    
+    /**
+     * Checks of the descriptionDocument can be obtained from the service. If the
+     * service is still deploying we will hold off and return false.
+     * 
+     * @param bean
+     * @return true of the desciptionDocument is ready to be read.
+     */
+    private boolean isReady(AvailableApiBean bean) {
+        log.debug("DefinitionType: " + bean.getDefinitionType());
+        if (bean.getDefinitionType()!=null && ! "".equals(bean.getDefinitionType())) {
+            try {
+                URL defUrl = new URL(bean.getDefinitionUrl());
+                URLConnection urlConnection =  defUrl.openConnection();
+                log.info("Trying to obtain descriptionDoc for service " + bean.getName());
+                urlConnection.setConnectTimeout(250);
+                if (urlConnection.getContentLength() > 0) {
+                    log.debug("DefinitionDoc Ready to be read " + urlConnection.getContent());
+                    return true;
+                } else {
+                    log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read " + urlConnection.getContent());
+                    return false;
+                }
+            } catch (Exception e) {
+                log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read. " + e.getMessage());
+                return false;
+            }
+        }
+        return true;
     }
     
     private boolean isServiceRegisterToApiman(Service service) {
