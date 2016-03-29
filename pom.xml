@@ -116,6 +116,7 @@
         <module>msg-gateway</module>
         <module>qpid-dispatch</module>
         <module>zookeeper</module>
+        <module>kafka</module>
         <module>packages</module>
     </modules>
 
