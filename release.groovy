@@ -34,7 +34,7 @@ def release(project){
     stagedProject = project
     useGitTagForNextVersion = true
     helmPush = false
-    groupId = 'io.fabric8.ipaas'
+    groupId = 'io.fabric8.ipaas.distro'
     githubOrganisation = 'fabric8io'
     artifactIdToWatchInCentral = 'distro'
     artifactExtensionToWatchInCentral = 'pom'
