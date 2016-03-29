@@ -43,8 +43,8 @@
 
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
 
-        <fabric8.service.port>${activemq.service.port}</fabric8.service.port>
-        <fabric8.service.containerPort>${activemq.container.port}</fabric8.service.containerPort>
+        <fabric8.service.port>61616</fabric8.service.port>
+        <fabric8.service.containerPort>61616</fabric8.service.containerPort>
 
         <fabric8.label.component>artemis</fabric8.label.component>
         <fabric8.label.group>artemis</fabric8.label.group>
