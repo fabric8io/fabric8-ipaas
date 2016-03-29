@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2015 Red Hat, Inc
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.fabric8.ipaas.apps</groupId>
+        <artifactId>fabric8-ipaas</artifactId>
+        <version>2.2.96-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zookeeper</artifactId>
+    <packaging>jar</packaging>
+    <name>ZooKeeper</name>
+
+    <properties>
+        <fabric8.dockerUser>fabric8/</fabric8.dockerUser>
+        <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+        <docker.port.container.zkclient>2181</docker.port.container.zkclient>
+        <docker.port.container.peer>2888</docker.port.container.peer>
+        <docker.port.container.election>3888</docker.port.container.election>
+
+        <ensemble.size>3</ensemble.size>
+        <fabric8.env.ENSEMBLE_SIZE>${ensemble.size}</fabric8.env.ENSEMBLE_SIZE>
+        <fabric8.service.name>${project.artifactId}</fabric8.service.name>
+
+        <fabric8.service.zookeeper.headless>true</fabric8.service.zookeeper.headless>
+        <fabric8.service.zookeeper.port.peer>2888</fabric8.service.zookeeper.port.peer>
+        <fabric8.service.zookeeper.containerPort.peer>2888</fabric8.service.zookeeper.containerPort.peer>
+        <fabric8.service.zookeeper.port.election>3888</fabric8.service.zookeeper.port.election>
+        <fabric8.service.zookeeper.containerPort.election>3888</fabric8.service.zookeeper.containerPort.election>
+        <fabric8.volume.data.mountPath>/opt/zookeeper/data</fabric8.volume.data.mountPath>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- import fabric8 platfrom bom first -->
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
+                <version>${fabric8.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+        <dependencies>
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-generator</artifactId>
+                <version>${fabric8.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.arquillian.junit</groupId>
+                <artifactId>arquillian-junit-container</artifactId>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>fabric8-arquillian</artifactId>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-assertions</artifactId>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Compiler plugin enforces Java 1.8 compatibility and activates annotation processors -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18.1</version>
+            </plugin>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>fabric8-maven-plugin</artifactId>
+                <version>${fabric8.version}</version>
+                <executions>
+                    <execution>
+                        <id>json</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>json</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>attach</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${docker.image}</name>
+                            <build>
+                                <from>${docker.from}</from>
+                                <assembly>
+                                    <dockerFileDir>${project.basedir}/src/main/docker/zookeeper</dockerFileDir>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--
+    Default sample commands:
+
+    mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
+    mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
+    mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
+
+    For individual goal usage please consult the fabric8 documentation
+    -->
+    <profiles>
+        <profile>
+            <id>f8-build</id>
+            <build>
+                <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
+            </build>
+        </profile>
+        <profile>
+            <id>f8-deploy</id>
+            <properties>
+                <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
+                <fabric8.recreate>true</fabric8.recreate>
+            </properties>
+            <build>
+                <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
+            </build>
+        </profile>
+        <profile>
+            <id>f8-local-deploy</id>
+            <properties>
+                <fabric8.recreate>true</fabric8.recreate>
+            </properties>
+            <build>
+                <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

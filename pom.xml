@@ -115,6 +115,7 @@
         <module>artemis</module>
         <module>msg-gateway</module>
         <module>qpid-dispatch</module>
+        <module>zookeeper</module>
         <module>packages</module>
     </modules>
 
