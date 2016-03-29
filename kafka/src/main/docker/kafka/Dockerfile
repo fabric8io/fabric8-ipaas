@@ -17,4 +17,4 @@ VOLUME ["/opt/kafka/config", "/opt/kafka/logs"]
 
 COPY server.properties ./config/
 
-CMD ["/opt/kafka/bin/kafka-server-start.sh"]
+CMD ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
