@@ -35,8 +35,9 @@
       <destinationName>TEST.FOO</destinationName>
       <docker.env.MAIN>io.fabric8.mq.producer.ProducerMain</docker.env.MAIN>
 
-      <fabric8.env.AMQ_SERVICE_ID>FABRIC8MQ</fabric8.env.AMQ_SERVICE_ID>
+      <fabric8.env.FABRIC8MQ_SERVICE_NAME>fabric8mq</fabric8.env.FABRIC8MQ_SERVICE_NAME>
       <fabric8.env.AMQ_QUEUENAME>${destinationName}</fabric8.env.AMQ_QUEUENAME>
+
       <fabric8.label.component>fabric8MQProducer</fabric8.label.component>
       <fabric8.label.group>fabric8mq</fabric8.label.group>
       <fabric8.label.provider>fabric8</fabric8.label.provider>
@@ -46,8 +47,9 @@
 
   <dependencies>
     <dependency>
-        <groupId>io.fabric8.mq</groupId>
-        <artifactId>camel-amq</artifactId>
+      <groupId>io.fabric8.ipaas.mq</groupId>
+      <artifactId>camel-amq</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -156,8 +158,8 @@
                 <env>
                   <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
                   <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
-                  <AMQ_SERVICE_ID>FABRIC8MQ</AMQ_SERVICE_ID>
-                  <AMQ_QUEUENAME>TEST.FOO</AMQ_QUEUENAME>
+                  <FABRIC8MQ_SERVICE_NAME>${fabric8.env.FABRIC8MQ_SERVICE_NAME}</FABRIC8MQ_SERVICE_NAME>
+                  <AMQ_QUEUENAME>${destinationName}</AMQ_QUEUENAME>
                   <AMQ_INTERVAL>50</AMQ_INTERVAL>
                   <AMQ_MESSAGE_SIZE_BYTES>1024</AMQ_MESSAGE_SIZE_BYTES>
                   <AMQ_MESSAGE_COUNT>10000</AMQ_MESSAGE_COUNT>

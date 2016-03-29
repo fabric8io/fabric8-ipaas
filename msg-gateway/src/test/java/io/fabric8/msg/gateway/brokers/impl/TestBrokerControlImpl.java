@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class TestBrokerControlImpl implements BrokerControl {
+public class TestBrokerControlImpl extends BrokerControlSupport implements BrokerControl {
 
     final Broker broker1 = new Broker();
     final Broker broker2 = new Broker();

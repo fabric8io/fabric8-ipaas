@@ -42,18 +42,25 @@
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
         <docker.env.MAIN>io.fabric8.msm.Main</docker.env.MAIN>
 
-        <fabric8.service.port>${activemq.service.port}</fabric8.service.port>
-        <fabric8.service.containerPort>${activemq.container.port}</fabric8.service.containerPort>
+        <fabric8.service.fabric8mq.port>${activemq.service.port}</fabric8.service.fabric8mq.port>
+        <fabric8.service.fabric8mq.containerPort>${activemq.container.port}</fabric8.service.fabric8mq.containerPort>
 
         <fabric8.label.component>msg-gateway</fabric8.label.component>
         <fabric8.label.group>msg-gateway</fabric8.label.group>
         <fabric8.label.provider>fabric8</fabric8.label.provider>
         <fabric8.iconRef>icons/activemq.svg</fabric8.iconRef>
+        <curator.version>3.1.0</curator.version>
+<!--
+        <zookeeper.version>3.5.1-alpha</zookeeper.version>
+-->
+        <zookeeper.version>3.4.8</zookeeper.version>
+
+        <zookeeper.host>zookeeper.vagrant.f8</zookeeper.host>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- import fabric8 platfrom bom first -->
+            <!-- import fabric8 platform bom first -->
             <dependency>
                 <groupId>io.fabric8</groupId>
                 <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
@@ -84,6 +91,27 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+<!--
+            <version>${curator.version}</version>
+-->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+<!--
+            <version>${curator.version}</version>
+-->
+        </dependency>
+<!--
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+        </dependency>
+-->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator-annotation-processor</artifactId>
@@ -203,6 +231,10 @@
                     <excludes>
                         <exclude>**/*KT.java</exclude>
                     </excludes>
+
+                    <systemPropertyVariables>
+                        <ZOOKEEPER>${zookeeper.host}</ZOOKEEPER>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 

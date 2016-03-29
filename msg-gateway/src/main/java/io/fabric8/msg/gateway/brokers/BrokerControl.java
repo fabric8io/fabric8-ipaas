@@ -24,4 +24,6 @@ public interface BrokerControl {
     void start() throws Exception;
     void stop() throws Exception;
     ArtemisClient get(Destination destination) throws Exception;
+
+    ArtemisClient getOrCreateArtemisClient(String hostAndPort) throws Exception;
 }
