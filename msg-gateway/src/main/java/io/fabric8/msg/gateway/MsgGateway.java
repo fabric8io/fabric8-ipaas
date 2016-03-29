@@ -16,7 +16,9 @@
 package io.fabric8.msg.gateway;
 
 import io.fabric8.msg.gateway.brokers.BrokerControl;
+import io.fabric8.msg.gateway.brokers.DestinationMapper;
 import io.fabric8.msg.gateway.brokers.impl.KubernetesBrokerControl;
+import io.fabric8.msg.gateway.brokers.impl.ZKDestinationMapper;
 import org.apache.activemq.artemis.api.jms.JMSFactoryType;
 import org.apache.activemq.artemis.jms.server.JMSServerManager;
 import org.apache.activemq.artemis.jms.server.embedded.EmbeddedJMS;
@@ -37,6 +39,7 @@ public class MsgGateway  {
     private BrokerControl brokerControl;
     private Proxy proxy;
     private NotificationListener notificationListener;
+    private DestinationMapper destinationMapper;
 
 
     @PostConstruct
@@ -52,8 +55,14 @@ public class MsgGateway  {
         jmsServerManager.createConnectionFactory("ConnectionFactory", false, JMSFactoryType.CF, connectors, "ConnectionFactory");
         ConnectionFactory cf = (ConnectionFactory) broker.lookup("ConnectionFactory");
 
-        brokerControl = getBrokerControl();
+        ZKDestinationMapper zkDestinationMapper = new ZKDestinationMapper();
+        zkDestinationMapper.start();
+        this.destinationMapper = zkDestinationMapper;
+
+        brokerControl = new KubernetesBrokerControl(destinationMapper);
+        zkDestinationMapper.setBrokerControl(brokerControl);
         brokerControl.start();
+
         proxy = new Proxy(cf,brokerControl);
         proxy.start();
         notificationListener = new NotificationListener(cf,proxy);
@@ -79,9 +88,6 @@ public class MsgGateway  {
     }
 
     public BrokerControl getBrokerControl() {
-        if (brokerControl == null){
-            brokerControl = new KubernetesBrokerControl();
-        }
         return  brokerControl;
     }
 

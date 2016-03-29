@@ -19,7 +19,15 @@ import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.jms.ActiveMQJMSClient;
 import org.apache.activemq.artemis.api.jms.JMSFactoryType;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,17 +44,35 @@ public class ArtemisClient {
     private final String host;
     private Connection connection;
     private MessageProducer messageProducer;
-    private Map<Destination,ProxyConsumer> consumerMap = new ConcurrentHashMap<>();
+    private Map<Destination, ProxyConsumer> consumerMap = new ConcurrentHashMap<>();
 
-    public ArtemisClient(String host,int port){
-        this.port=port;
-        this.host=host;
+    public ArtemisClient(String hostAndPort) {
+        int idx = hostAndPort.indexOf(':');
+        if (idx > 0) {
+            this.host = hostAndPort.substring(0, idx);
+            String portText = hostAndPort.substring(idx + 1);
+            try {
+                this.port = Integer.parseInt(portText);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Could not parse port number in host:port text `"
+                        + hostAndPort + "`. " + e, e);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid host:port string, no ':' character. Was `" + hostAndPort + "`");
+        }
     }
 
+    public ArtemisClient(String host, int port) {
+        this.port = port;
+        this.host = host;
+    }
 
+    public String getHostAndPort() {
+        return host + ":" + port;
+    }
 
-    public void start() throws Exception{
-        if (started.compareAndSet(false,true)) {
+    public void start() throws Exception {
+        if (started.compareAndSet(false, true)) {
             Map<String, Object> connectionParams = new HashMap<>();
 
             connectionParams.put(PORT_PROP_NAME, port);
@@ -54,9 +80,9 @@ public class ArtemisClient {
             connectionParams.put(DIRECT_DELIVER, false);
 
             TransportConfiguration transportConfiguration =
-                new TransportConfiguration(
-                                              "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory",
-                                              connectionParams);
+                    new TransportConfiguration(
+                            "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory",
+                            connectionParams);
 
             ConnectionFactory connectionFactory = ActiveMQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, transportConfiguration);
             connection = connectionFactory.createConnection();
@@ -66,28 +92,28 @@ public class ArtemisClient {
         }
     }
 
-    public void stop() throws Exception{
-        if (started.compareAndSet(true,false)){
+    public void stop() throws Exception {
+        if (started.compareAndSet(true, false)) {
             if (connection != null) {
                 connection.stop();
             }
         }
     }
 
-    public void send(Destination destination,Message message) throws Exception{
-        messageProducer.send(destination,message);
+    public void send(Destination destination, Message message) throws Exception {
+        messageProducer.send(destination, message);
     }
 
-    public void addConsumer(Destination destination, MessageListener listener){
+    public void addConsumer(Destination destination, MessageListener listener) {
         ProxyConsumer proxyConsumer = consumerMap.get(destination);
-        if (proxyConsumer == null){
+        if (proxyConsumer == null) {
             proxyConsumer = new ProxyConsumer();
-            proxyConsumer.listener=listener;
-            proxyConsumer.destination=destination;
+            proxyConsumer.listener = listener;
+            proxyConsumer.destination = destination;
             try {
                 Session session = connection.createSession();
                 proxyConsumer.messageConsumer = session.createConsumer(destination);
-                proxyConsumer = consumerMap.putIfAbsent(destination,proxyConsumer);
+                proxyConsumer = consumerMap.putIfAbsent(destination, proxyConsumer);
             } catch (JMSException e) {
                 e.printStackTrace();
             }
@@ -95,11 +121,11 @@ public class ArtemisClient {
         proxyConsumer.count.incrementAndGet();
     }
 
-    public void removeConsumer(Destination destination){
+    public void removeConsumer(Destination destination) {
         ProxyConsumer proxyConsumer = consumerMap.get(destination);
-        if (proxyConsumer != null){
-            if (proxyConsumer.count.decrementAndGet()<= 0){
-                proxyConsumer=consumerMap.remove(destination);
+        if (proxyConsumer != null) {
+            if (proxyConsumer.count.decrementAndGet() <= 0) {
+                proxyConsumer = consumerMap.remove(destination);
                 if (proxyConsumer != null) {
                     try {
                         proxyConsumer.messageConsumer.close();
@@ -111,31 +137,31 @@ public class ArtemisClient {
     }
 
 
-    private class ProxyConsumer{
+    private class ProxyConsumer {
         Destination destination;
         AtomicInteger count = new AtomicInteger();
         MessageListener listener;
         MessageConsumer messageConsumer;
     }
 
-    public int hashCode(){
+    public int hashCode() {
         int hash = 31;
-        hash = 89  * hash + (host != null ? host.hashCode() : 0);
-        hash = 89  * hash + (int) (port ^ (port >>> 32));
+        hash = 89 * hash + (host != null ? host.hashCode() : 0);
+        hash = 89 * hash + (int) (port ^ (port >>> 32));
         return hash;
     }
 
-    public boolean equals(Object object){
-        if (object instanceof ArtemisClient){
+    public boolean equals(Object object) {
+        if (object instanceof ArtemisClient) {
             ArtemisClient other = (ArtemisClient) object;
-            if (other.port==port && ((host == other.host) || host != null && other.host != null && host.equals(other.host))){
+            if (other.port == port && ((host == other.host) || host != null && other.host != null && host.equals(other.host))) {
                 return true;
             }
         }
         return false;
     }
 
-    public String toString(){
-        return ("ArtmeisClient["+host+":"+port+"]");
+    public String toString() {
+        return ("ArtmeisClient[" + host + ":" + port + "]");
     }
 }

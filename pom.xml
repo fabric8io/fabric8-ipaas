@@ -74,11 +74,13 @@
         <integrationTestPattern>**/*KubernetesTest*.java</integrationTestPattern>
 
         <!-- upstream vs redhat versions of dependencies goes here -->
+        <apiman.version>1.2.3.Final</apiman.version>
+        <camel.version>2.17.0</camel.version>
         <fabric8.version>2.2.100</fabric8.version>
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
         <fabric8.devops.version>2.2.54</fabric8.devops.version>
-        <apiman.version>1.2.3.Final</apiman.version>
 
+        <maven.bundle.plugin.version>2.5.4</maven.bundle.plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
@@ -93,26 +95,71 @@
         <maven.require.version>3.1.1</maven.require.version>
         <maven.enforcer.plugin.version>1.4</maven.enforcer.plugin.version>
 
-        <activemq.container.port>6194</activemq.container.port>
-        <activemq.service.port>6163</activemq.service.port>
+        <activemq.container.port>61616</activemq.container.port>
+        <activemq.service.port>61616</activemq.service.port>
 
         <docker.from>docker.io/fabric8/java-jboss-openjdk8-jdk:1.0.10</docker.from>
         <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
         <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
         <docker.port.container.jolokia>8778</docker.port.container.jolokia>
+
+        <!-- OSGi bundles properties -->
+        <fuse.osgi.bundle.name>${project.name}</fuse.osgi.bundle.name>
+        <fuse.osgi.import.fabric.version>
+            version="[$(version;==;${fuse.osgi.version}),$(version;=+;${fuse.osgi.version}))"
+        </fuse.osgi.import.fabric.version>
+        <fuse.osgi.import.strict.version>
+            version="[$(version;===;${fuse.osgi.version}),$(version;==+;${fuse.osgi.version}))"
+        </fuse.osgi.import.strict.version>
+        <fuse.osgi.import.default.version>[$(version;==;$(@)),$(version;+;$(@)))</fuse.osgi.import.default.version>
+        <fuse.osgi.import.defaults>
+            org.springframework.osgi.*;version="[1.2,2)",
+            org.springframework.*;version="[3.2,5)",
+            org.apache.commons.logging.*;version="[1.1,2)",
+            org.apache.activemq.*;version="[5.11,6)",
+            org.apache.camel.*;version="[2.15,3)",
+        </fuse.osgi.import.defaults>
+        <fuse.osgi.import.before.defaults />
+        <fuse.osgi.import.additional />
+        <fuse.osgi.import.pkg>
+            io.fabric8.*;${fuse.osgi.import.fabric.version},
+            ${fuse.osgi.import.before.defaults},
+            ${fuse.osgi.import.defaults},
+            ${fuse.osgi.import.additional},
+            *
+        </fuse.osgi.import.pkg>
+        <fuse.osgi.activator />
+        <fuse.osgi.failok>false</fuse.osgi.failok>
+        <fuse.osgi.private.pkg />
+        <fuse.osgi.export>io.fabric8.*;version=${fuse.osgi.version};-noimport:=true</fuse.osgi.export>
+        <fuse.osgi.split.pkg>-split-package:=first</fuse.osgi.split.pkg>
+        <fuse.osgi.import>${fuse.osgi.import.pkg}</fuse.osgi.import>
+        <fuse.osgi.dynamic />
+        <fuse.osgi.symbolic.name>${project.groupId}.${project.artifactId}</fuse.osgi.symbolic.name>
+        <fuse.osgi.exclude.dependencies>false</fuse.osgi.exclude.dependencies>
+        <fuse.osgi.resource>{maven-resources}</fuse.osgi.resource>
+        <fuse.osgi.embed.dependency>!*</fuse.osgi.embed.dependency>
+        <fuse.osgi.embed.transitive>false</fuse.osgi.embed.transitive>
+        <fuse.osgi.require.bundle />
+        <fuse.osgi.capabilities.provide />
+        <fuse.osgi.capabilities.require />
+
     </properties>
 
     <modules>
         <module>amqbroker</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
+        <module>artemis</module>
+        <module>camel-amq</module>
         <module>elasticsearch</module>
         <module>fabric8</module>
+        <module>fabric8-camel</module>
         <module>fabric8mq</module>
         <module>fabric8mq-producer</module>
         <module>fabric8mq-consumer</module>
         <module>fabric8-msm</module>
-        <module>artemis</module>
+        <module>mq-client</module>
         <module>msg-gateway</module>
         <module>qpid-dispatch</module>
         <module>zookeeper</module>
@@ -174,6 +221,18 @@
             <version>${maven.javadoc.plugin.version}</version>
             <configuration>
                 <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>maven-bundle-plugin</artifactId>
+            <version>${maven.bundle.plugin.version}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <instructions>
+                <Bundle-DocURL>http://fabric8.io/</Bundle-DocURL>
+                <_include>-osgi.bnd</_include>
+              </instructions>
             </configuration>
           </plugin>
         </plugins>

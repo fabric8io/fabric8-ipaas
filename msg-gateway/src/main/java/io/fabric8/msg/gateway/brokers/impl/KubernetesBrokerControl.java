@@ -28,22 +28,26 @@ import io.fabric8.kubernetes.client.dsl.ClientResource;
 import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.msg.gateway.ArtemisClient;
 import io.fabric8.msg.gateway.brokers.BrokerControl;
+import io.fabric8.msg.gateway.brokers.DestinationMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.Destination;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class KubernetesBrokerControl implements BrokerControl {
+public class KubernetesBrokerControl extends BrokerControlSupport implements BrokerControl {
     private static final Logger LOG = LoggerFactory.getLogger(KubernetesBrokerControl.class);
     private final AtomicBoolean started = new AtomicBoolean();
+    private final DestinationMapper destinationMapper;
     private String brokerSelector = "component=artemis,group=artemis,project=artemis,provider=fabric8";
     private String artemisName = "artemis";
     private String portName = "61616";
@@ -51,24 +55,23 @@ public class KubernetesBrokerControl implements BrokerControl {
     private int ARTEMIS_PORT = 61616;
     private KubernetesClient kubernetesClient;
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    private ConcurrentLinkedDeque<ArtemisClient> artemisClients = new ConcurrentLinkedDeque<>();
-    private Map<Destination, ArtemisClient> destinationArtemisClientMap = new ConcurrentHashMap<>();
     private EndpointWatcher endpointWatcher;
     private Watch endpointWatch;
+    private final AtomicInteger clientIndex = new AtomicInteger();
+    private Callable<ArtemisClient> createClientCallback = () -> getNextClient();
+
+    public KubernetesBrokerControl(DestinationMapper destinationMapper) {
+        this.destinationMapper = destinationMapper;
+    }
 
     @Override
-    public ArtemisClient get(Destination destination) {
-        ArtemisClient result = destinationArtemisClientMap.get(destination);
-        if (result == null) {
-            result = getNextClient();
-            if (result != null) {
-                ArtemisClient artemisClient = destinationArtemisClientMap.putIfAbsent(destination, result);
-                if (artemisClient != null) {
-                    result = artemisClient;
-                }
-            }
-        }
-        return result;
+    public ArtemisClient getProducer(Destination destination) throws Exception {
+        return destinationMapper.getProducer(destination, createClientCallback);
+    }
+
+    @Override
+    public ArtemisClient getConsumer(Destination destination) throws Exception {
+        return destinationMapper.getConsumer(destination, createClientCallback);
     }
 
     public void start() throws Exception {
@@ -138,21 +141,21 @@ public class KubernetesBrokerControl implements BrokerControl {
     }
 
     public void createClientForEndpoints(Endpoints endpoints) throws Exception {
-        HashSet<ArtemisClient> set = new HashSet<>();
+        HashSet<String> set = new HashSet<>();
         if (endpoints != null) {
             for (EndpointSubset subset : endpoints.getSubsets()) {
                 if (subset.getPorts().size() == 1) {
                     EndpointPort port = subset.getPorts().get(0);
                     for (EndpointAddress address : subset.getAddresses()) {
-                        ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
-                        set.add(artemisClient);
+                        ArtemisClient client = getOrCreateArtemisClient(address.getIp(), port.getPort());
+                        set.add(client.getHostAndPort());
                     }
                 } else {
                     for (EndpointPort port : subset.getPorts()) {
                         if (Utils.isNullOrEmpty(portName) || portName.endsWith(port.getName())) {
                             for (EndpointAddress address : subset.getAddresses()) {
-                                ArtemisClient artemisClient = new ArtemisClient(address.getIp(), port.getPort());
-                                set.add(artemisClient);
+                                ArtemisClient client = getOrCreateArtemisClient(address.getIp(), port.getPort());
+                                set.add(client.getHostAndPort());
                             }
                         }
                     }
@@ -162,29 +165,48 @@ public class KubernetesBrokerControl implements BrokerControl {
 
         System.err.println("LOOKUP SET SIZE = " + set.size());
 
-        for (ArtemisClient artemisClient : set) {
-            if (!artemisClients.contains(artemisClient)) {
-                artemisClient.start();
-                artemisClients.add(artemisClient);
+        Map<String, ArtemisClient> artemisClients = getArtemisClients();
+        Set<Map.Entry<String, ArtemisClient>> entries = artemisClients.entrySet();
+        for (Map.Entry<String, ArtemisClient> entry : entries) {
+            String key = entry.getKey();
+            ArtemisClient client = entry.getValue();
+            if (!set.contains(key)) {
+                artemisClients.remove(key);
+                LOG.info("Removed stale " + client);
+                try {
+                    client.stop();
+                } catch (Exception e) {
+                    LOG.warn("Failed to stop client " + client + ". " + e, e);
+                }
             }
         }
+    }
 
-        for (ArtemisClient artemisClient : artemisClients) {
-            if (!set.contains(artemisClient)) {
-                artemisClient.stop();
-                artemisClients.remove(artemisClient);
-                LOG.info("Removed stale " + artemisClient);
-            }
-        }
+    public ArtemisClient getOrCreateArtemisClient(String host, Integer port) throws Exception {
+        return getOrCreateArtemisClient(host + ":" + port);
     }
 
     private ArtemisClient getNextClient() {
-        ArtemisClient artemisClient = null;
-        if (!artemisClients.isEmpty()) {
-            artemisClient = artemisClients.poll();
-            artemisClients.add(artemisClient);
+        int clientCounter = clientIndex.incrementAndGet();
+        int count = 0;
+        while (true) {
+            List<ArtemisClient> list = new ArrayList<>(getArtemisClients().values());
+            if (list.isEmpty()) {
+                // lets wait until there are clients we can use!
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (count > 10) {
+                    count = 0;
+                    LOG.warn("Still no broker pods available! Waiting for them to join....");
+                }
+            } else {
+                int size = list.size();
+                int idx = clientCounter % size;
+                return list.get(idx);
+            }
         }
-        return artemisClient;
     }
-
 }

@@ -39,17 +39,18 @@ public class Artemis {
     @PostConstruct
     public void start() throws Exception {
 
-        String port = Systems.getEnvVarOrSystemProperty("AMQ_PORT","AMQ_PORT","61616");
-        String dataDirectory = Systems.getEnvVarOrSystemProperty("AMQ_DATA_DIRECTORY","AMQ_DATA_DIRECTORY","data");
+        String port = Systems.getEnvVarOrSystemProperty("AMQ_PORT", "AMQ_PORT", "61616");
+        String dataDirectory = Systems.getEnvVarOrSystemProperty("AMQ_DATA_DIRECTORY", "AMQ_DATA_DIRECTORY", "data");
 
         HashMap<String, Object> configMap = new HashMap<>();
-        configMap.put("port",port);
-        TransportConfiguration transportConfiguration = new TransportConfiguration(NettyAcceptorFactory.class.getName(),configMap,"artemis");
+        configMap.put("host", "0.0.0.0");
+        configMap.put("port", port);
+        TransportConfiguration transportConfiguration = new TransportConfiguration(NettyAcceptorFactory.class.getName(), configMap, "artemis");
         Configuration configuration = new ConfigurationImpl().setJournalDirectory("data")
-                            .setPersistenceEnabled(false).setSecurityEnabled(false)
-                            .addAcceptorConfiguration(transportConfiguration)
-                            .setJournalDirectory(dataDirectory)
-                            .setCreateJournalDir(true);
+                .setPersistenceEnabled(false).setSecurityEnabled(false)
+                .addAcceptorConfiguration(transportConfiguration)
+                .setJournalDirectory(dataDirectory)
+                .setCreateJournalDir(true);
 
 
         JMSConfiguration jmsConfig = new JMSConfigurationImpl();
@@ -62,9 +63,8 @@ public class Artemis {
     }
 
 
-
-    public void stop() throws  Exception{
-        if (broker != null){
+    public void stop() throws Exception {
+        if (broker != null) {
             broker.stop();
         }
     }
