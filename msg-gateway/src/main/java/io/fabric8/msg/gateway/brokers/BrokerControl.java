@@ -23,7 +23,16 @@ public interface BrokerControl {
 
     void start() throws Exception;
     void stop() throws Exception;
-    ArtemisClient get(Destination destination) throws Exception;
+
+    /**
+     * Returns the client for producing
+     */
+    ArtemisClient getProducer(Destination destination) throws Exception;
+
+    /**
+     * Returns the client for consuming
+     */
+    ArtemisClient getConsumer(Destination destination) throws Exception;
 
     ArtemisClient getOrCreateArtemisClient(String hostAndPort) throws Exception;
 }

@@ -92,7 +92,31 @@ public class ZKDestinationMapper implements DestinationMapper, Closeable {
     }
 
     @Override
-    public ArtemisClient get(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception {
+    public ArtemisClient getConsumer(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception {
+        // lets default to the producer value if there's no consumer defined yet
+        Callable<ArtemisClient> callback = () -> {
+            ArtemisClient answer = getDestination(destination, null, "producer");
+            if (answer == null) {
+                answer = factoryCallback.call();
+            }
+            return answer;
+        };
+        return getDestination(destination, callback, "consumer");
+    }
+
+    @Override
+    public ArtemisClient getProducer(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception {
+        Callable<ArtemisClient> callback = () -> {
+            ArtemisClient answer = getDestination(destination, null, "consumer");
+            if (answer == null) {
+                answer = factoryCallback.call();
+            }
+            return answer;
+        };
+        return getDestination(destination, callback, "producer");
+    }
+
+    protected ArtemisClient getDestination(Destination destination, Callable<ArtemisClient> factoryCallback, String kind) throws Exception {
         checkStarted();
 
         TreeCache cache;
@@ -104,11 +128,7 @@ public class ZKDestinationMapper implements DestinationMapper, Closeable {
             cache = topicCache;
             prefix = topicCachePath;
         }
-        String relativePath = destinationToZkPath(destination);
-        if (!relativePath.startsWith("/")) {
-            relativePath = "/" + relativePath;
-        }
-        String path = pathJoin(prefix, relativePath);
+        String path = pathJoin(prefix, kind, destinationToZkPath(destination));
 
         ArtemisClient answer = null;
         for (int i = 0; i < 10; i++) {
@@ -125,7 +145,7 @@ public class ZKDestinationMapper implements DestinationMapper, Closeable {
                     }
                 }
             }
-            if (answer == null) {
+            if (answer == null && factoryCallback != null) {
                 answer = factoryCallback.call();
                 String hostAndPort = answer.getHostAndPort();
                 byte[] data = hostAndPort.getBytes();
@@ -145,7 +165,7 @@ public class ZKDestinationMapper implements DestinationMapper, Closeable {
                     }
                 }
             }
-            if (answer != null) {
+            if (answer != null || factoryCallback == null) {
                 break;
             }
         }

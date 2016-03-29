@@ -41,7 +41,7 @@ public class TestBrokerControlImpl extends BrokerControlSupport implements Broke
     Map<Destination,ArtemisClient> destinationMap = new ConcurrentHashMap<>();
 
     @Override
-    public ArtemisClient get(Destination destination) throws Exception {
+    public ArtemisClient getProducer(Destination destination) throws Exception {
         ArtemisClient result = destinationMap.get(destination);
         if (result == null){
             if (last == null || last != broker1){
@@ -56,6 +56,11 @@ public class TestBrokerControlImpl extends BrokerControlSupport implements Broke
             }
         }
         return result;
+    }
+
+    @Override
+    public ArtemisClient getConsumer(Destination destination) throws Exception {
+        return getProducer(destination);
     }
 
     public void start() throws Exception{

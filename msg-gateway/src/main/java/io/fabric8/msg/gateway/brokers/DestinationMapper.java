@@ -24,5 +24,9 @@ import java.util.concurrent.Callable;
 /**
  */
 public interface DestinationMapper {
-    ArtemisClient get(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception;
+    ArtemisClient getProducer(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception;
+
+    ArtemisClient getConsumer(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception;
+
+
 }

@@ -38,9 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,19 +58,20 @@ public class KubernetesBrokerControl extends BrokerControlSupport implements Bro
     private EndpointWatcher endpointWatcher;
     private Watch endpointWatch;
     private final AtomicInteger clientIndex = new AtomicInteger();
+    private Callable<ArtemisClient> createClientCallback = () -> getNextClient();
 
     public KubernetesBrokerControl(DestinationMapper destinationMapper) {
         this.destinationMapper = destinationMapper;
     }
 
     @Override
-    public ArtemisClient get(Destination destination) throws Exception {
-        return destinationMapper.get(destination, new Callable<ArtemisClient>() {
-            @Override
-            public ArtemisClient call() throws Exception {
-                return getNextClient();
-            }
-        });
+    public ArtemisClient getProducer(Destination destination) throws Exception {
+        return destinationMapper.getProducer(destination, createClientCallback);
+    }
+
+    @Override
+    public ArtemisClient getConsumer(Destination destination) throws Exception {
+        return destinationMapper.getConsumer(destination, createClientCallback);
     }
 
     public void start() throws Exception {

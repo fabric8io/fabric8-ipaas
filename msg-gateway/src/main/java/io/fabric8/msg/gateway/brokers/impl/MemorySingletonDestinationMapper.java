@@ -29,8 +29,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MemorySingletonDestinationMapper implements DestinationMapper {
     private Map<Destination, ArtemisClient> destinationArtemisClientMap = new ConcurrentHashMap<>();
+
     @Override
-    public ArtemisClient get(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception {
+    public ArtemisClient getConsumer(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception {
+        return getProducer(destination, factoryCallback);
+    }
+
+    @Override
+    public ArtemisClient getProducer(Destination destination, Callable<ArtemisClient> factoryCallback) throws Exception {
         ArtemisClient result = destinationArtemisClientMap.get(destination);
         if (result == null) {
             result = factoryCallback.call();

@@ -44,11 +44,11 @@ public class Proxy implements MessageListener {
 
 
     public void addConsumer(Destination destination) throws Exception{
-        brokerControl.get(destination).addConsumer(destination,this);
+        brokerControl.getConsumer(destination).addConsumer(destination,this);
     }
 
     public void removeConsumer(Destination destination) throws Exception{
-        brokerControl.get(destination).removeConsumer(destination);
+        brokerControl.getConsumer(destination).removeConsumer(destination);
     }
 
     public void start() throws  Exception{
@@ -118,7 +118,7 @@ public class Proxy implements MessageListener {
                     map.put(GATEWAY_PROCESS_NAME, true);
                     message.clearProperties();
                     setMessageProperties(message,map);
-                    brokerControl.get(destination).send(destination, message);
+                    brokerControl.getProducer(destination).send(destination, message);
                 }
             }
         }catch(Throwable e){
