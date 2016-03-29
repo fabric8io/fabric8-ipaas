@@ -40,8 +40,8 @@ def release(project){
     artifactExtensionToWatchInCentral = 'pom'
     promoteToDockerRegistry = 'docker.io'
     dockerOrganisation = 'fabric8'
-    imagesToPromoteToDockerHub = ['git-collector','chaos-monkey','elasticsearch-logstash-template','hubot-notifier','image-linker','kibana-config','prometheus-kubernetes']
-    extraImagesToTag = ['hubot-irc','eclipse-orion','nexus','gerrit','fabric8-kiwiirc','brackets','jenkins-jnlp-client','taiga-front','taiga-back','hubot-slack','lets-chat','jenkins-docker']
+    imagesToPromoteToDockerHub = ['amqbroker','apiman-gateway','apiman','fabric8mq','fabric8mq-consumer','fabric8mq-producer']
+    extraImagesToTag = null
   }
 }
 
