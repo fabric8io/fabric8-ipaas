@@ -147,7 +147,6 @@
     </properties>
 
     <modules>
-        <module>amqbroker</module>
         <module>apiman-gateway</module>
         <module>apiman</module>
         <module>artemis</module>
