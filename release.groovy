@@ -40,7 +40,7 @@ def release(project){
     artifactExtensionToWatchInCentral = 'pom'
     promoteToDockerRegistry = 'docker.io'
     dockerOrganisation = 'fabric8'
-    imagesToPromoteToDockerHub = ['amqbroker','apiman-gateway','apiman','fabric8mq','fabric8mq-consumer','fabric8mq-producer']
+    imagesToPromoteToDockerHub = ['apiman','apiman-gateway','message-broker','message-gateway','example-message-consumer','example-message-producer','kafka','zookeeper']
     extraImagesToTag = null
   }
 }
