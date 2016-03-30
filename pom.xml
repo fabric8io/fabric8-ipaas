@@ -153,9 +153,7 @@
         <module>artemis</module>
         <module>camel-amq</module>
         <module>elasticsearch</module>
-        <module>fabric8</module>
         <module>fabric8-camel</module>
-        <module>fabric8mq</module>
         <module>fabric8mq-producer</module>
         <module>fabric8mq-consumer</module>
         <module>fabric8-msm</module>
