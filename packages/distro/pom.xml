@@ -33,7 +33,7 @@
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.packages</groupId>
-      <artifactId>amq</artifactId>
+      <artifactId>messaging</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
@@ -41,13 +41,6 @@
     <dependency>
       <groupId>io.fabric8.ipaas.packages</groupId>
       <artifactId>apiman</artifactId>
-      <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>amqbroker</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
@@ -68,20 +61,6 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq</artifactId>
-      <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8-msm</artifactId>
-      <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>artemis</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
@@ -90,6 +69,20 @@
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>msg-gateway</artifactId>
+      <version>${project.version}</version>
+      <classifier>kubernetes</classifier>
+      <type>json</type>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8.ipaas.apps</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>${project.version}</version>
+      <classifier>kubernetes</classifier>
+      <type>json</type>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8.ipaas.apps</groupId>
+      <artifactId>kafka</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>

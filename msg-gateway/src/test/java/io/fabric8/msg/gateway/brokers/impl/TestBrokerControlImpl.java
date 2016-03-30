@@ -61,7 +61,7 @@ public class TestBrokerControlImpl extends BrokerControlSupport implements Broke
 
     @Override
     public ArtemisClient getConsumer(Destination destination) throws Exception {
-        return getProducer(destination, message);
+        return getProducer(destination, null);
     }
 
     public void start() throws Exception{

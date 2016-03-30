@@ -24,10 +24,10 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>amq</artifactId>
+  <artifactId>messaging</artifactId>
   <packaging>pom</packaging>
 
-  <name>Fabric8 iPaas :: Packages :: AMQ</name>
+  <name>Fabric8 iPaas :: Packages :: Messaging</name>
 
   <properties>
     <fabric8.combineDependencies>true</fabric8.combineDependencies>
@@ -36,14 +36,21 @@
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>amqbroker</artifactId>
+      <artifactId>artemis</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq</artifactId>
+      <artifactId>msg-gateway</artifactId>
+      <version>${project.version}</version>
+      <classifier>kubernetes</classifier>
+      <type>json</type>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8.ipaas.apps</groupId>
+      <artifactId>zookeeper</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
