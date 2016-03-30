@@ -42,11 +42,11 @@
         <docker.port.container.amq>${activemq.container.port}</docker.port.container.amq>
         <docker.env.MAIN>io.fabric8.msm.Main</docker.env.MAIN>
 
-        <fabric8.service.fabric8mq.port>${activemq.service.port}</fabric8.service.fabric8mq.port>
-        <fabric8.service.fabric8mq.containerPort>${activemq.container.port}</fabric8.service.fabric8mq.containerPort>
+        <fabric8.service.activemq.port>${activemq.service.port}</fabric8.service.activemq.port>
+        <fabric8.service.activemq.containerPort>${activemq.container.port}</fabric8.service.activemq.containerPort>
 
-        <fabric8.label.component>msg-gateway</fabric8.label.component>
-        <fabric8.label.group>msg-gateway</fabric8.label.group>
+        <fabric8.label.component>message-gateway</fabric8.label.component>
+        <fabric8.label.group>message-gateway</fabric8.label.group>
         <fabric8.label.provider>fabric8</fabric8.label.provider>
         <fabric8.iconRef>icons/activemq.svg</fabric8.iconRef>
 

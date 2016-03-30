@@ -35,7 +35,7 @@
         <destinationName>TEST.FOO</destinationName>
         <docker.env.MAIN>io.fabric8.mq.consumer.ConsumerMain</docker.env.MAIN>
 
-        <fabric8.env.FABRIC8MQ_SERVICE_NAME>fabric8mq</fabric8.env.FABRIC8MQ_SERVICE_NAME>
+        <fabric8.env.ACTIVEMQ_SERVICE_NAME>fabric8mq</fabric8.env.ACTIVEMQ_SERVICE_NAME>
         <fabric8.env.AMQ_QUEUENAME>${destinationName}</fabric8.env.AMQ_QUEUENAME>
         <fabric8.label.component>fabric8MQConsumer</fabric8.label.component>
         <fabric8.label.group>fabric8mq</fabric8.label.group>
@@ -139,7 +139,7 @@
                 <env>
                   <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
                   <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
-                  <FABRIC8MQ_SERVICE_NAME>${fabric8.env.FABRIC8MQ_SERVICE_NAME}</FABRIC8MQ_SERVICE_NAME>
+                  <ACTIVEMQ_SERVICE_NAME>${fabric8.env.ACTIVEMQ_SERVICE_NAME}</ACTIVEMQ_SERVICE_NAME>
                   <AMQ_QUEUENAME>TEST.FOO</AMQ_QUEUENAME>
                   <AMQ_PREFETCH>1000</AMQ_PREFETCH>
                 </env>
