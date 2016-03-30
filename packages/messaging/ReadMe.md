@@ -1,1 +1,1 @@
-The AMQ Package provides the AMQ Broker and the Fabric8MQ Broker. 
+Provides Messaging as a Service using a pool of Message Brokers based on Apache ActiveMQ Artemis and a scalable Message Gateway which performs discovery, load balancing and scaling of message brokers
