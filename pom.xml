@@ -147,15 +147,15 @@
     </properties>
 
     <modules>
-        <module>apiman-gateway</module>
         <module>apiman</module>
-        <module>artemis</module>
+        <module>apiman-gateway</module>
         <module>camel-amq</module>
         <module>elasticsearch</module>
         <module>example-message-consumer</module>
         <module>example-message-producer</module>
         <module>fabric8-camel</module>
         <module>kafka</module>
+        <module>message-broker</module>
         <module>message-gateway</module>
         <module>mq-client</module>
         <module>zookeeper</module>

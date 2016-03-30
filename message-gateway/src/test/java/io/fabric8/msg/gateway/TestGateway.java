@@ -21,7 +21,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -34,19 +33,19 @@ import javax.jms.Session;
 
 
 public class TestGateway implements ApplicationContextInitializer {
-    private MsgGateway msgGateway;
+    private MessageGateway messageGateway;
 
     @Before
     public void doStart() throws Exception {
-        msgGateway = new MsgGateway();
-        msgGateway.setBrokerControl(new TestBrokerControlImpl());
-        msgGateway.start();
+        messageGateway = new MessageGateway();
+        messageGateway.setBrokerControl(new TestBrokerControlImpl());
+        messageGateway.start();
     }
 
     @After
     public void doStop() throws Exception {
-        if (msgGateway != null) {
-            msgGateway.stop();
+        if (messageGateway != null) {
+            messageGateway.stop();
         }
     }
 

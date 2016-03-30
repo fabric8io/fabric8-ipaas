@@ -35,11 +35,11 @@
       <destinationName>TEST.FOO</destinationName>
       <docker.env.MAIN>io.fabric8.mq.producer.ProducerMain</docker.env.MAIN>
 
-      <fabric8.env.ACTIVEMQ_SERVICE_NAME>fabric8mq</fabric8.env.ACTIVEMQ_SERVICE_NAME>
+      <fabric8.env.ACTIVEMQ_SERVICE_NAME>activemq</fabric8.env.ACTIVEMQ_SERVICE_NAME>
       <fabric8.env.AMQ_QUEUENAME>${destinationName}</fabric8.env.AMQ_QUEUENAME>
 
-      <fabric8.label.component>fabric8MQProducer</fabric8.label.component>
-      <fabric8.label.group>fabric8mq</fabric8.label.group>
+      <fabric8.label.component>exampleMessageProducer</fabric8.label.component>
+      <fabric8.label.group>messaging</fabric8.label.group>
       <fabric8.label.provider>fabric8</fabric8.label.provider>
       <fabric8.label.queueName>${destinationName}</fabric8.label.queueName>
       <fabric8.iconRef>icons/activemq.svg</fabric8.iconRef>

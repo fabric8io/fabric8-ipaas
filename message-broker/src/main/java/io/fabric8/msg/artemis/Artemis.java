@@ -59,7 +59,7 @@ public class Artemis {
         broker.setConfiguration(configuration);
         broker.setJmsConfiguration(jmsConfig);
         broker.start();
-        LOG.info("Artemis initialized and running ...");
+        LOG.info("Artemis Message Broker initialized and running ...");
     }
 
 

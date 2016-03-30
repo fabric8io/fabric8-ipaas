@@ -36,7 +36,7 @@
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>artemis</artifactId>
+      <artifactId>message-broker</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>

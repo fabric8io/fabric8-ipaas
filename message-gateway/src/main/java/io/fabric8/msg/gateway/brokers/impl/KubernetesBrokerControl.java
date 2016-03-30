@@ -49,7 +49,7 @@ public class KubernetesBrokerControl extends BrokerControlSupport implements Bro
     private static final Logger LOG = LoggerFactory.getLogger(KubernetesBrokerControl.class);
     private final AtomicBoolean started = new AtomicBoolean();
     private final DestinationMapper destinationMapper;
-    private String brokerSelector = "component=artemis,group=artemis,project=artemis,provider=fabric8";
+    private String brokerSelector = "component=message-broker,group=messaging";
     private String artemisName = "artemis";
     private String portName = "61616";
     private String namespace = KubernetesHelper.defaultNamespace();

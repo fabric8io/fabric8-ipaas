@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
-public class MsgGateway  {
-    private static final Logger LOG = LoggerFactory.getLogger(MsgGateway.class);
+public class MessageGateway {
+    private static final Logger LOG = LoggerFactory.getLogger(MessageGateway.class);
     private EmbeddedJMS broker;
     private BrokerControl brokerControl;
     private Proxy proxy;
@@ -48,7 +48,7 @@ public class MsgGateway  {
         broker = new EmbeddedJMS();
         broker.start();
 
-        LOG.info("EmbeddedJMS started");
+        LOG.info("Message Gateway starting");
         JMSServerManager jmsServerManager = broker.getJMSServerManager();
         List<String> connectors = new ArrayList<>();
         connectors.add("in-vm");
@@ -67,7 +67,7 @@ public class MsgGateway  {
         proxy.start();
         notificationListener = new NotificationListener(cf,proxy);
         notificationListener.start();
-        LOG.info("MsgGateway is initialised and running ...");
+        LOG.info("Message Gateway is initialised and running ...");
 
     }
 
@@ -96,6 +96,6 @@ public class MsgGateway  {
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(MsgGateway.class, args);
+        SpringApplication.run(MessageGateway.class, args);
     }
 }
