@@ -1,1 +1,1 @@
-An Enterprise Messaging Gateway that can apply policies for discovery, load balancing, scalaing, security, rate limiting etc.
+Message Gateway provides discovery, load balancing and scaling of messages on an elastic pool of Message Brokers
