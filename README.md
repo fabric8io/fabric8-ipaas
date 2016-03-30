@@ -16,9 +16,13 @@ The Message Gateway implements a service, `activemq` on port 61616 so any messag
 
 If you are using JMS then if you use the [mq-client](mq-client) library the **io.fabric8.mq.core.MQConnectionFactory** class will automatically default to using the `activemq` message service for scalable messaging.
 
+If you wish to connect to a different messaging service other than `activemq` then use the `$ACTIVEMQ_SERVICE_NAME` environment variable. 
+
 #### Using Camel
 
 If you use the [camel-amq](camel-amq) library and `amq:` component it will automically default to using the `activemq` message service for scalable messaging.
+
+If you wish to connect to a different messaging service other than `activemq` then use the `$ACTIVEMQ_SERVICE_NAME` environment variable. 
 
 #### Use a Message Gateway Sidecar
 
