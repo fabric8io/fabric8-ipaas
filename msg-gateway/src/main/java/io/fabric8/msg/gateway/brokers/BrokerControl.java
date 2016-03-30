@@ -18,6 +18,7 @@ package io.fabric8.msg.gateway.brokers;
 import io.fabric8.msg.gateway.ArtemisClient;
 
 import javax.jms.Destination;
+import javax.jms.Message;
 
 public interface BrokerControl {
 
@@ -27,7 +28,7 @@ public interface BrokerControl {
     /**
      * Returns the client for producing
      */
-    ArtemisClient getProducer(Destination destination) throws Exception;
+    ArtemisClient getProducer(Destination destination, Message message) throws Exception;
 
     /**
      * Returns the client for consuming

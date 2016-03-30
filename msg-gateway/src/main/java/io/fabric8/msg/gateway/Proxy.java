@@ -118,7 +118,7 @@ public class Proxy implements MessageListener {
                     map.put(GATEWAY_PROCESS_NAME, true);
                     message.clearProperties();
                     setMessageProperties(message,map);
-                    brokerControl.getProducer(destination).send(destination, message);
+                    brokerControl.getProducer(destination, message).send(destination, message);
                 }
             }
         }catch(Throwable e){

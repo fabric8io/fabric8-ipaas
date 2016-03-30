@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.Destination;
+import javax.jms.Message;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -65,12 +66,14 @@ public class KubernetesBrokerControl extends BrokerControlSupport implements Bro
     }
 
     @Override
-    public ArtemisClient getProducer(Destination destination) throws Exception {
+    public ArtemisClient getProducer(Destination destination, Message message) throws Exception {
+        // TODO if the destination is sharded lets find the shard bucket based on the message...
         return destinationMapper.getProducer(destination, createClientCallback);
     }
 
     @Override
     public ArtemisClient getConsumer(Destination destination) throws Exception {
+        // TODO if the destination is sharded lets randomly pick a shard?
         return destinationMapper.getConsumer(destination, createClientCallback);
     }
 
