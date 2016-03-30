@@ -27,6 +27,7 @@ import org.apache.activemq.artemis.jms.server.embedded.EmbeddedJMS;
 import org.springframework.stereotype.Component;
 
 import javax.jms.Destination;
+import javax.jms.Message;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +42,7 @@ public class TestBrokerControlImpl extends BrokerControlSupport implements Broke
     Map<Destination,ArtemisClient> destinationMap = new ConcurrentHashMap<>();
 
     @Override
-    public ArtemisClient getProducer(Destination destination) throws Exception {
+    public ArtemisClient getProducer(Destination destination, Message message) throws Exception {
         ArtemisClient result = destinationMap.get(destination);
         if (result == null){
             if (last == null || last != broker1){
@@ -60,7 +61,7 @@ public class TestBrokerControlImpl extends BrokerControlSupport implements Broke
 
     @Override
     public ArtemisClient getConsumer(Destination destination) throws Exception {
-        return getProducer(destination);
+        return getProducer(destination, message);
     }
 
     public void start() throws Exception{
