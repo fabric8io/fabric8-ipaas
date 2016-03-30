@@ -16,5 +16,7 @@ node{
 
   stage 'Promote'
   pipeline.release(stagedProject)
-  pipeline.mergePullRequest(prId)
+  if (prId != null){
+    pipeline.mergePullRequest(prId)
+  }
 }
