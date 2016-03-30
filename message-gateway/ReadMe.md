@@ -1,0 +1,1 @@
+An Enterprise Messaging Gateway that can apply policies for discovery, load balancing, scalaing, security, rate limiting etc.

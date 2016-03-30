@@ -1,0 +1,204 @@
+<!--
+
+     Copyright 2005-2015 Red Hat, Inc.
+
+     Red Hat licenses this file to you under the Apache License, version
+     2.0 (the "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+     implied.  See the License for the specific language governing
+     permissions and limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.fabric8.ipaas.apps</groupId>
+    <artifactId>fabric8-ipaas</artifactId>
+    <version>2.2.96-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>example-message-consumer</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Fabric8 Messaging :: Example Message Consumer</name>
+  <description>Fabric8 Messaging Example Message Consumer</description>
+
+    <properties>
+        <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
+        <destinationName>TEST.FOO</destinationName>
+        <docker.env.MAIN>io.fabric8.mq.consumer.ConsumerMain</docker.env.MAIN>
+
+        <fabric8.env.ACTIVEMQ_SERVICE_NAME>activemq</fabric8.env.ACTIVEMQ_SERVICE_NAME>
+        <fabric8.env.AMQ_QUEUENAME>${destinationName}</fabric8.env.AMQ_QUEUENAME>
+        <fabric8.label.component>exampleMessageConsumer</fabric8.label.component>
+        <fabric8.label.group>messaging</fabric8.label.group>
+        <fabric8.label.provider>fabric8</fabric8.label.provider>
+        <fabric8.label.queueName>${destinationName}</fabric8.label.queueName>
+        <fabric8.iconRef>icons/activemq.svg</fabric8.iconRef>
+    </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.fabric8.ipaas.mq</groupId>
+      <artifactId>camel-amq</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.arquillian.junit</groupId>
+      <artifactId>arquillian-junit-container</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>fabric8-arquillian</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-assertions</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+<!--
+    <dependency>
+      <groupId>io.fabric8.ipaas.apps</groupId>
+      <artifactId>fabric8mq</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+-->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${version.maven-surefire-plugin}</version>
+        <configuration>
+          <forkMode>perTest</forkMode>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.10</version>
+        <executions>
+          <execution>
+            <id>add-classpath</id>
+            <phase>package</phase>
+            <goals>
+              <!--  create target/classpath for docker-maven-plugin's assembly to pick up  -->
+              <goal>build-classpath</goal>
+            </goals>
+            <configuration>
+              <prefix>.</prefix>
+              <pathSeparator>:</pathSeparator>
+              <includeScope>runtime</includeScope>
+              <outputFile>${project.build.directory}/classpath</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>${docker.maven.plugin.version}</version>
+        <configuration>
+          <images>
+            <image>
+              <name>${docker.image}</name>
+              <build>
+                <from>${docker.from}</from>
+                <assembly>
+                  <basedir>/app</basedir>
+                  <descriptorRef>artifact-with-dependencies</descriptorRef>
+                </assembly>
+                <env>
+                  <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
+                  <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
+                  <ACTIVEMQ_SERVICE_NAME>${fabric8.env.ACTIVEMQ_SERVICE_NAME}</ACTIVEMQ_SERVICE_NAME>
+                  <AMQ_QUEUENAME>TEST.FOO</AMQ_QUEUENAME>
+                  <AMQ_PREFETCH>1000</AMQ_PREFETCH>
+                </env>
+                <ports>
+                  <port>8778</port>
+                </ports>
+              </build>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <configuration>
+          <mainClass>io.fabric8.mq.consumer.ConsumerMain</mainClass>
+          <includePluginDependencies>false</includePluginDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+<!--
+  Default sample commands:
+
+  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
+  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
+  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
+
+  For individual goal usage please consult the fabric8 documentation
+  -->
+  <profiles>
+    <profile>
+      <id>f8-build</id>
+      <build>
+        <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
+      </build>
+    </profile>
+    <profile>
+      <id>f8-deploy</id>
+      <properties>
+        <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
+        <fabric8.recreate>true</fabric8.recreate>
+      </properties>
+      <build>
+        <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
+      </build>
+    </profile>
+    <profile>
+      <id>f8-local-deploy</id>
+      <properties>
+        <fabric8.recreate>true</fabric8.recreate>
+      </properties>
+      <build>
+        <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

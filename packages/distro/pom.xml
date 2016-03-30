@@ -33,7 +33,7 @@
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.packages</groupId>
-      <artifactId>amq</artifactId>
+      <artifactId>messaging</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
@@ -47,49 +47,42 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>amqbroker</artifactId>
+      <artifactId>example-message-consumer</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq-consumer</artifactId>
+      <artifactId>example-message-producer</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq-producer</artifactId>
+      <artifactId>message-broker</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq</artifactId>
+      <artifactId>message-gateway</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8-msm</artifactId>
+      <artifactId>zookeeper</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>artemis</artifactId>
-      <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>msg-gateway</artifactId>
+      <artifactId>kafka</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>

@@ -147,23 +147,18 @@
     </properties>
 
     <modules>
-        <module>amqbroker</module>
-        <module>apiman-gateway</module>
         <module>apiman</module>
-        <module>artemis</module>
+        <module>apiman-gateway</module>
         <module>camel-amq</module>
         <module>elasticsearch</module>
-        <module>fabric8</module>
+        <module>example-message-consumer</module>
+        <module>example-message-producer</module>
         <module>fabric8-camel</module>
-        <module>fabric8mq</module>
-        <module>fabric8mq-producer</module>
-        <module>fabric8mq-consumer</module>
-        <module>fabric8-msm</module>
-        <module>mq-client</module>
-        <module>msg-gateway</module>
-        <module>qpid-dispatch</module>
-        <module>zookeeper</module>
         <module>kafka</module>
+        <module>message-broker</module>
+        <module>message-gateway</module>
+        <module>mq-client</module>
+        <module>zookeeper</module>
         <module>packages</module>
     </modules>
 

@@ -35,9 +35,8 @@
     </properties>
 
     <modules>
-        <module>amq</module>
         <module>apiman</module>
-        <module>msg-pack</module>
+        <module>messaging</module>
         <module>distro</module>
     </modules>
 
