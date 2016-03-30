@@ -25,11 +25,11 @@
         <version>2.2.96-SNAPSHOT</version>
     </parent>
 
-    <artifactId>msg-gateway</artifactId>
+    <artifactId>message-gateway</artifactId>
     <packaging>jar</packaging>
 
-    <name>Messaging Gateway</name>
-    <description>Control/Secure/Scale Enterprise Messaging</description>
+    <name>Message Gateway</name>
+    <description>An Enterprise Messaging Gateway that can apply policies for discovery, load balancing, scalaing, security, rate limiting etc.</description>
 
     <properties>
         <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>

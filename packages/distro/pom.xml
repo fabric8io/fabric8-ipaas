@@ -47,14 +47,14 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq-consumer</artifactId>
+      <artifactId>example-message-consumer</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq-producer</artifactId>
+      <artifactId>example-message-producer</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
@@ -68,7 +68,7 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>msg-gateway</artifactId>
+      <artifactId>message-gateway</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
       <type>json</type>
