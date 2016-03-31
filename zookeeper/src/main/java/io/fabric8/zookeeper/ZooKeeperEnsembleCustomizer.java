@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.builder.Visitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
@@ -14,8 +15,10 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.generator.annotation.KubernetesModelProcessor;
+import io.fabric8.openshift.api.model.TemplateBuilder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -46,12 +49,39 @@ public class ZooKeeperEnsembleCustomizer {
     private static VolumeProvider VOLUME_PROVIDER = VolumeProvider.valueOf(System.getProperty(VOLUME_TYPE_PROP, DEFAULT_VOLUME_TYPE));
 
     public void on(KubernetesListBuilder builder) {
+        List<HasMetadata> newItems = process(builder.getItems());
+
+        for (HasMetadata item : builder.getItems()) {
+            if (item instanceof ReplicationController) {
+                builder.removeFromReplicationControllerItems((ReplicationController) item);
+            } else if (item instanceof Service) {
+                builder.removeFromServiceItems((Service) item);
+            }
+        }
+
+        builder.withItems(newItems);
+    }
+
+    public void on(TemplateBuilder builder) {
+        List<HasMetadata> newItems = process(builder.getObjects());
+
+        for (HasMetadata item : builder.getObjects()) {
+            if (item instanceof ReplicationController) {
+                builder.removeFromReplicationControllerObjects((ReplicationController) item);
+            } else if (item instanceof Service) {
+                builder.removeFromServiceObjects((Service) item);
+            }
+        }
+
+        builder.withObjects(newItems);
+    }
+
+    List<HasMetadata> process(Collection<HasMetadata> resources) {
         Service service = null;
         ReplicationController controller = null;
-        List<HasMetadata> items = builder.getItems();
         List<HasMetadata> newItems = new ArrayList<>();
 
-        for (HasMetadata item : items) {
+        for (HasMetadata item : resources) {
             if (TEMPLATE_NAME.equals(item.getMetadata().getName())) {
                 if (item.getKind().equals(ReplicationController.class.getSimpleName())) {
                     controller = (ReplicationController) item;
@@ -101,10 +131,7 @@ public class ZooKeeperEnsembleCustomizer {
                 .endSpec()
                 .build());
 
-
-        builder.removeFromReplicationControllerItems(controller);
-        builder.removeFromServiceItems(service);
-        builder.withItems(newItems);
+        return newItems;
     }
 
     private static class MetadataCustormizer implements Visitor<ObjectMetaBuilder> {
