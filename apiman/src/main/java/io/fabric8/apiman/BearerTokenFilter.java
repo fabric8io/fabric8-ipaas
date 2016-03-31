@@ -40,7 +40,6 @@ import io.apiman.common.auth.AuthPrincipal;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.openshift.api.model.SubjectAccessReview;
-import io.fabric8.openshift.api.model.SubjectAccessReview.ApiVersion;
 import io.fabric8.openshift.api.model.SubjectAccessReviewBuilder;
 import io.fabric8.openshift.api.model.SubjectAccessReviewResponse;
 import io.fabric8.openshift.api.model.User;
@@ -206,7 +205,7 @@ public class BearerTokenFilter implements Filter {
             if (log.isDebugEnabled()) log.debug("user: " + user);
             //check to see if this user has the clusterAdmin role
             SubjectAccessReview request = new SubjectAccessReviewBuilder().withVerb("*").withResource("*")
-                    .withApiVersion(ApiVersion.V_1).build();
+                    .withApiVersion("v1").build();
             SubjectAccessReviewResponse response = osClient.subjectAccessReviews().create(request);
             if (log.isDebugEnabled()) log.debug("isAdminResponse: " + response);
             userInfo.isClusterAdmin = response.getAllowed();
