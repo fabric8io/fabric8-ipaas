@@ -247,6 +247,12 @@ public class Kubernetes2ApimanFilter implements Filter {
                         } else {
                             log.debug("Auto registration not requested for this service");
                         }
+                    } else {
+                        if (! isServiceRegisterToApiman(service)) {
+                            log.info("Adding " + OPENSHIFT_API_MANAGER + " annotation to service " + service.getMetadata().getName());
+                            service.getMetadata().getAnnotations().put(OPENSHIFT_API_MANAGER, OPENSHIFT_API_MANAGER);
+                            osClient.services().replace(service);
+                        }
                     }
                 }
                 sudoSecurityContext.exit();

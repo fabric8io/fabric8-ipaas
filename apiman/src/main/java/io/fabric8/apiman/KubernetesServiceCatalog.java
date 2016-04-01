@@ -101,6 +101,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
                         apiNamespaceBean.setName(namespace);
                         apiNamespaceBean.setOwnedByUser(true);
                         apiNamespaceList.add(apiNamespaceBean);
+                        log.info(apiNamespaceBean.getName() + "\t" + apiNamespaceBean.isOwnedByUser() + "\t" + apiNamespaceBean.isCurrent());
                     }
                     return apiNamespaceList;
                 } else {
