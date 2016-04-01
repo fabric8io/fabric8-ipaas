@@ -195,7 +195,7 @@ public class Kubernetes2ApimanFilter implements Filter {
                         GrantRolesBean bean = new GrantRolesBean();
                         bean.setUserId(username);
                         Set<String> roleIds = new HashSet<String>();
-                        roleIds.add("Service Developer");
+                        roleIds.add("Organization Owner");
                         bean.setRoleIds(roleIds);
                         sudoSecurityContext.sudo(organizationResource, "Kubernetes2Apiman", true);
                         organizationResource.grant(orgId, bean);
