@@ -31,10 +31,12 @@
     <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
     <fabric8.annotations.service.api.service.kubernetes.io.path>api</fabric8.annotations.service.api.service.kubernetes.io.path>
     <fabric8.annotations.service.api.service.kubernetes.io.protocol>REST</fabric8.annotations.service.api.service.kubernetes.io.protocol>
-    <!--  
     <fabric8.annotations.service.api.service.kubernetes.io.description-path>api/swagger.json</fabric8.annotations.service.api.service.kubernetes.io.description-path>
     <fabric8.annotations.service.api.service.kubernetes.io.description-language>SwaggerJSON</fabric8.annotations.service.api.service.kubernetes.io.description-language>
-    -->
+    <fabric8.readinessProbe.httpGet.port>${http.port}</fabric8.readinessProbe.httpGet.port>
+    <fabric8.readinessProbe.httpGet.path>/api/system/status</fabric8.readinessProbe.httpGet.path>
+    <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
+    <fabric8.readinessProbe.initialDelaySeconds>5</fabric8.readinessProbe.initialDelaySeconds>
   </properties>
 
   <dependencyManagement>
