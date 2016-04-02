@@ -21,10 +21,16 @@ import io.fabric8.utils.Systems;
 
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Starts the API Manager as a jetty8 micro service.
@@ -41,16 +47,18 @@ public class ApimanStarter {
      * @throws Exception when any unhandled exception occurs
      */
     public static final void main(String [] args) throws Exception {
-        
     	Fabric8ManagerApiMicroService microService = new Fabric8ManagerApiMicroService();
-    	setFabric8Props();
+    	URL elasticEndpoint = waitForDependency("elasticsearch-v1", "9200","/","status","200");
+    	log.info("Found " + elasticEndpoint);
+    	URL gatewayEndpoint = waitForDependency("APIMAN-GATEWAY", "7777","/api/system/status","up","true");
+    	log.info("Found " + gatewayEndpoint);
+    	setFabric8Props(elasticEndpoint);
         microService.start();
         microService.join();
     }
     
-    public static void setFabric8Props() {
-        URL elasticEndpoint = resolveServiceEndpoint("elasticsearch-v1", "9200");
-
+    public static void setFabric8Props(URL elasticEndpoint) {
+        
         log.info("** Setting API Manager Configuration Properties **");
 
         setConfigProp("apiman.plugins.repositories",
@@ -94,7 +102,7 @@ public class ApimanStarter {
     
     public static URL resolveServiceEndpoint(String serviceName, String defaultPort) {
         URL endpoint = null;
-        String host = "localhost";
+        String host = null;
         String port = defaultPort;
         try {
             //lookup in the current namespace
@@ -102,11 +110,10 @@ public class ApimanStarter {
             host = initAddress.getCanonicalHostName();
             log.debug("Resolved host using DNS: " + host);
         } catch (UnknownHostException e) {
-            log.warn("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
+            log.debug("Could not resolve DNS for " + serviceName + ", trying ENV settings next.");
             host = KubernetesServices.serviceToHostOrBlank(serviceName);
             if ("".equals(host)) {
-                host = "localhost";
-                log.debug("Defaulting " + serviceName + " host to: " + host);
+                return null;
             } else {
                 log.debug("Resolved " + serviceName + " host using ENV: " + host);
             }
@@ -124,6 +131,38 @@ public class ApimanStarter {
             endpoint = new URL(scheme, host, Integer.valueOf(port), "");
         } catch (Exception e) {
             log.error(e.getMessage(),e);
+        }
+        return endpoint;
+    }
+    
+    private static URL waitForDependency(String serviceName, String port, String path, String key, String value) throws InterruptedException {
+        boolean isFoundRunningService= false;
+        ObjectMapper mapper = new ObjectMapper();
+        int counter = 0;
+        URL endpoint = null;
+        while (! isFoundRunningService) {
+            endpoint = resolveServiceEndpoint(serviceName, port);
+            if (endpoint!=null) {
+                String isLive = null;
+                try {
+                    URL statusURL = new URL(endpoint.toExternalForm() + path);
+                    URLConnection urlConnection =  statusURL.openConnection();
+                    urlConnection.setConnectTimeout(500);
+                    isLive = IOUtils.toString(urlConnection.getInputStream());
+                    Map<String,Object> esResponse = mapper.readValue(isLive, new TypeReference<Map<String, Object>>(){});
+                    if (esResponse.containsKey(key) && value.equals(String.valueOf(esResponse.get(key)))) {
+                        isFoundRunningService = true;
+                    } else {
+                        if (counter%10==0) log.info(endpoint.toExternalForm() + " not yet up. " + isLive);
+                    }
+                } catch (Exception e) {
+                    if (counter%10==0) log.info(endpoint.toExternalForm() + " not yet up. " + e.getMessage());
+                }
+            } else {
+                if (counter%10==0) log.info("Could not find " + serviceName  + " in namespace, waiting..");
+            }
+            counter++;
+            Thread.sleep(1000l);
         }
         return endpoint;
     }
