@@ -21,6 +21,8 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -38,6 +40,8 @@ import io.apiman.manager.api.micro.ManagerApiMicroService;
 
 public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 
+    final private static Log log = LogFactory.getLog(Fabric8ManagerApiMicroService.class);
+    
     public final static String KEYSTORE_PATH="/secret/keystore";
     public final static String KEYSTORE_PASSWORD_PATH="/secret/keystore-password";
     private Server sslServer;
@@ -60,7 +64,7 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
         
         // Create the server.
         int serverPort = serverPort();
-        System.out.println("**** Starting SslServer (" + getClass().getSimpleName() + ") on port: " + serverPort);
+        log.info("**** Starting SslServer (" + getClass().getSimpleName() + ") on port: " + serverPort);
         sslServer = new Server();
         
         ServerConnector sslConnector = new ServerConnector(sslServer,
@@ -75,7 +79,7 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
         sslServer.setHandler(handlers);
         sslServer.start();
         long endTime = System.currentTimeMillis();
-        System.out.println("******* Started in " + (endTime - startTime) + "ms");
+        log.info("******* Started in " + (endTime - startTime) + "ms");
     }
     /**
      * @see io.apiman.manager.api.micro.ManagerApiMicroService#getConfigResource(java.lang.String)

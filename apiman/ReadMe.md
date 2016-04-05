@@ -19,7 +19,7 @@ you need a Bearer OAuthToken set. Just use the link from the fabric8 console.
 
 ##Running Apiman on SSL
 
-If you'd like to run apiman over SLL then first double check you have the following system parameters set correctly:
+If you'd like to run apiman over SSL then first double check you have the following system parameters set correctly:
 
 KUBERNETES_DOMAIN = vagrant.f8
 KUBERNETES_NAMESPACE = default
