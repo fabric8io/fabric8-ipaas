@@ -37,28 +37,38 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class ApimanStarter {
 
-	public final static String APIMAN_GATEWAY_USER     = "apiman-gateway.default.user";
-	public final static String APIMAN_GATEWAY_PASSWORD = "apiman-gateway.default.password";
-	
-	final private static Log log = LogFactory.getLog(ApimanStarter.class);
+    public final static String APIMAN_GATEWAY_USER     = "apiman-gateway.default.user";
+    public final static String APIMAN_GATEWAY_PASSWORD = "apiman-gateway.default.password";
+
+    final private static Log log = LogFactory.getLog(ApimanStarter.class);
     /**
      * Main entry point for the API Manager micro service.
      * @param args the arguments
      * @throws Exception when any unhandled exception occurs
      */
     public static final void main(String [] args) throws Exception {
-    	Fabric8ManagerApiMicroService microService = new Fabric8ManagerApiMicroService();
-    	URL elasticEndpoint = waitForDependency("elasticsearch-v1", "9200","/","status","200");
-    	log.info("Found " + elasticEndpoint);
-    	URL gatewayEndpoint = waitForDependency("APIMAN-GATEWAY", "7777","/api/system/status","up","true");
-    	log.info("Found " + gatewayEndpoint);
-    	setFabric8Props(elasticEndpoint);
-        microService.start();
-        microService.join();
+
+        Fabric8ManagerApiMicroService microService = new Fabric8ManagerApiMicroService();
+        URL elasticEndpoint = waitForDependency("elasticsearch-v1", "9200","/","status","200");
+        log.info("Found " + elasticEndpoint);
+        URL gatewayEndpoint = waitForDependency("APIMAN-GATEWAY", "7777","/api/system/status","up","true");
+        log.info("Found " + gatewayEndpoint);
+        setFabric8Props(elasticEndpoint);
+
+        String isSslString = Systems.getEnvVarOrSystemProperty("APIMAN_SSL","false");
+        boolean isSsl = "true".equalsIgnoreCase(isSslString);
+        log.info("APIMAN SSL: " + isSsl);
+        if (isSsl) {
+            microService.startSsl();
+            microService.joinSsl();
+        } else {
+            microService.start();
+            microService.join();
+        }
     }
-    
+
     public static void setFabric8Props(URL elasticEndpoint) {
-        
+
         log.info("** Setting API Manager Configuration Properties **");
 
         setConfigProp("apiman.plugins.repositories",
@@ -67,12 +77,12 @@ public class ApimanStarter {
         setConfigProp("apiman.es.protocol",            elasticEndpoint.getProtocol());
         setConfigProp("apiman.es.host",                elasticEndpoint.getHost());
         setConfigProp("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
-        
+
         String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix",".apiman_");
         if (esIndexPrefix != null) {
             setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INDEX_NAME, esIndexPrefix + "manager");
         }
-        
+
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_TYPE, "es");
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL, "${apiman.es.protocol}");
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_HOST,     "${apiman.es.host}");
@@ -99,7 +109,7 @@ public class ApimanStarter {
         }
         log.info("\t" + propName + "=" + System.getProperty(propName));
     }
-    
+
     public static URL resolveServiceEndpoint(String serviceName, String defaultPort) {
         URL endpoint = null;
         String host = null;
@@ -134,7 +144,7 @@ public class ApimanStarter {
         }
         return endpoint;
     }
-    
+
     private static URL waitForDependency(String serviceName, String port, String path, String key, String value) throws InterruptedException {
         boolean isFoundRunningService= false;
         ObjectMapper mapper = new ObjectMapper();
