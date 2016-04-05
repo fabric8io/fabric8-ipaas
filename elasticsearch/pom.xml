@@ -54,6 +54,7 @@
 
     <fabric8.volume.elasticsearch-data.emptyDir />
     <fabric8.volume.elasticsearch-data.mountPath>/usr/share/elasticsearch-v1/data</fabric8.volume.elasticsearch-data.mountPath>
+    <fabric8.annotations.service.api.service.kubernetes.io.protocol>REST</fabric8.annotations.service.api.service.kubernetes.io.protocol>
 
     <fabric8.livenessProbe.port>9300</fabric8.livenessProbe.port>
     <fabric8.livenessProbe.initialDelaySeconds>30</fabric8.livenessProbe.initialDelaySeconds>

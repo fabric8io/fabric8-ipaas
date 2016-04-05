@@ -22,6 +22,7 @@
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
     <docker.env.MAIN>io.fabric8.apiman.ApimanStarter</docker.env.MAIN>
+    <docker.env.apiman.ssl>false</docker.env.apiman.ssl>
     <docker.port.container.http>${http.port}</docker.port.container.http>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
@@ -113,6 +114,8 @@
     </resources>
 
     <plugins>
+
+
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>hawt-app-maven-plugin</artifactId>
@@ -143,6 +146,7 @@
                   <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
                   <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
                   <HTTP_PORT>${http.port}</HTTP_PORT>
+                  <APIMAN_SSL>${docker.env.apiman.ssl}</APIMAN_SSL>
                 </env>
                 <ports>
                   <port>8778</port>
@@ -164,6 +168,35 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>keytool-maven-plugin</artifactId>
+                    <versionRange>[1.5,)</versionRange>
+                    <goals>
+                      <goal>generateKeyPair</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
 <!--
@@ -199,6 +232,72 @@
       </properties>
       <build>
         <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
+      </build>
+    </profile>
+<!-- activate the ssl profile to start apiman with a selfsigned certificate -->
+    <profile>
+      <id>ssl</id>
+      <properties>
+        <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
+        <keystore.password>supersecret</keystore.password>
+        <fabric8.volume.keystore.secret>apiman-keystore</fabric8.volume.keystore.secret>
+        <fabric8.volume.keystore.mountPath>/secret</fabric8.volume.keystore.mountPath>
+        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
+      </properties>
+      <build>
+        <plugins>
+        
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>keytool-maven-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>generateKeyPair</goal>
+                </goals>
+                <phase>generate-sources</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <keystore>${project.build.directory}/secret/keystore</keystore>
+              <storepass>${keystore.password}</storepass>
+              <keypass>${keystore.password}</keypass>
+              <alias>SSLforAPIMAN</alias>
+              <dname>CN=apiman-${KUBERNETES_DOMAIN}.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
+                 L=Ipswich, S=Massachusetts, C=US</dname>
+              <sigalg>SHA1withRSA</sigalg>
+              <ext></ext>
+              <validity>100</validity>
+              <keyalg>RSA</keyalg>
+              <keysize>2048</keysize>
+            </configuration>
+          </plugin>
+          
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.7</version>
+            <executions>
+              <execution>
+                <id>copy-resources</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${basedir}/target/secret</outputDirectory>
+                  <resources>          
+                    <resource>
+                      <directory>${basedir}/ssl</directory>
+                      <filtering>true</filtering>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          
+        </plugins>
       </build>
     </profile>
   </profiles>
