@@ -36,6 +36,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import io.apiman.common.servlet.ApimanCorsFilter;
 import io.apiman.manager.api.micro.ManagerApiMicroService;
 
 public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
@@ -99,6 +100,7 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 		apiManServer.addFilter(BootstrapFilter.class,  "/*", EnumSet.of(DispatcherType.REQUEST));
 		apiManServer.addFilter(BearerTokenFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 		apiManServer.addFilter(Kubernetes2ApimanFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+		apiManServer.addFilter(ApimanCorsFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 	}
 
 	@Override
