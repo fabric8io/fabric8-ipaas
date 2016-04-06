@@ -27,7 +27,7 @@
 
   <artifactId>elasticsearch-v1</artifactId>
 
-  <name>Elasticsearch-1</name>
+  <name>Elasticsearch-v1</name>
   <description>
     [elasticsearch](http://elasticsearch.com/) provides distributed RESTful search and analytics
   </description>
@@ -85,16 +85,16 @@
         <artifactId>docker-maven-plugin</artifactId>
         <version>${docker.maven.plugin.version}</version>
         <configuration>
-          <image>${fabric8.dockerUser}elasticsearch-logstash-template:${project.version}</image>
+          <image>${fabric8.dockerUser}${artifactId}:${project.version}</image>
           <images>
             <image>
-              <name>${fabric8.dockerUser}elasticsearch-logstash-template:${project.version}</name>
+              <name>${fabric8.dockerUser}${artifactId}:${project.version}</name>
               <build>
                 <from>docker.io/centos:7</from>
                 <assembly>
                   <basedir>/</basedir>
                   <inline xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-                    <id>logstash-template</id>
+                    <id>${artifactId}</id>
                     <fileSets>
                       <fileSet>
                         <directory>${basedir}/src/main/resources</directory>
