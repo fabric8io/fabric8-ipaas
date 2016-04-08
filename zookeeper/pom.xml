@@ -47,6 +47,7 @@
         <fabric8.service.zookeeper.port.election>3888</fabric8.service.zookeeper.port.election>
         <fabric8.service.zookeeper.containerPort.election>3888</fabric8.service.zookeeper.containerPort.election>
         <fabric8.volume.data.mountPath>/opt/zookeeper/data</fabric8.volume.data.mountPath>
+        <fabric8.volume.log.mountPath>/opt/zookeeper/log</fabric8.volume.log.mountPath>
     </properties>
 
     <dependencyManagement>
