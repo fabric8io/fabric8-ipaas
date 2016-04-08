@@ -35,6 +35,7 @@ public class ZooKeeperEnsembleCustomizer {
     private static final String SERVER_ID_NAME = "SERVER_ID";
     private static final String DATA_VOLUME_NAME = "data";
     private static final String HOST_PATH_PREFIX = "/opt/zookeeper/data";
+    private static final String LOG_VOLUME_NAME = "log";
 
     private static final String DEFAULT_TEMPLATE = "zookeeper";
     private static final String DEFAULT_ENSEMBLE_SIZE = "3";
@@ -190,6 +191,7 @@ public class ZooKeeperEnsembleCustomizer {
         @Override
         public void visit(PodSpecBuilder builder) {
             builder.addToVolumes(VOLUME_PROVIDER.create(DATA_VOLUME_NAME, serverId));
+            builder.addToVolumes(VOLUME_PROVIDER.create(LOG_VOLUME_NAME, serverId));
         }
     }
 

@@ -40,6 +40,9 @@
         <fabric8.service.port>9092</fabric8.service.port>
         <fabric8.service.containerPort>9092</fabric8.service.containerPort>
         <fabric8.service.type>LoadBalancer</fabric8.service.type>
+
+        <fabric8.volume.logs.mountPath>/opt/kafka/logs</fabric8.volume.logs.mountPath>
+        <fabric8.volume.logs.emptyDir>Memory</fabric8.volume.logs.emptyDir>
     </properties>
 
     <dependencyManagement>
