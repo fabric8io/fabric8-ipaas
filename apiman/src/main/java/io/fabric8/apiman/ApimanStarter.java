@@ -49,15 +49,27 @@ public class ApimanStarter {
     public static final void main(String [] args) throws Exception {
 
         Fabric8ManagerApiMicroService microService = new Fabric8ManagerApiMicroService();
-        URL elasticEndpoint = waitForDependency("elasticsearch-v1", "9200","/","status","200");
-        log.info("Found " + elasticEndpoint);
-        URL gatewayEndpoint = waitForDependency("APIMAN-GATEWAY", "7777","/api/system/status","up","true");
-        log.info("Found " + gatewayEndpoint);
-        setFabric8Props(elasticEndpoint);
-
+        
+        String isTestModeString = Systems.getEnvVarOrSystemProperty("APIMAN_TESTMODE","false");
+        boolean isTestMode = "true".equalsIgnoreCase(isTestModeString);
+        if (isTestMode) log.info("APIMAN Running in TestMode");
+        
         String isSslString = Systems.getEnvVarOrSystemProperty("APIMAN_SSL","false");
         boolean isSsl = "true".equalsIgnoreCase(isSslString);
-        log.info("APIMAN SSL: " + isSsl);
+        log.info("APIMAN running in SSL: " + isSsl);
+        
+        URL elasticEndpoint = null;
+        // Require ElasticSearch and the Gateway Services to to be up before proceeding
+        if (isTestMode) {
+            elasticEndpoint = waitForDependency("localhost", "9200","/","status","200");
+        } else {
+            elasticEndpoint = waitForDependency("elasticsearch-v1", "9200","/","status","200");
+            log.info("Found " + elasticEndpoint);
+            URL gatewayEndpoint = waitForDependency("APIMAN-GATEWAY", "7777","/api/system/status","up","true");
+            log.info("Found " + gatewayEndpoint);
+        }
+
+        setFabric8Props(elasticEndpoint);
         if (isSsl) {
             microService.startSsl();
             microService.joinSsl();

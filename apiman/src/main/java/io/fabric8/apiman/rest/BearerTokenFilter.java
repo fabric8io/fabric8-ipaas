@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.fabric8.apiman;
+package io.fabric8.apiman.rest;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -37,6 +37,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import io.apiman.common.auth.AuthPrincipal;
+import io.fabric8.apiman.AuthToken;
 import io.fabric8.kubernetes.api.KubernetesHelper;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.openshift.api.model.SubjectAccessReview;
@@ -110,7 +111,6 @@ public class BearerTokenFilter implements Filter {
                 UserInfo userInfo = bearerTokenCache.get(authToken);
                 AuthToken.set(authToken);
                 AuthPrincipal principal = new AuthPrincipal(userInfo.username);
-                // roles should come from keycloak, but for now we hard code.
                 principal.addRole("apiuser");
                 if (userInfo.isClusterAdmin) {
                     principal.addRole("apiadmin");
