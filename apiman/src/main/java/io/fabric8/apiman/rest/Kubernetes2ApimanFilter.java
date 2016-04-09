@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.fabric8.apiman;
+package io.fabric8.apiman.rest;
 
 import java.io.IOException;
 import java.net.URL;
@@ -51,6 +51,8 @@ import io.apiman.manager.api.beans.summary.OrganizationSummaryBean;
 import io.apiman.manager.api.rest.contract.IOrganizationResource;
 import io.apiman.manager.api.rest.contract.IUserResource;
 import io.apiman.manager.api.rest.contract.exceptions.OrganizationNotFoundException;
+import io.fabric8.apiman.Kubernetes2ApimanMapper;
+import io.fabric8.apiman.SudoSecurityContext;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;

@@ -15,7 +15,12 @@ var APIMAN_CONFIG_DATA = {
     "api" : {
         "endpoint" : "/apiman",
         "auth" : {
-            "type" : "bearerTokenFromHash"
+            "type" : "bearerTokenFromHash",
+            "bearerToken" : {
+                "token" : "@token@",
+                "refreshPeriod" : 288
+            }
+            
         }
     }
 };

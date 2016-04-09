@@ -23,8 +23,11 @@ import javax.servlet.DispatcherType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -32,12 +35,20 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import io.apiman.common.servlet.ApimanCorsFilter;
 import io.apiman.manager.api.micro.ManagerApiMicroService;
+import io.fabric8.apiman.rest.BearerTokenFilter;
+import io.fabric8.apiman.rest.BootstrapFilter;
+import io.fabric8.apiman.rest.Kubernetes2ApimanFilter;
+import io.fabric8.apiman.ui.LinkServlet;
+import io.fabric8.apiman.ui.ConfigurationServlet;
+import io.fabric8.apiman.ui.TranslationServlet;
 
 public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 
@@ -82,13 +93,6 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
         long endTime = System.currentTimeMillis();
         log.info("******* Started in " + (endTime - startTime) + "ms");
     }
-    /**
-     * @see io.apiman.manager.api.micro.ManagerApiMicroService#getConfigResource(java.lang.String)
-     */
-    @Override
-    protected Resource getConfigResource(String path) {
-        return super.getConfigResource("/apimanui/apiman/f8-config.js");
-    }
     
     @Override
     protected Resource getTranslationsResource(String path) {
@@ -100,7 +104,6 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 		apiManServer.addFilter(BootstrapFilter.class,  "/*", EnumSet.of(DispatcherType.REQUEST));
 		apiManServer.addFilter(BearerTokenFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 		apiManServer.addFilter(Kubernetes2ApimanFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
-		apiManServer.addFilter(ApimanCorsFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 	}
 
 	@Override
@@ -109,6 +112,54 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 	    // login service.
         return null;
 	}
+	
+    @Override
+    protected void addModulesToJetty(HandlerCollection handlers)
+            throws Exception {
+        super.addModulesToJetty(handlers);
+        //override the apimanUiServer handler 
+        ServletContextHandler apimanUiServer = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        
+        addSecurityHandler(apimanUiServer);
+        apimanUiServer.setContextPath("/apimanui");
+        apimanUiServer.addFilter(ApimanCorsFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+        
+        //add the servlets before the static content
+        LinkServlet parseServlet    = new LinkServlet();
+        apimanUiServer.addServlet(new ServletHolder(parseServlet), "/link");
+        ConfigurationServlet configServlet    = new ConfigurationServlet();
+        apimanUiServer.addServlet(new ServletHolder(configServlet), "/apiman/config.js");
+        TranslationServlet translationServlet = new TranslationServlet();
+        apimanUiServer.addServlet(new ServletHolder(translationServlet), "/apiman/translations.js");
+
+        //figuring out from where to load the static content in the apimanui war
+        String indexFile = this.getClass().getClassLoader().getResource("apimanui/index.html").toExternalForm();
+        String webDir = indexFile.substring(0, indexFile.length() - 10);
+        apimanUiServer.setInitParameter("org.eclipse.jetty.servlet.Default.resourceBase", webDir);
+        apimanUiServer.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+        DefaultServlet defaultServlet = new DefaultServlet();
+        ServletHolder holder = new ServletHolder("default", defaultServlet);
+        apimanUiServer.addServlet(holder, "/*");
+        
+        //rewriting some paths to angularjs index.html app
+        RewriteHandler rewriter = new RewriteHandler();
+        rewriter.setRewriteRequestURI(true);
+        rewriter.setRewritePathInfo(false);
+        rewriter.setOriginalPathAttribute("requestedPath");
+        RewriteRegexRule rule1 = new RewriteRegexRule();
+        rule1.setRegex("/apimanui/api-manager/.*");
+        rule1.setReplacement("/apimanui/index.html");
+        rewriter.addRule(rule1);
+        RewriteRegexRule rule2 = new RewriteRegexRule();
+        rule2.setRegex("/apimanui/api-manager/|/apimanui/|/apimanui");
+        rule2.setReplacement("/apimanui/index.html");
+        rewriter.addRule(rule2);
+        
+        rewriter.setHandler(apimanUiServer);
+        
+        Handler[] newHandlers = new Handler[] { handlers.getHandlers()[0], rewriter};
+        handlers.setHandlers(newHandlers);
+    }
 	
     /**
      * Stop the server.
