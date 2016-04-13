@@ -26,7 +26,7 @@ KUBERNETES_NAMESPACE = default
 
 Now you can run:
 
-mvn -Pssl clean compile
+./ssl.sh
 
 to generate a selfsigned certificate for hostname 'apiman-default.vagrant.f8', in the target/secret directory, and it adds it as a secret called 'apiman-keystore' in the current 'default' namespace.
 
