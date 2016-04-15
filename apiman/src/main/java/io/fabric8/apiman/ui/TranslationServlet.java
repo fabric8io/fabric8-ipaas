@@ -53,6 +53,8 @@ public class TranslationServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
             IOException {
         InputStream is = getClass().getResourceAsStream("/apimanui/apiman/f8-translations.js");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/javascript");
         try {
             byte[] buffer = new byte[1024];
             int bytesRead;

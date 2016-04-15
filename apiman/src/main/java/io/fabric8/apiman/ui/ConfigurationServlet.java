@@ -56,12 +56,22 @@ public class ConfigurationServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
             IOException 
     {
-        String authToken = String.valueOf(request.getSession().getAttribute(LinkServlet.AUTH_TOKEN));
-        log.error("No authToken in the user's session with id " + request.getSession().getId());
-        InputStream is = getClass().getResourceAsStream("/apimanui/apiman/f8-config.js");
-        String configFile = IOUtils.toString(is);
-        configFile = configFile.replace("@token@", authToken);
+        String authToken = (String) request.getSession().getAttribute(LinkServlet.AUTH_TOKEN);
+        log.info("AuthToken = " + authToken);
+        InputStream is = null;
+        String configFile = null;
+        if (authToken==null) {
+            log.debug("No authToken in the user's session with id " + request.getSession().getId());
+            is = getClass().getResourceAsStream("/apimanui/apiman/f8-config-bkwrds-compatible.js");
+            configFile = IOUtils.toString(is);
+        } else {
+            is = getClass().getResourceAsStream("/apimanui/apiman/f8-config.js");
+            configFile = IOUtils.toString(is);
+            configFile = configFile.replace("@token@", authToken);
+        }
         try {
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/javascript");
             response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
             response.setDateHeader("Expires", 0);
             response.getOutputStream().write(configFile.getBytes("UTF-8")); //$NON-NLS-1$ //$NON-NLS-2$
