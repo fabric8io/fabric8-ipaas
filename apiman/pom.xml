@@ -266,7 +266,7 @@
               <storepass>${keystore.password}</storepass>
               <keypass>${keystore.password}</keypass>
               <alias>SSLforAPIMAN</alias>
-              <dname>CN=apiman-${KUBERNETES_DOMAIN}.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
+              <dname>CN=apiman-${KUBERNETES_NAMESPACE}.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
                  L=Ipswich, S=Massachusetts, C=US</dname>
               <sigalg>SHA1withRSA</sigalg>
               <ext></ext>

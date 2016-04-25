@@ -17,11 +17,14 @@ package io.fabric8.apiman;
 
 import java.util.Set;
 
+import javax.enterprise.inject.Vetoed;
+
 import io.apiman.manager.api.beans.idm.PermissionType;
 import io.apiman.manager.api.rest.contract.IOrganizationResource;
 import io.apiman.manager.api.rest.impl.OrganizationResourceImpl;
 import io.apiman.manager.api.security.ISecurityContext;
 
+@Vetoed
 public class SudoSecurityContext implements ISecurityContext {
 
     private String currentUser;

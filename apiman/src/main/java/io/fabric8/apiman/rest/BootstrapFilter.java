@@ -122,7 +122,7 @@ public class BootstrapFilter implements Filter {
 			String gatewayName = "ApimanGateway";
 			if (storage.getGateway(gatewayName) == null) {
 				GatewayBean gateway = new GatewayBean();
-				URL gatewayEndpoint = ApimanStarter.resolveServiceEndpoint("APIMAN-GATEWAY", "7777");
+				URL gatewayEndpoint = ApimanStarter.resolveServiceEndpoint("http","APIMAN-GATEWAY", "7777");
 				String endpoint = gatewayEndpoint.toExternalForm() + "/api";
 				String username = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_USER, "admin");
 				String password = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_PASSWORD, "admin123!");
