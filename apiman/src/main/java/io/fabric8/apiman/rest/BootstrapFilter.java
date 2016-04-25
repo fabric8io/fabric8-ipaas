@@ -15,6 +15,7 @@
  */
 package io.fabric8.apiman.rest;
 
+import io.apiman.common.logging.IApimanLogger;
 import io.apiman.common.util.AbstractMessages;
 import io.apiman.common.util.AesEncrypter;
 import io.apiman.manager.api.beans.gateways.GatewayBean;
@@ -27,7 +28,6 @@ import io.apiman.manager.api.core.IStorage;
 import io.apiman.manager.api.core.IStorageQuery;
 import io.apiman.manager.api.core.exceptions.StorageException;
 import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
 import io.fabric8.apiman.ApimanStarter;
 import io.fabric8.utils.Systems;
 
