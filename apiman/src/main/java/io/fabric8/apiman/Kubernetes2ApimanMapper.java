@@ -159,7 +159,7 @@ public class Kubernetes2ApimanMapper {
         String hostname;
         try {
             //lookup in the current namespace
-            InetAddress initAddress = InetAddress.getByName(serviceName + "-" + namespace);
+            InetAddress initAddress = InetAddress.getByName(serviceName + "." + namespace);
             hostname = initAddress.getCanonicalHostName();
             log.debug("Resolved hostname using DNS: " + hostname);
         } catch (UnknownHostException e) {
