@@ -194,16 +194,20 @@ public class ApimanStarter {
                     HttpURLConnection urlConnection =  (HttpURLConnection) statusURL.openConnection();
                     urlConnection.setConnectTimeout(500);
                     if (urlConnection instanceof HttpsURLConnection) {
-                        TrustManager[] tms = Fabric8ManagerApiMicroServiceCdiFactory.getTrustManagers();
-                        KeyManager[] kms = Fabric8ManagerApiMicroServiceCdiFactory.getKeyManagers();
-                        final SSLContext sc = SSLContext.getInstance("TLS");
-                        sc.init(kms, tms, new java.security.SecureRandom());
-                        final SSLSocketFactory socketFactory = sc.getSocketFactory();
-                        HttpsURLConnection.setDefaultSSLSocketFactory(socketFactory);
-                        HttpsURLConnection httpsConnection = (HttpsURLConnection) urlConnection;
-                        httpsConnection.setHostnameVerifier(new DefaultHostnameVerifier());
-                        httpsConnection.setSSLSocketFactory(socketFactory);
-                        httpsConnection.getInputStream();
+                        try {
+                            TrustManager[] tms = Fabric8ManagerApiMicroServiceCdiFactory.getTrustManagers();
+                            KeyManager[] kms = Fabric8ManagerApiMicroServiceCdiFactory.getKeyManagers();
+                            final SSLContext sc = SSLContext.getInstance("TLS");
+                            sc.init(kms, tms, new java.security.SecureRandom());
+                            final SSLSocketFactory socketFactory = sc.getSocketFactory();
+                            HttpsURLConnection.setDefaultSSLSocketFactory(socketFactory);
+                            HttpsURLConnection httpsConnection = (HttpsURLConnection) urlConnection;
+                            httpsConnection.setHostnameVerifier(new DefaultHostnameVerifier());
+                            httpsConnection.setSSLSocketFactory(socketFactory);
+                        } catch (Exception e) {
+                            log.error(e.getMessage(),e);
+                            throw e;
+                        }
                     } 
                     isLive = IOUtils.toString(urlConnection.getInputStream());
                     Map<String,Object> esResponse = mapper.readValue(isLive, new TypeReference<Map<String, Object>>(){});

@@ -124,7 +124,7 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
     public static JestClient provideMetricsESClient(ManagerApiMicroServiceConfig config) {
         if ("https".equalsIgnoreCase(config.getStorageESProtocol())) {
             if ("es".equals(config.getMetricsType()) && sMetricsESClient == null) { //$NON-NLS-1$
-                sMetricsESClient = createMetricsJestClient(config);
+                sMetricsESClient = createSslMetricsJestClient(config);
             }
             return sMetricsESClient;
         } else {
@@ -178,7 +178,7 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
      * @param config
      * @return create a new test ES client
      */
-    private static JestClient createMetricsJestClient(ManagerApiMicroServiceConfig config) {
+    private static JestClient createSslMetricsJestClient(ManagerApiMicroServiceConfig config) {
         StringBuilder builder = new StringBuilder();
         builder.append(config.getMetricsESProtocol());
         builder.append("://"); //$NON-NLS-1$
