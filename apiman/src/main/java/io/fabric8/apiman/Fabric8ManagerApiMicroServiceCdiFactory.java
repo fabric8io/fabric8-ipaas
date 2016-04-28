@@ -218,7 +218,7 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
     
     protected static KeyManager[] getKeyManagers() throws Exception {
         
-        File clientKeyStorePasswordFile = new File(ApimanStarter.TRUSTSTORE_PASSWORD_PATH);
+        File clientKeyStorePasswordFile = new File(ApimanStarter.CLIENT_KEYSTORE_PASSWORD_PATH);
         File clientKeyStoreFile = new File(ApimanStarter.CLIENT_KEYSTORE_PATH);
         if (clientKeyStorePasswordFile.exists() && clientKeyStoreFile.exists()) {
             String clientKeyStorePassword = IOUtils.toString(clientKeyStorePasswordFile.toURI());
