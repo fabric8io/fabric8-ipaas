@@ -1,9 +1,5 @@
 package io.fabric8.apiman;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.security.KeyStore;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.New;
 import javax.enterprise.inject.Produces;
@@ -11,13 +7,8 @@ import javax.enterprise.inject.Specializes;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Named;
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
@@ -145,14 +136,19 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
         builder.append(config.getStorageESPort());
         String connectionUrl = builder.toString();
         
-        JestClientFactory factory = null;
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(getKeyManagers(), getTrustManagers(), null);
+            KeyStoreUtil.Info kPathInfo = new KeyStoreUtil().new Info(
+                    ApimanStarter.CLIENT_KEYSTORE_PATH,
+                    ApimanStarter.CLIENT_KEYSTORE_PASSWORD_PATH);
+            KeyStoreUtil.Info tPathInfo = new KeyStoreUtil().new Info(
+                    ApimanStarter.TRUSTSTORE_PATH,
+                    ApimanStarter.TRUSTSTORE_PASSWORD_PATH);
+            sslContext.init(KeyStoreUtil.getKeyManagers(kPathInfo), KeyStoreUtil.getTrustManagers(tPathInfo), null);
             HostnameVerifier hostnameVerifier = new DefaultHostnameVerifier();
             SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
             SchemeIOSessionStrategy httpsIOSessionStrategy = new SSLIOSessionStrategy(sslContext, hostnameVerifier);
-            factory = new JestClientFactory();
+            JestClientFactory factory = new JestClientFactory();
             
             HttpClientConfig.Builder httpClientConfig = new HttpClientConfig.Builder(connectionUrl)
                     .multiThreaded(true)
@@ -168,10 +164,11 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
                 httpClientConfig.defaultCredentials(esUsername, esPassword);
             }
             factory.setHttpClientConfig(httpClientConfig.build());
+            return factory.getObject();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
         }
-        return factory.getObject();
+        return null;
     }
     
     /**
@@ -187,14 +184,19 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
         builder.append(config.getMetricsESPort());
         String connectionUrl = builder.toString();
         
-        JestClientFactory factory = null;
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(getKeyManagers(), getTrustManagers(), null);
+            KeyStoreUtil.Info kPathInfo = new KeyStoreUtil().new Info(
+                    ApimanStarter.CLIENT_KEYSTORE_PATH,
+                    ApimanStarter.CLIENT_KEYSTORE_PASSWORD_PATH);
+            KeyStoreUtil.Info tPathInfo = new KeyStoreUtil().new Info(
+                    ApimanStarter.TRUSTSTORE_PATH,
+                    ApimanStarter.TRUSTSTORE_PASSWORD_PATH);
+            sslContext.init(KeyStoreUtil.getKeyManagers(kPathInfo), KeyStoreUtil.getTrustManagers(tPathInfo), null);
             HostnameVerifier hostnameVerifier = new DefaultHostnameVerifier();
             SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
             SchemeIOSessionStrategy httpsIOSessionStrategy = new SSLIOSessionStrategy(sslContext, hostnameVerifier);
-            factory = new JestClientFactory();
+            JestClientFactory factory = new JestClientFactory();
             
             HttpClientConfig.Builder httpClientConfig = new HttpClientConfig.Builder(connectionUrl)
                     .multiThreaded(true)
@@ -210,53 +212,14 @@ public class Fabric8ManagerApiMicroServiceCdiFactory
                 httpClientConfig.defaultCredentials(esUsername, esPassword);
             }
             factory.setHttpClientConfig(httpClientConfig.build());
+            return factory.getObject();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return factory.getObject();
+        return null;
     }
     
-    protected static KeyManager[] getKeyManagers() throws Exception {
-        
-        File clientKeyStorePasswordFile = new File(ApimanStarter.CLIENT_KEYSTORE_PASSWORD_PATH);
-        File clientKeyStoreFile = new File(ApimanStarter.CLIENT_KEYSTORE_PATH);
-        if (clientKeyStorePasswordFile.exists() && clientKeyStoreFile.exists()) {
-            String clientKeyStorePassword = IOUtils.toString(clientKeyStorePasswordFile.toURI());
-            if (clientKeyStorePassword!=null) clientKeyStorePassword = clientKeyStorePassword.trim();
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            
-            FileInputStream clientFis = new FileInputStream(ApimanStarter.CLIENT_KEYSTORE_PATH);
-            
-            keyStore.load(clientFis, clientKeyStorePassword.toCharArray());
-            clientFis.close();
-            kmf.init(keyStore, clientKeyStorePassword.toCharArray());
-            return kmf.getKeyManagers();
-        } else {
-            log.warn("No KeyManager for ES Connection");
-            return null;
-        }
-    }
+
     
-    protected static TrustManager[] getTrustManagers() throws Exception {
-        
-        File truststorePasswordFile = new File(ApimanStarter.TRUSTSTORE_PASSWORD_PATH);
-        File trustStoreFile = new File(ApimanStarter.TRUSTSTORE_PATH);
-        TrustManagerFactory tmf = null;
-        if (truststorePasswordFile.exists() && trustStoreFile.exists()) {
-            String trustStorePassword = IOUtils.toString(truststorePasswordFile.toURI());
-            if (trustStorePassword!=null) trustStorePassword = trustStorePassword.trim();
-            
-            tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            KeyStore truststore = KeyStore.getInstance("JKS");
-            FileInputStream fis = new FileInputStream(ApimanStarter.TRUSTSTORE_PATH);
-            truststore.load(fis, trustStorePassword.toCharArray());
-            fis.close();
-            tmf.init(truststore);
-            return tmf.getTrustManagers();
-        } else {
-            log.warn("No TrustManager for ES Connection");
-            return null;
-        }
-    }
+    
 }

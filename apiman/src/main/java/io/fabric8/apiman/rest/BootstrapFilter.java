@@ -33,7 +33,6 @@ import io.fabric8.utils.Systems;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -122,9 +121,8 @@ public class BootstrapFilter implements Filter {
 			String gatewayName = "ApimanGateway";
 			if (storage.getGateway(gatewayName) == null) {
 				GatewayBean gateway = new GatewayBean();
-				URL gatewayEndpoint = ApimanStarter.resolveServiceEndpoint("http","APIMAN-GATEWAY", "7777");
-				String endpoint = gatewayEndpoint.toExternalForm() + "/api";
-				String username = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_USER, "admin");
+				String endpoint = ApimanStarter.getGatewayUrl() + "/api";
+				String username = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_USERNAME, "admin");
 				String password = Systems.getEnvVarOrSystemProperty(ApimanStarter.APIMAN_GATEWAY_PASSWORD, "admin123!");
 				password = AesEncrypter.encrypt(password);
 				String configuration = "{\"endpoint\":\"" + endpoint + "\","

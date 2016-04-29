@@ -179,17 +179,25 @@
             <version>1.5</version>
             <executions>
               <execution>
+                <id>self-signed-cert</id>
                 <goals>
                   <goal>generateKeyPair</goal>
                 </goals>
                 <phase>generate-sources</phase>
-              </execution>
+              </execution> 
+              <execution>
+                <id>export-public-key</id>
+                <goals>
+                  <goal>exportCertificate</goal>
+                </goals>
+              <phase>generate-resources</phase>
+            </execution>
             </executions>
             <configuration>
               <keystore>${project.build.directory}/secret/keystore</keystore>
               <storepass>${keystore.password}</storepass>
               <keypass>${keystore.password}</keypass>
-              <alias>SSLforAPIMAN</alias>
+              <alias>SSLforELASTIC</alias>
               <dname>CN=localhost, OU=Example, O=Fabric8 Inc.,
                  L=Ipswich, S=Massachusetts, C=US</dname>
               <sigalg>SHA1withRSA</sigalg>
@@ -197,6 +205,8 @@
               <validity>100</validity>
               <keyalg>RSA</keyalg>
               <keysize>2048</keysize>
+              <rfc>true</rfc>
+              <file>${project.build.directory}/secret/public.key</file>
             </configuration>
           </plugin>    
           <plugin>

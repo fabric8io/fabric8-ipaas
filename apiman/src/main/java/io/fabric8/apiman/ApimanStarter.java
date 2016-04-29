@@ -15,6 +15,8 @@
  */
 package io.fabric8.apiman;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
@@ -44,20 +46,29 @@ import io.fabric8.utils.Systems;
  */
 public class ApimanStarter {
 
-    public final static String APIMAN_GATEWAY_USER           = "apiman-gateway.default.user";
-    public final static String APIMAN_GATEWAY_PASSWORD       = "apiman-gateway.default.password";
+    public final static String APIMAN_TESTMODE               = "APIMAN_TESTMODE";
+    public final static String APIMAN_SSL                    = "APIMAN_SSL";
+    public final static String APIMAN_ELASTICSEARCH_URL      = "APIMAN_ELASTICSEARCH_URL";
+    public final static String APIMAN_GATEWAY_URL            = "APIMAN_GATEWAY_URL";
+    
+    public final static String APIMAN_GATEWAY_USERNAME       = "apiman-gateway.username";
+    public final static String APIMAN_GATEWAY_PASSWORD       = "apiman-gateway.password";
+    public final static String APIMAN_GATEWAY_USER_PATH      = "/secret/apiman/gateway.user";
+
     //KeyStore used by Jetty to serve SSL
-    public final static String KEYSTORE_PATH                 ="/secret/keystore";
-    public final static String KEYSTORE_PASSWORD_PATH        ="/secret/keystore.password";
+    public final static String KEYSTORE_PATH                 = "/secret/apiman/keystore";
+    public final static String KEYSTORE_PASSWORD_PATH        = "/secret/apiman/keystore.password";
     //client-keystore containing client-cert used by Apiman to authenticate to ElasticSearch
-    public final static String CLIENT_KEYSTORE_PATH          ="/secret/client.keystore";
-    public final static String CLIENT_KEYSTORE_PASSWORD_PATH ="/secret/client.keystore.password";
-    //Truststore used by Apiman to trust ElasticSearch (self-signed cert)
+    public final static String CLIENT_KEYSTORE_PATH          = "/secret/apiman/client.keystore";
+    public final static String CLIENT_KEYSTORE_PASSWORD_PATH = "/secret/apiman/client.keystore.password";
+    //Truststore used by Apiman to trust ElasticSearch and the Apiman Gateway (self-signed cert)
     //Use: keytool -importcert -keystore truststore -file servercert.pem
-    public final static String TRUSTSTORE_PATH               ="/secret/truststore";
-    public final static String TRUSTSTORE_PASSWORD_PATH      ="/secret/truststore.password";
+    public final static String TRUSTSTORE_PATH               = "/secret/apiman/truststore";
+    public final static String TRUSTSTORE_PASSWORD_PATH      = "/secret/apiman/truststore.password";
 
     final private static Log log = LogFactory.getLog(ApimanStarter.class);
+    
+    private static String gatewayUrl = null;
     /**
      * Main entry point for the API Manager micro service.
      * @param args the arguments
@@ -67,25 +78,29 @@ public class ApimanStarter {
 
         Fabric8ManagerApiMicroService microService = new Fabric8ManagerApiMicroService();
         
-        String isTestModeString = Systems.getEnvVarOrSystemProperty("APIMAN_TESTMODE","false");
+        String isTestModeString = Systems.getEnvVarOrSystemProperty(APIMAN_TESTMODE,"false");
         boolean isTestMode = "true".equalsIgnoreCase(isTestModeString);
-        if (isTestMode) log.info("APIMAN Running in TestMode");
+        if (isTestMode) log.info("Apiman running in TestMode");
         
-        String isSslString = Systems.getEnvVarOrSystemProperty("APIMAN_SSL","false");
+        String isSslString = Systems.getEnvVarOrSystemProperty(APIMAN_SSL,"false");
         boolean isSsl = "true".equalsIgnoreCase(isSslString);
-        log.info("APIMAN running in SSL: " + isSsl);
+        log.info("Apiman running in SSL: " + isSsl);
+        String protocol = "http";
+        if (isSsl) protocol = "https";
         
         URL elasticEndpoint = null;
         // Require ElasticSearch and the Gateway Services to to be up before proceeding
         if (isTestMode) {
             URL url = new URL("https://localhost:9200");
-            elasticEndpoint = waitForDependency(url.getProtocol(),url.getHost(), String.valueOf(url.getPort()),"/","status","200");
+            elasticEndpoint = waitForDependency(url,"","elasticsearch","status","200");
         } else {
-            String esURL = Systems.getEnvVarOrSystemProperty("APIMAN_ELASTICSEARCH_URL","http://elasticsearch-v1:9200");
+            String esURL = Systems.getEnvVarOrSystemProperty(APIMAN_ELASTICSEARCH_URL, protocol + "://elasticsearch-v1:9200");
             URL url = new URL(esURL);
-            elasticEndpoint = waitForDependency(url.getProtocol(),url.getHost(), String.valueOf(url.getPort()),"/","status","200");
+            elasticEndpoint = waitForDependency(url,"","elasticsearch","status","200");
             log.info("Found " + elasticEndpoint);
-            URL gatewayEndpoint = waitForDependency("http","APIMAN-GATEWAY", "7777","/api/system/status","up","true");
+            gatewayUrl = Systems.getEnvVarOrSystemProperty(APIMAN_GATEWAY_URL, protocol + "://APIMAN-GATEWAY:7777");
+            
+            URL gatewayEndpoint = waitForDependency(new URL(gatewayUrl),"/api/system/status","apiman-gateway","up","true");
             log.info("Found " + gatewayEndpoint);
         }
 
@@ -98,8 +113,12 @@ public class ApimanStarter {
             microService.join();
         }
     }
+    
+    public static String getGatewayUrl() {
+        return gatewayUrl;
+    }
 
-    public static void setFabric8Props(URL elasticEndpoint) {
+    public static void setFabric8Props(URL elasticEndpoint) throws IOException {
 
         log.info("** Setting API Manager Configuration Properties **");
 
@@ -132,6 +151,13 @@ public class ApimanStarter {
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_API_CATALOG_TYPE, KubernetesServiceCatalog.class.getName());
 
+        File gatewayUserFile = new File(ApimanStarter.APIMAN_GATEWAY_USER_PATH);
+        if (gatewayUserFile.exists()) {
+            String[] user = IOUtils.toString(gatewayUserFile.toURI()).split(",");
+            setConfigProp(ApimanStarter.APIMAN_GATEWAY_USERNAME, user[0]);
+            setConfigProp(ApimanStarter.APIMAN_GATEWAY_PASSWORD, user[1]);
+        }
+        
         log.info("** ******************************************** **");
     }
 
@@ -139,7 +165,11 @@ public class ApimanStarter {
         if (Systems.getEnvVarOrSystemProperty(propName) == null) {
             System.setProperty(propName, defaultValue);
         }
-        log.info("\t" + propName + "=" + System.getProperty(propName));
+        if (propName.toLowerCase().contains("password")) {
+            log.info("\t" + propName + "=********");
+        } else {
+            log.info("\t" + propName + "=" + System.getProperty(propName));
+        }
     }
 
     public static URL resolveServiceEndpoint(String scheme, String serviceName, String defaultPort) {
@@ -180,13 +210,13 @@ public class ApimanStarter {
         return endpoint;
     }
 
-    private static URL waitForDependency(String scheme, String serviceName, String port, String path, String key, String value) throws InterruptedException {
+    private static URL waitForDependency(URL url, String path, String serviceName, String key, String value) throws InterruptedException {
         boolean isFoundRunningService= false;
         ObjectMapper mapper = new ObjectMapper();
         int counter = 0;
         URL endpoint = null;
         while (! isFoundRunningService) {
-            endpoint = resolveServiceEndpoint(scheme, serviceName, port);
+            endpoint = resolveServiceEndpoint(url.getProtocol(), url.getHost(), String.valueOf(url.getPort()));
             if (endpoint!=null) {
                 String isLive = null;
                 try {
@@ -195,8 +225,14 @@ public class ApimanStarter {
                     urlConnection.setConnectTimeout(500);
                     if (urlConnection instanceof HttpsURLConnection) {
                         try {
-                            TrustManager[] tms = Fabric8ManagerApiMicroServiceCdiFactory.getTrustManagers();
-                            KeyManager[] kms = Fabric8ManagerApiMicroServiceCdiFactory.getKeyManagers();
+                            KeyStoreUtil.Info tPathInfo = new KeyStoreUtil().new Info(
+                                    ApimanStarter.TRUSTSTORE_PATH,
+                                    ApimanStarter.TRUSTSTORE_PASSWORD_PATH);
+                            TrustManager[] tms = KeyStoreUtil.getTrustManagers(tPathInfo);
+                            KeyStoreUtil.Info kPathInfo = new KeyStoreUtil().new Info(
+                                    ApimanStarter.CLIENT_KEYSTORE_PATH,
+                                    ApimanStarter.CLIENT_KEYSTORE_PASSWORD_PATH);
+                            KeyManager[] kms = KeyStoreUtil.getKeyManagers(kPathInfo);
                             final SSLContext sc = SSLContext.getInstance("TLS");
                             sc.init(kms, tms, new java.security.SecureRandom());
                             final SSLSocketFactory socketFactory = sc.getSocketFactory();
@@ -227,4 +263,5 @@ public class ApimanStarter {
         }
         return endpoint;
     }
+    
 }
