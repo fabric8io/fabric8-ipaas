@@ -88,7 +88,7 @@
         <arquillian.version>1.1.10.Final</arquillian.version>
         <commons.beanutils.version>1.9.2</commons.beanutils.version>
         <docker.assembly.exportBaseDir>false</docker.assembly.exportBaseDir>
-        <docker.maven.plugin.version>0.14.2</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.15.1</docker.maven.plugin.version>
         <fabric8.dockerUser>fabric8/</fabric8.dockerUser>
         <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
         <junit.version>4.12</junit.version>
