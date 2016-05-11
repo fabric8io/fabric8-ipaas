@@ -20,6 +20,7 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import io.apiman.gateway.engine.GatewayConfigProperties;
 import io.apiman.gateway.engine.es.PollCachingESRegistry;
 import io.apiman.gateway.platforms.war.WarEngineConfig;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroService;
@@ -120,8 +121,9 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
     	    System.setProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT, gatewayRoute + "/gateway/");
         }
         setConfigProperty("apiman.es.protocol", elasticEndpoint.getProtocol());
-        setConfigProperty("apiman.es.host", elasticEndpoint.getHost());
-        setConfigProperty("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
+        setConfigProperty("apiman.es.host"    , elasticEndpoint.getHost());
+        setConfigProperty("apiman.es.port"    , String.valueOf(elasticEndpoint.getPort()));
+        setConfigProperty("apiman-gateway.registry.client.type", Fabric8GatewayEsClientFactory.class.getName());
         String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix",".apiman_");
         if (esIndexPrefix != null) {
             log.info("Setting index prefix to " + esIndexPrefix);
@@ -136,7 +138,7 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
 	 */
 	@Override
 	protected void configureRegistry() {
-        setConfigProperty(WarEngineConfig.APIMAN_GATEWAY_REGISTRY_CLASS, PollCachingESRegistry.class.getName());
+        setConfigProperty(GatewayConfigProperties.REGISTRY_CLASS, PollCachingESRegistry.class.getName());
 	    super.configureRegistry();
 	}
 

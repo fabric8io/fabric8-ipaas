@@ -133,21 +133,22 @@ public class ApimanStarter {
         if (esIndexPrefix != null) {
             setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INDEX_NAME, esIndexPrefix + "manager");
         }
+        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_CLIENT_FACTORY, Fabric8EsClientFactory.class.getName());
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_TYPE, "es");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PROTOCOL, "${apiman.es.protocol}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_HOST,     "${apiman.es.host}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PORT,     "${apiman.es.port}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_USERNAME, "${apiman.es.username}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_PASSWORD, "${apiman.es.password}");
+        setConfigProp("apiman-manager.storage.es.protocol", "${apiman.es.protocol}");
+        setConfigProp("apiman-manager.storage.es.host",     "${apiman.es.host}");
+        setConfigProp("apiman-manager.storage.es.port",     "${apiman.es.port}");
+        setConfigProp("apiman-manager.storage.es.username", "${apiman.es.username}");
+        setConfigProp("apiman-manager.storage.es.protocol.password", "${apiman.es.password}");
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INITIALIZE, "true");
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_TYPE, "es");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_PROTOCOL, "${apiman.es.protocol}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_HOST,     "${apiman.es.host}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_PORT,     "${apiman.es.port}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_USERNAME, "${apiman.es.username}");
-        setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_ES_PASSWORD, "${apiman.es.password}");
+        setConfigProp("apiman-manager.metrics.es.protocol", "${apiman.es.protocol}");
+        setConfigProp("apiman-manager.metrics.es.host",     "${apiman.es.host}");
+        setConfigProp("apiman-manager.metrics.es.port",     "${apiman.es.port}");
+        setConfigProp("apiman-manager.metrics.es.username", "${apiman.es.username}");
+        setConfigProp("apiman-manager.metrics.es.password", "${apiman.es.password}");
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_API_CATALOG_TYPE, KubernetesServiceCatalog.class.getName());
 
