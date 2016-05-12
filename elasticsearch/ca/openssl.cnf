@@ -1,0 +1,21 @@
+[ req ]
+default_md = sha1
+distinguished_name = req_distinguished_name
+
+[ req_distinguished_name ]
+countryName = Country
+localityName = Locality
+organizationName = Organization
+organizationalUnitName = Unit
+emailAddress = emailaddress
+commonName = Common Name
+
+[ certauth ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer:always
+basicConstraints = CA:true
+
+[ client ]
+basicConstraints = critical,CA:FALSE
+keyUsage = digitalSignature, keyEncipherment, dataEncipherment
+extendedKeyUsage = clientAuth

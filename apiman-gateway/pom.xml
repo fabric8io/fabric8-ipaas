@@ -185,6 +185,74 @@
         <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
       </build>
     </profile>
+    <!-- activate the ssl profile to start apiman with a selfsigned certificate -->
+    <profile>
+      <id>ssl</id>
+      <properties>
+        <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
+        <docker.env.apiman.elasticsearch.url>https://elasticsearch-v1:9200</docker.env.apiman.elasticsearch.url>
+        <keystore.password>supersecret</keystore.password>
+        <fabric8.volume.keystore.secret>apiman-gateway-keystore</fabric8.volume.keystore.secret>
+        <fabric8.volume.keystore.mountPath>/secret/apiman-gateway</fabric8.volume.keystore.mountPath>
+        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
+        <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
+      </properties>
+      <build>
+        <plugins>
+        
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>keytool-maven-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>generateKeyPair</goal>
+                </goals>
+                <phase>generate-sources</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <keystore>${project.build.directory}/secret/apiman-gateway/keystore</keystore>
+              <storepass>${keystore.password}</storepass>
+              <keypass>${keystore.password}</keypass>
+              <alias>SSLforAPIMAN</alias>
+              <dname>CN=apiman-gateway-${KUBERNETES_NAMESPACE}.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
+                 L=Ipswich, S=Massachusetts, C=US</dname>
+              <sigalg>SHA1withRSA</sigalg>
+              <ext></ext>
+              <validity>100</validity>
+              <keyalg>RSA</keyalg>
+              <keysize>2048</keysize>
+            </configuration>
+          </plugin>
+          
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.7</version>
+            <executions>
+              <execution>
+                <id>copy-resources</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${basedir}/target/secret/apiman-gateway</outputDirectory>
+                  <resources>          
+                    <resource>
+                      <directory>${basedir}/ssl</directory>
+                      <filtering>true</filtering>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>

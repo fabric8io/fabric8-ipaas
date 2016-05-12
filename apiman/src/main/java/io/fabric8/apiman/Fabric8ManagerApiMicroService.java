@@ -54,15 +54,13 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
 
     final private static Log log = LogFactory.getLog(Fabric8ManagerApiMicroService.class);
     
-    public final static String KEYSTORE_PATH="/secret/keystore";
-    public final static String KEYSTORE_PASSWORD_PATH="/secret/keystore-password";
     private Server sslServer;
     
     protected void startSsl() throws Exception {
         long startTime = System.currentTimeMillis();
         
         //Secret should be mounted at /secret
-        File passwordFile = new File(KEYSTORE_PASSWORD_PATH);
+        File passwordFile = new File(ApimanStarter.KEYSTORE_PASSWORD_PATH);
         String password = IOUtils.toString(passwordFile.toURI());
         if (password!=null) password = password.trim();
         
@@ -70,7 +68,7 @@ public class Fabric8ManagerApiMicroService extends ManagerApiMicroService {
         https.addCustomizer(new SecureRequestCustomizer());
         
         SslContextFactory sslContextFactory = new SslContextFactory();
-        sslContextFactory.setKeyStorePath(KEYSTORE_PATH);
+        sslContextFactory.setKeyStorePath(ApimanStarter.KEYSTORE_PATH);
         sslContextFactory.setKeyStorePassword(password);
         sslContextFactory.setKeyManagerPassword(password);
         
