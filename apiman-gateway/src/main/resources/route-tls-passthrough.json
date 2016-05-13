@@ -1,0 +1,18 @@
+{
+  "kind": "Route",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "apiman-gateway",
+    "namespace": "default"
+  },
+  "spec": {
+    "host": "apiman.vagrant.f8",
+    "to": {
+      "kind": "Service",
+      "name": "apiman-gateway"
+    },
+    "tls": {
+      "termination": "passthrough"
+    }
+  }
+}
