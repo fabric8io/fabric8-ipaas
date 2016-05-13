@@ -43,8 +43,6 @@
     <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
     <fabric8.readinessProbe.initialDelaySeconds>15</fabric8.readinessProbe.initialDelaySeconds>
 
-    <fabric8.extra.json>${basedir}/src/main/resources/route-tls-passthrough.json</fabric8.extra.json>
-
   </properties>
 
   <dependencyManagement>
@@ -248,6 +246,7 @@
         <fabric8.volume.keystore.mountPath>/secret/apiman</fabric8.volume.keystore.mountPath>
         <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
         <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
+        <fabric8.extra.json>${basedir}/src/main/resources/route-tls-passthrough.json</fabric8.extra.json>
       </properties>
       <build>
         <plugins>
