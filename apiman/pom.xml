@@ -43,6 +43,8 @@
     <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
     <fabric8.readinessProbe.initialDelaySeconds>15</fabric8.readinessProbe.initialDelaySeconds>
 
+    <fabric8.extra.json>${basedir}/src/main/resources/route-tls-passthrough.json</fabric8.extra.json>
+
   </properties>
 
   <dependencyManagement>
