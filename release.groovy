@@ -1,4 +1,12 @@
 #!/usr/bin/groovy
+def imagesBuiltByPipline() {
+  return ['apiman','apiman-gateway','elasticsearch-v1','message-broker','message-gateway','example-message-consumer','example-message-producer','kafka','zookeeper']
+}
+
+def repo(){
+ return 'fabric8io/fabric8-ipaas'
+}
+
 def updateDependencies(source){
 
   def properties = []
@@ -8,13 +16,13 @@ def updateDependencies(source){
   updatePropertyVersion{
     updates = properties
     repository = source
-    project = 'fabric8io/fabric8-ipaas'
+    project = repo()
   }
 }
 
 def stage(){
   return stageProject{
-    project = 'fabric8io/fabric8-ipaas'
+    project = repo()
     useGitTagForNextVersion = true
   }
 }
@@ -40,14 +48,13 @@ def release(project){
     artifactExtensionToWatchInCentral = 'pom'
     promoteToDockerRegistry = 'docker.io'
     dockerOrganisation = 'fabric8'
-    imagesToPromoteToDockerHub = ['apiman','apiman-gateway','elasticsearch-v1','message-broker','message-gateway','example-message-consumer','example-message-producer','kafka','zookeeper']
-    extraImagesToTag = null
+    imagesToPromoteToDockerHub = imagesBuiltByPipline()
   }
 }
 
 def mergePullRequest(prId){
   mergeAndWaitForPullRequest{
-    project = 'fabric8io/fabric8-ipaas'
+    project = repo()
     pullRequestId = prId
   }
 
