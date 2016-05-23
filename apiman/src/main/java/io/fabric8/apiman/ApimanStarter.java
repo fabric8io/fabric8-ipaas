@@ -15,6 +15,20 @@
  */
 package io.fabric8.apiman;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.apiman.manager.api.core.config.ApiManagerConfig;
+import io.fabric8.utils.KubernetesServices;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -23,23 +37,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Map;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.apiman.manager.api.core.config.ApiManagerConfig;
-import io.fabric8.utils.KubernetesServices;
-import io.fabric8.utils.Systems;
+import static io.fabric8.kubernetes.client.utils.Utils.getSystemPropertyOrEnvVar;
 
 /**
  * Starts the API Manager as a jetty8 micro service.
@@ -50,7 +48,7 @@ public class ApimanStarter {
     public final static String APIMAN_SSL                    = "APIMAN_SSL";
     public final static String APIMAN_ELASTICSEARCH_URL      = "APIMAN_ELASTICSEARCH_URL";
     public final static String APIMAN_GATEWAY_URL            = "APIMAN_GATEWAY_URL";
-    
+
     public final static String APIMAN_GATEWAY_USERNAME       = "apiman-gateway.username";
     public final static String APIMAN_GATEWAY_PASSWORD       = "apiman-gateway.password";
     public final static String APIMAN_GATEWAY_USER_PATH      = "/secret/apiman/gateway.user";
@@ -67,7 +65,7 @@ public class ApimanStarter {
     public final static String TRUSTSTORE_PASSWORD_PATH      = "/secret/apiman/truststore.password";
 
     final private static Log log = LogFactory.getLog(ApimanStarter.class);
-    
+
     private static String gatewayUrl = null;
     /**
      * Main entry point for the API Manager micro service.
@@ -77,29 +75,27 @@ public class ApimanStarter {
     public static final void main(String [] args) throws Exception {
 
         Fabric8ManagerApiMicroService microService = new Fabric8ManagerApiMicroService();
-        
-        String isTestModeString = Systems.getEnvVarOrSystemProperty(APIMAN_TESTMODE,"false");
-        boolean isTestMode = "true".equalsIgnoreCase(isTestModeString);
+
+        boolean isTestMode = getSystemPropertyOrEnvVar(APIMAN_TESTMODE, false);
         if (isTestMode) log.info("Apiman running in TestMode");
-        
-        String isSslString = Systems.getEnvVarOrSystemProperty(APIMAN_SSL,"false");
-        boolean isSsl = "true".equalsIgnoreCase(isSslString);
+
+        boolean isSsl = getSystemPropertyOrEnvVar(APIMAN_SSL, false);
         log.info("Apiman running in SSL: " + isSsl);
         String protocol = "http";
         if (isSsl) protocol = "https";
-        
+
         URL elasticEndpoint = null;
         // Require ElasticSearch and the Gateway Services to to be up before proceeding
         if (isTestMode) {
             URL url = new URL("https://localhost:9200");
             elasticEndpoint = waitForDependency(url,"","elasticsearch","status","200");
         } else {
-            String esURL = Systems.getEnvVarOrSystemProperty(APIMAN_ELASTICSEARCH_URL, protocol + "://elasticsearch-v1:9200");
+            String esURL = getSystemPropertyOrEnvVar(APIMAN_ELASTICSEARCH_URL, protocol + "://elasticsearch-v1:9200");
             URL url = new URL(esURL);
             elasticEndpoint = waitForDependency(url,"","elasticsearch","status","200");
             log.info("Found " + elasticEndpoint);
-            gatewayUrl = Systems.getEnvVarOrSystemProperty(APIMAN_GATEWAY_URL, protocol + "://APIMAN-GATEWAY:7777");
-            
+            gatewayUrl = getSystemPropertyOrEnvVar(APIMAN_GATEWAY_URL, protocol + "://APIMAN-GATEWAY:7777");
+
             URL gatewayEndpoint = waitForDependency(new URL(gatewayUrl),"/api/system/status","apiman-gateway","up","true");
             log.info("Found " + gatewayEndpoint);
         }
@@ -113,7 +109,7 @@ public class ApimanStarter {
             microService.join();
         }
     }
-    
+
     public static String getGatewayUrl() {
         return gatewayUrl;
     }
@@ -129,7 +125,7 @@ public class ApimanStarter {
         setConfigProp("apiman.es.host",                elasticEndpoint.getHost());
         setConfigProp("apiman.es.port", String.valueOf(elasticEndpoint.getPort()));
 
-        String esIndexPrefix = Systems.getEnvVarOrSystemProperty("apiman.es.index.prefix",".apiman_");
+        String esIndexPrefix = getSystemPropertyOrEnvVar("apiman.es.index.prefix",".apiman_");
         if (esIndexPrefix != null) {
             setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INDEX_NAME, esIndexPrefix + "manager");
         }
@@ -158,12 +154,12 @@ public class ApimanStarter {
             setConfigProp(ApimanStarter.APIMAN_GATEWAY_USERNAME, user[0]);
             setConfigProp(ApimanStarter.APIMAN_GATEWAY_PASSWORD, user[1]);
         }
-        
+
         log.info("** ******************************************** **");
     }
 
     static final void setConfigProp(String propName, String defaultValue) {
-        if (Systems.getEnvVarOrSystemProperty(propName) == null) {
+        if (getSystemPropertyOrEnvVar(propName) == null) {
             System.setProperty(propName, defaultValue);
         }
         if (propName.toLowerCase().contains("password")) {
@@ -198,7 +194,7 @@ public class ApimanStarter {
         } else {
             log.debug("Resolved " + serviceName + " port using ENV: " + port);
         }
-   
+
         if (scheme==null) {
             if (port.endsWith("443")) scheme = "https";
             else scheme = "http";
@@ -245,7 +241,7 @@ public class ApimanStarter {
                             log.error(e.getMessage(),e);
                             throw e;
                         }
-                    } 
+                    }
                     isLive = IOUtils.toString(urlConnection.getInputStream());
                     Map<String,Object> esResponse = mapper.readValue(isLive, new TypeReference<Map<String, Object>>(){});
                     if (esResponse.containsKey(key) && value.equals(String.valueOf(esResponse.get(key)))) {
@@ -264,5 +260,5 @@ public class ApimanStarter {
         }
         return endpoint;
     }
-    
+
 }

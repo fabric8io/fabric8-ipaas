@@ -15,9 +15,21 @@
  */
 package io.fabric8.apiman.rest;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.concurrent.TimeUnit;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import io.apiman.common.auth.AuthPrincipal;
+import io.fabric8.apiman.AuthToken;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.utils.Utils;
+import io.fabric8.openshift.api.model.SubjectAccessReview;
+import io.fabric8.openshift.api.model.SubjectAccessReviewBuilder;
+import io.fabric8.openshift.api.model.SubjectAccessReviewResponse;
+import io.fabric8.openshift.api.model.User;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -28,25 +40,11 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
-import io.apiman.common.auth.AuthPrincipal;
-import io.fabric8.apiman.AuthToken;
-import io.fabric8.kubernetes.api.KubernetesHelper;
-import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.openshift.api.model.SubjectAccessReview;
-import io.fabric8.openshift.api.model.SubjectAccessReviewBuilder;
-import io.fabric8.openshift.api.model.SubjectAccessReviewResponse;
-import io.fabric8.openshift.api.model.User;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
-import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.utils.Systems;
+import static io.fabric8.kubernetes.client.utils.Utils.getSystemPropertyOrEnvVar;
 
 /**
  * A simple implementation of an bearer token filter that checks the validity of
@@ -54,9 +52,6 @@ import io.fabric8.utils.Systems;
  * returns a JSON from which the UserPrincipal can be set.
  */
 public class BearerTokenFilter implements Filter {
-
-    public static final String KUBERNETES_OSAPI_URL = "/oapi/"
-            + KubernetesHelper.defaultOsApiVersion;
 
     public static final String BEARER_TOKEN_TTL           = "BEARER_TOKEN_CACHE_TTL";
     public static final String BEARER_TOKEN_CACHE_MAXSIZE = "BEARER_TOKEN_CACHE_MAXSIZE";
@@ -77,14 +72,14 @@ public class BearerTokenFilter implements Filter {
     @Override
     public void init(FilterConfig config) throws ServletException {
         // maximum 10000 tokens in the cache
-        Number bearerTokenCacheMaxsize = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_CACHE_MAXSIZE, 10000);
+        Number bearerTokenCacheMaxsize = getSystemPropertyOrEnvVar(BEARER_TOKEN_CACHE_MAXSIZE, 10000);
         // cache for 10  min
-        Number bearerTokenTTL = Systems.getEnvVarOrSystemProperty(BEARER_TOKEN_TTL, 10);
+        Number bearerTokenTTL = getSystemPropertyOrEnvVar(BEARER_TOKEN_TTL, 10);
 
         bearerTokenCache = CacheBuilder.newBuilder()
-                .concurrencyLevel(4)                                               // allowed concurrency among update operations 
-                .maximumSize(bearerTokenCacheMaxsize.longValue())                  
-                .expireAfterWrite(bearerTokenTTL.longValue(), TimeUnit.MINUTES)    
+                .concurrencyLevel(4)                                               // allowed concurrency among update operations
+                .maximumSize(bearerTokenCacheMaxsize.longValue())
+                .expireAfterWrite(bearerTokenTTL.longValue(), TimeUnit.MINUTES)
                 .build(
                         new CacheLoader<String, UserInfo>() {
                             public UserInfo load(String authToken) throws Exception {
@@ -92,7 +87,7 @@ public class BearerTokenFilter implements Filter {
                             }
                         });
     }
-    
+
     /**
      * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
      *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
@@ -103,7 +98,7 @@ public class BearerTokenFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String authHeader = req.getHeader("Authorization");
         AuthToken.set(null);
-        
+
         if (authHeader != null && authHeader.toUpperCase().startsWith("BEARER")) {
             //validate token with issuer
             try {
@@ -140,7 +135,7 @@ public class BearerTokenFilter implements Filter {
     }
     /**
      * Wrap the request to provide the principal.
-     * 
+     *
      * @param request
      *            the request
      * @param principal
@@ -170,7 +165,7 @@ public class BearerTokenFilter implements Filter {
 
     /**
      * Sends a response that tells the client that authentication is required.
-     * 
+     *
      * @param response
      *            the response
      * @throws IOException
@@ -189,7 +184,7 @@ public class BearerTokenFilter implements Filter {
     }
 
     /**
-     * Given a token is 
+     * Given a token is
      * @param token
      * @return
      */
@@ -197,7 +192,7 @@ public class BearerTokenFilter implements Filter {
         if (log.isDebugEnabled()) log.debug("Calling k8s to validate header abd obtain username and role for token " + token);
         UserInfo userInfo = new UserInfo();
         ConfigBuilder builder = new ConfigBuilder().withOauthToken(token);
-        OpenShiftClient osClient = null;
+        NamespacedOpenShiftClient osClient = null;
         try {
             osClient = new DefaultOpenShiftClient(builder.build());
             //get the userName of the current user
