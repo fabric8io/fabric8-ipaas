@@ -15,15 +15,6 @@
  */
 package io.fabric8.apiman;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import io.apiman.manager.api.beans.summary.ApiNamespaceBean;
 import io.apiman.manager.api.beans.summary.AvailableApiBean;
 import io.apiman.manager.api.core.IApiCatalog;
@@ -40,8 +31,17 @@ import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateList;
 import io.fabric8.openshift.api.model.User;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.utils.Systems;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of @IServiceCatalog that looks up service in Kubernetes. The
@@ -82,8 +82,8 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
         if (authHeader != null && authHeader.toUpperCase().startsWith("BEARER")) {
             Config config = new ConfigBuilder().withOauthToken(authHeader.substring(7)).build();
             if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
-            OpenShiftClient osClient = new DefaultOpenShiftClient(config);
-            
+            NamespacedOpenShiftClient osClient = new DefaultOpenShiftClient(config);
+
             try {
                 User user = osClient.inAnyNamespace().users().withName("~").get();
                 if (user.getMetadata().getName().equals(currentUser)) {
@@ -109,7 +109,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
                     log.error(error);
                     throw new RuntimeException(error);
                 }
-                
+
             } finally {
                 osClient.close();
             }
@@ -133,7 +133,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
             if (namespace==null) namespace = k8sClient.getNamespace();
             //Obtain a list from Kubernetes, using the Kubernetes API
             Map<String,String> iconUrls = new HashMap<String,String>();
-            
+
             TemplateList templateList = osClient.templates().inNamespace(namespace).list();
             for (Template item: templateList.getItems()) {
                 if (item.getMetadata().getAnnotations() != null) {
@@ -145,7 +145,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
                     }
                 }
             }
-            
+
             Map<String, Service> serviceMap = KubernetesHelper.getServiceMap(k8sClient, namespace);
             Kubernetes2ApimanMapper mapper = new Kubernetes2ApimanMapper(osClient);
             for (String serviceName : serviceMap.keySet()) {
@@ -157,11 +157,11 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
             }
         } finally {
             k8sClient.close();
-            
+
         }
         return availableServiceBeans;
     }
 
- 
+
 
 }
