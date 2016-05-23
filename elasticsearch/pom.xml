@@ -33,7 +33,7 @@
   </description>
 
   <properties>
-  
+
     <docker.port.container.http>9200</docker.port.container.http>
     <docker.port.container.transport>9300</docker.port.container.transport>
     <docker.port.container.jolokia />
@@ -90,7 +90,7 @@
             <image>
               <name>${fabric8.dockerUser}${artifactId}:${project.version}</name>
               <build>
-                <from>${fabric8.dockerUser}elasticsearch-k8s:1.6.0</from>
+                <from>docker.io/${fabric8.dockerUser}elasticsearch-k8s:1.6.0</from>
                 <assembly>
                   <basedir>/</basedir>
                   <inline xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
@@ -184,7 +184,7 @@
                   <goal>generateKeyPair</goal>
                 </goals>
                 <phase>generate-sources</phase>
-              </execution> 
+              </execution>
               <execution>
                 <id>export-public-key</id>
                 <goals>
@@ -208,7 +208,7 @@
               <rfc>true</rfc>
               <file>${project.build.directory}/secret/public.key</file>
             </configuration>
-          </plugin>    
+          </plugin>
           <plugin>
             <artifactId>maven-resources-plugin</artifactId>
             <version>2.7</version>
