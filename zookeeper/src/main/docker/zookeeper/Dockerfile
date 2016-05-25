@@ -1,4 +1,4 @@
-FROM java:8u40
+FROM docker.io/java:8u40
 
 MAINTAINER iocanel@gmail.com
 
