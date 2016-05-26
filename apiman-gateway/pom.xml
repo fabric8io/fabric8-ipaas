@@ -127,6 +127,7 @@
                   <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
                   <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
                   <HTTP_PORT>${http.port}</HTTP_PORT>
+                  <APIMAN_GATEWAY_SSL>${docker.env.apiman.ssl}</APIMAN_GATEWAY_SSL>
                 </env>
                 <ports>
                   <port>8778</port>
@@ -192,7 +193,6 @@
         <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
         <docker.env.apiman.elasticsearch.url>https://elasticsearch-v1:9200</docker.env.apiman.elasticsearch.url>
         <keystore.password>supersecret</keystore.password>
-        <fabric8.env.APIMAN_GATEWAY_SSL>true</fabric8.env.APIMAN_GATEWAY_SSL>
         <fabric8.volume.keystore.secret>apiman-gateway-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/apiman-gateway</fabric8.volume.keystore.mountPath>
         <!-- Gateway Users file to be mounted within the Vagrant machine ! -->
