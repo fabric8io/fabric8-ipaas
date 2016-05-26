@@ -8,7 +8,7 @@ oc delete secret apiman-gateway-keystore
 oc secrets new apiman-gateway-keystore keystore=target/secret/apiman-gateway/keystore keystore-password=target/secret/apiman-gateway/keystore.password
 # oc label secret/apiman-gateway-keystore apiman-infra # make them easier to delete later
 
-# Copy the Gateway users file
+# If you would like to us your own users file, then copy it to the Vagrant, Linux machine
 # vagrant plugin install vagrant-scp
 # vagrant ssh
 # mkdir apiman-gateway

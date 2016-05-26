@@ -1,261 +1,271 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>io.fabric8.ipaas.apps</groupId>
-    <artifactId>fabric8-ipaas</artifactId>
-    <version>2.3-SNAPSHOT</version>
-  </parent>
-  <artifactId>apiman-gateway</artifactId>
-  <name>Apiman Gateway</name>
-  <description>Apiman Gateway deployed on Jetty</description>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.fabric8.ipaas.apps</groupId>
+        <artifactId>fabric8-ipaas</artifactId>
+        <version>2.3-SNAPSHOT</version>
+    </parent>
+    <artifactId>apiman-gateway</artifactId>
+    <name>Apiman Gateway</name>
+    <description>Apiman Gateway deployed on Jetty</description>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.compiler.plugin>2.3.1</version.compiler.plugin>
-    <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
-    <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.compiler.plugin>2.3.1</version.compiler.plugin>
+        <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
+        <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
 
-    <http.port>7777</http.port>
-    <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
-    <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
-    <docker.port.container.http>${http.port}</docker.port.container.http>
-    <docker.port.container.jolokia>8778</docker.port.container.jolokia>
+        <http.port>7777</http.port>
+        <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+        <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
+        <docker.port.container.http>${http.port}</docker.port.container.http>
+        <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
-    <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
-    <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
-    <fabric8.label.component>ApimanGateway</fabric8.label.component>
-    <fabric8.label.group>io.fabric8.ipaas.apps</fabric8.label.group>
-    <fabric8.label.provider>fabric8</fabric8.label.provider>
-    <fabric8.service.port>${http.port}</fabric8.service.port>
-    <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
-    <fabric8.annotations.service.api.service.kubernetes.io.path>api</fabric8.annotations.service.api.service.kubernetes.io.path>
-    <fabric8.annotations.service.api.service.kubernetes.io.protocol>REST</fabric8.annotations.service.api.service.kubernetes.io.protocol>
-    <fabric8.annotations.service.api.service.kubernetes.io.description-path>api/swagger.json</fabric8.annotations.service.api.service.kubernetes.io.description-path>
-    <fabric8.annotations.service.api.service.kubernetes.io.description-language>SwaggerJSON</fabric8.annotations.service.api.service.kubernetes.io.description-language>
-    <fabric8.readinessProbe.httpGet.port>${http.port}</fabric8.readinessProbe.httpGet.port>
-    <fabric8.readinessProbe.httpGet.path>/api/system/status</fabric8.readinessProbe.httpGet.path>
-    <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
-    <fabric8.readinessProbe.initialDelaySeconds>5</fabric8.readinessProbe.initialDelaySeconds>
-  </properties>
+        <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
+        <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
+        <fabric8.label.component>ApimanGateway</fabric8.label.component>
+        <fabric8.label.group>io.fabric8.ipaas.apps</fabric8.label.group>
+        <fabric8.label.provider>fabric8</fabric8.label.provider>
+        <fabric8.service.port>${http.port}</fabric8.service.port>
+        <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
+        <fabric8.annotations.service.api.service.kubernetes.io.path>api
+        </fabric8.annotations.service.api.service.kubernetes.io.path>
+        <fabric8.annotations.service.api.service.kubernetes.io.protocol>REST
+        </fabric8.annotations.service.api.service.kubernetes.io.protocol>
+        <fabric8.annotations.service.api.service.kubernetes.io.description-path>api/swagger.json
+        </fabric8.annotations.service.api.service.kubernetes.io.description-path>
+        <fabric8.annotations.service.api.service.kubernetes.io.description-language>SwaggerJSON
+        </fabric8.annotations.service.api.service.kubernetes.io.description-language>
+        <fabric8.readinessProbe.httpGet.port>${http.port}</fabric8.readinessProbe.httpGet.port>
+        <fabric8.readinessProbe.httpGet.path>/api/system/status</fabric8.readinessProbe.httpGet.path>
+        <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
+        <fabric8.readinessProbe.initialDelaySeconds>5</fabric8.readinessProbe.initialDelaySeconds>
+    </properties>
 
-  <dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.apiman</groupId>
+                <artifactId>apiman</artifactId>
+                <version>${apiman.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- aligning with apiman -->
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>2.2.4</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-      <dependency>
-        <groupId>io.apiman</groupId>
-        <artifactId>apiman</artifactId>
-        <version>${apiman.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <!-- aligning with apiman -->
-      <dependency>
-        <groupId>com.sun.xml.bind</groupId>
-        <artifactId>jaxb-impl</artifactId>
-        <version>2.2.4</version>
-      </dependency>
+        <dependency>
+            <groupId>io.apiman</groupId>
+            <artifactId>apiman-gateway-platforms-war-micro</artifactId>
+            <type>jar</type>
+            <version>${apiman.version}</version>
+        </dependency>
+
+        <!-- fabric8 -->
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+        </dependency>
+
+        <!-- overriding versions from dependencyManagement -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>org.slf4j</groupId>
+        </dependency>
+
     </dependencies>
-  </dependencyManagement>
-  
-  <dependencies>
-    <dependency>
-      <groupId>io.apiman</groupId>
-      <artifactId>apiman-gateway-platforms-war-micro</artifactId>
-      <type>jar</type>
-      <version>${apiman.version}</version>
-    </dependency>
 
-    <!-- fabric8 -->
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-api</artifactId>
-    </dependency>
-    <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>kubernetes-client</artifactId>
-    </dependency>
+    <build>
+        <finalName>${project.artifactId}</finalName>
 
-    <!-- overriding versions from dependencyManagement -->
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <artifactId>slf4j-log4j12</artifactId>
-      <groupId>org.slf4j</groupId>
-    </dependency>
-
-  </dependencies>
-
-  <build>
-    <finalName>${project.artifactId}</finalName>
-
-    <plugins>
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>hawt-app-maven-plugin</artifactId>
-        <version>${fabric8.version}</version>
-        <executions>
-          <execution>
-            <id>hawt-app</id>
-            <goals><goal>build</goal></goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.version}</version>
-        <configuration>
-          <images>
-            <image>
-              <name>${docker.image}</name>
-              <build>
-                <from>${docker.from}</from>
-                <assembly>
-                  <basedir>/deployments</basedir>
-                  <descriptorRef>hawt-app</descriptorRef>
-                </assembly>
-                <env>
-                  <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
-                  <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
-                  <HTTP_PORT>${http.port}</HTTP_PORT>
-                  <APIMAN_GATEWAY_SSL>${docker.env.apiman.ssl}</APIMAN_GATEWAY_SSL>
-                </env>
-                <ports>
-                  <port>8778</port>
-                  <port>${http.port}</port>
-                </ports>
-              </build>
-            </image>
-          </images>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.4.0</version>
-        <configuration>
-          <mainClass>${docker.env.MAIN}</mainClass>
-          <includePluginDependencies>false</includePluginDependencies>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-<!--
-  Default sample commands:
-
-  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
-  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
-  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
-
-  For individual goal usage please consult the fabric8 documentation
-  -->
-  <profiles>
-    <profile>
-      <id>f8-build</id>
-      <build>
-        <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
-      </build>
-    </profile>
-    <profile>
-      <id>f8-deploy</id>
-      <properties>
-        <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
-        <fabric8.recreate>true</fabric8.recreate>
-      </properties>
-      <build>
-        <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
-      </build>
-    </profile>
-    <profile>
-      <id>f8-local-deploy</id>
-      <properties>
-        <fabric8.recreate>true</fabric8.recreate>
-      </properties>
-      <build>
-        <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
-      </build>
-    </profile>
-    <!-- activate the ssl profile to start apiman with a selfsigned certificate -->
-    <profile>
-      <id>ssl</id>
-      <properties>
-        <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
-        <docker.env.apiman.elasticsearch.url>https://elasticsearch-v1:9200</docker.env.apiman.elasticsearch.url>
-        <keystore.password>supersecret</keystore.password>
-        <fabric8.volume.keystore.secret>apiman-gateway-keystore</fabric8.volume.keystore.secret>
-        <fabric8.volume.keystore.mountPath>/secret/apiman-gateway</fabric8.volume.keystore.mountPath>
-        <!-- Gateway Users file to be mounted within the Vagrant machine ! -->
-        <fabric8.volume.users.hostPath>/home/vagrant/apiman-gateway</fabric8.volume.users.hostPath>
-        <fabric8.volume.users.mountPath>/secret/apiman-gateway/users</fabric8.volume.users.mountPath>
-        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
-        <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
-      </properties>
-      <build>
         <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>keytool-maven-plugin</artifactId>
-            <version>1.5</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>generateKeyPair</goal>
-                </goals>
-                <phase>generate-sources</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <keystore>${project.build.directory}/secret/apiman-gateway/keystore</keystore>
-              <storepass>${keystore.password}</storepass>
-              <keypass>${keystore.password}</keypass>
-              <alias>SSLforAPIMAN</alias>
-              <dname>CN=apiman-gateway-${KUBERNETES_NAMESPACE}.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
-                 L=Ipswich, S=Massachusetts, C=US</dname>
-              <sigalg>SHA1withRSA</sigalg>
-              <ext></ext>
-              <validity>100</validity>
-              <keyalg>RSA</keyalg>
-              <keysize>2048</keysize>
-            </configuration>
-          </plugin>
-          
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.7</version>
-            <executions>
-              <execution>
-                <id>copy-resources</id>
-                <phase>validate</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>hawt-app-maven-plugin</artifactId>
+                <version>${fabric8.version}</version>
+                <executions>
+                    <execution>
+                        <id>hawt-app</id>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.plugin.version}</version>
                 <configuration>
-                  <outputDirectory>${basedir}/target/secret/apiman-gateway</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>${basedir}/ssl</directory>
-                      <filtering>true</filtering>
-                    </resource>
-                  </resources>
+                    <images>
+                        <image>
+                            <name>${docker.image}</name>
+                            <build>
+                                <from>${docker.from}</from>
+                                <assembly>
+                                    <basedir>/deployments</basedir>
+                                    <descriptor>${project.basedir}/src/main/resources/assemblies/apiman-gateway-app.xml</descriptor>
+                                </assembly>
+                                <env>
+                                    <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
+                                    <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
+                                    <HTTP_PORT>${http.port}</HTTP_PORT>
+                                    <APIMAN_GATEWAY_SSL>${docker.env.apiman.ssl}</APIMAN_GATEWAY_SSL>
+                                </env>
+                                <ports>
+                                    <port>8778</port>
+                                    <port>${http.port}</port>
+                                </ports>
+                            </build>
+                        </image>
+                    </images>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <configuration>
+                    <mainClass>${docker.env.MAIN}</mainClass>
+                    <includePluginDependencies>false</includePluginDependencies>
+                </configuration>
+            </plugin>
         </plugins>
-      </build>
-    </profile>
-  </profiles>
+    </build>
+
+    <!--
+      Default sample commands:
+
+      mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
+      mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
+      mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
+
+      For individual goal usage please consult the fabric8 documentation
+      -->
+    <profiles>
+        <profile>
+            <id>f8-build</id>
+            <build>
+                <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
+            </build>
+        </profile>
+        <profile>
+            <id>f8-deploy</id>
+            <properties>
+                <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
+                <fabric8.recreate>true</fabric8.recreate>
+            </properties>
+            <build>
+                <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
+            </build>
+        </profile>
+        <profile>
+            <id>f8-local-deploy</id>
+            <properties>
+                <fabric8.recreate>true</fabric8.recreate>
+            </properties>
+            <build>
+                <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
+            </build>
+        </profile>
+        <!-- activate the ssl profile to start apiman with a selfsigned certificate -->
+        <profile>
+            <id>ssl</id>
+            <properties>
+                <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
+                <docker.env.apiman.elasticsearch.url>https://elasticsearch-v1:9200
+                </docker.env.apiman.elasticsearch.url>
+                <keystore.password>supersecret</keystore.password>
+                <fabric8.volume.keystore.secret>apiman-gateway-keystore</fabric8.volume.keystore.secret>
+                <fabric8.volume.keystore.mountPath>/secret/apiman-gateway</fabric8.volume.keystore.mountPath>
+                <!-- Gateway Users file to be mounted within the Vagrant machine ! -->
+                <fabric8.volume.users.hostPath>/home/vagrant/apiman-gateway</fabric8.volume.users.hostPath>
+                <fabric8.volume.users.mountPath>/secret/apiman-gateway/users</fabric8.volume.users.mountPath>
+                <fabric8.annotations.service.api.service.kubernetes.io.scheme>https
+                </fabric8.annotations.service.api.service.kubernetes.io.scheme>
+                <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>keytool-maven-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>generateKeyPair</goal>
+                                </goals>
+                                <phase>generate-sources</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <keystore>${project.build.directory}/secret/apiman-gateway/keystore</keystore>
+                            <storepass>${keystore.password}</storepass>
+                            <keypass>${keystore.password}</keypass>
+                            <alias>SSLforAPIMAN</alias>
+                            <dname>CN=apiman-gateway-${KUBERNETES_NAMESPACE}.${KUBERNETES_DOMAIN}, OU=Example,
+                                O=Fabric8 Inc.,
+                                L=Ipswich, S=Massachusetts, C=US
+                            </dname>
+                            <sigalg>SHA1withRSA</sigalg>
+                            <ext></ext>
+                            <validity>100</validity>
+                            <keyalg>RSA</keyalg>
+                            <keysize>2048</keysize>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.7</version>
+                        <executions>
+                            <execution>
+                                <id>copy-resources</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/target/secret/apiman-gateway</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${basedir}/ssl</directory>
+                                            <filtering>true</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
