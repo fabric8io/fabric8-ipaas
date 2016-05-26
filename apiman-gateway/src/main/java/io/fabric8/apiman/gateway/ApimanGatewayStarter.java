@@ -48,7 +48,7 @@ public class ApimanGatewayStarter {
     public final static String APIMAN_GATEWAY_SSL               = "APIMAN_GATEWAY_SSL";
     public final static String APIMAN_GATEWAY_ELASTICSEARCH_URL = "APIMAN_GATEWAY_ELASTICSEARCH_URL";
     
-    public final static String APIMAN_GATEWAY_USER_PATH         = "/secret/apiman-gateway/gateway.user";
+    public final static String APIMAN_GATEWAY_USER_PATH         = "/secret/apiman-gateway/users/gateway.user";
 
     //KeyStore used by Jetty to serve SSL
     public final static String KEYSTORE_PATH                     = "/secret/apiman-gateway/keystore";
