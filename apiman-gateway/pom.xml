@@ -194,12 +194,13 @@
         <keystore.password>supersecret</keystore.password>
         <fabric8.volume.keystore.secret>apiman-gateway-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/apiman-gateway</fabric8.volume.keystore.mountPath>
+        <fabric8.volume.users.hostPath>${project.build.directory}/secret/apiman-gateway/users</fabric8.volume.users.hostPath>
+        <fabric8.volume.users.mountPath>/secret/apiman-gateway/users</fabric8.volume.users.mountPath>
         <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
         <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
       </properties>
       <build>
         <plugins>
-        
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>keytool-maven-plugin</artifactId>
@@ -241,7 +242,7 @@
                   <outputDirectory>${basedir}/target/secret/apiman-gateway</outputDirectory>
                   <resources>          
                     <resource>
-                      <directory>${basedir}/ssl</directory>
+                      <directory>${basedir}/data</directory>
                       <filtering>true</filtering>
                     </resource>
                   </resources>
