@@ -248,6 +248,7 @@
         <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
         <docker.env.apiman.elasticsearch.url>https://elasticsearch-v1:9200</docker.env.apiman.elasticsearch.url>
         <keystore.password>supersecret</keystore.password>
+        <fabric8.env.APIMAN_SSL>true</fabric8.env.APIMAN_SSL>
         <fabric8.volume.keystore.secret>apiman-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/apiman</fabric8.volume.keystore.mountPath>
         <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
