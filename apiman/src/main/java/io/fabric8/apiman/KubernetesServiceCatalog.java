@@ -133,8 +133,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
             if (namespace==null) namespace = k8sClient.getNamespace();
             //Obtain a list from Kubernetes, using the Kubernetes API
             Map<String,String> iconUrls = new HashMap<String,String>();
-
-            TemplateList templateList = osClient.templates().inNamespace(namespace).list();
+            TemplateList templateList = osClient.inNamespace(namespace).templates().inNamespace(namespace).list();
             for (Template item: templateList.getItems()) {
                 if (item.getMetadata().getAnnotations() != null) {
                     for (String annotationName:item.getMetadata().getAnnotations().keySet()) {
