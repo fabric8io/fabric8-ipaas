@@ -154,6 +154,7 @@
         <module>example-message-consumer</module>
         <module>example-message-producer</module>
         <module>fabric8-camel</module>
+        <module>jnatsd</module>
         <module>kafka</module>
         <module>message-broker</module>
         <module>message-gateway</module>
