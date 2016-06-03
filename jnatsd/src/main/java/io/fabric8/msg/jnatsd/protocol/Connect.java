@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class Connect extends Command<Connect> {
 
-    private boolean verbose;
+    private boolean verbose = true;
     private boolean pedantic;
     private boolean sslRequired;
     private String auth_token;
@@ -120,6 +120,17 @@ public class Connect extends Command<Connect> {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public void reset(Connect other) {
+        this.verbose = other.verbose;
+        this.pedantic = other.pedantic;
+        this.sslRequired = other.sslRequired;
+        this.user = other.user;
+        this.pass = other.pass;
+        this.name = other.name;
+        this.lang = other.lang;
+        this.version = other.version;
     }
 
     public String getProperties() {

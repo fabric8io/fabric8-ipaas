@@ -169,11 +169,14 @@ public class JNatsd {
         private long timerId = -1;
 
         private void start() {
-            timerId = vertx.setPeriodic(configuration.getPingInterval(), time -> {
-                for (JNatsClient client : clients) {
-                    client.pingTime();
-                }
-            });
+            int pingInterval = configuration.getPingInterval();
+            if (pingInterval > 0) {
+                timerId = vertx.setPeriodic(configuration.getPingInterval(), time -> {
+                    for (JNatsClient client : clients) {
+                        client.pingTime();
+                    }
+                });
+            }
         }
 
         private void stop() {
