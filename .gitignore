@@ -13,3 +13,4 @@ overlays
 .classpath
 *.fmd
 .cache
+.vertx
