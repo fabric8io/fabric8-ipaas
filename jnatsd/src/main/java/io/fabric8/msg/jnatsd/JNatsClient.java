@@ -37,16 +37,17 @@ public class JNatsClient {
     private final JNatsd jNatsd;
     private final NetSocket socket;
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final Connect connect = new Connect();
+    private final AtomicInteger outStandingPings = new AtomicInteger();
     int readEnd;
     int readStart;
     private Buffer current;
-    private Connect connect;
-    private AtomicInteger outStandingPings = new AtomicInteger();
 
     public JNatsClient(JNatsd jnatsd, Info serverInfo, NetSocket netSocket) {
         this.jNatsd = jnatsd;
         this.socket = netSocket;
         this.socket.setWriteQueueMaxSize(jnatsd.getConfiguration().getMaxPendingSize());
+        this.connect.setVerbose(jnatsd.getConfiguration().isVerbose());
         socket.exceptionHandler(e -> {
             LOG.error("Socket error", e);
             close();
@@ -164,7 +165,7 @@ public class JNatsClient {
                     outStandingPings.set(0);
                     break;
                 case CONNECT:
-                    connect = (Connect) command;
+                    connect.reset((Connect) command);
                     if (jNatsd.authorize(this, connect) == false) {
                         close("Authorization Violation");
                     }

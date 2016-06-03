@@ -53,7 +53,7 @@ public class TestLoad {
     @Test
     public void testLoad() throws Exception {
         Connection subConnection = new ConnectionFactory().createConnection();
-        final int count = 1000000;
+        final int count = 1000;
         CountDownLatch countDownLatch = new CountDownLatch(count);
         Subscription subscription = subConnection.subscribe("foo", new MessageHandler() {
             @Override

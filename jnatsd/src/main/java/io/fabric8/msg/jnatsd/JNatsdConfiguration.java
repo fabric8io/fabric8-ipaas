@@ -33,8 +33,8 @@ public class JNatsdConfiguration {
     private Integer maxPayLoad;
     private Integer maxPendingSize;
     private Integer clientPort;
-    @Min(500)
     private Integer pingInterval;
+    private Boolean verbose;
 
     public int getNumberOfNetServers() {
         return numberOfNetServers;
@@ -74,6 +74,14 @@ public class JNatsdConfiguration {
 
     public void setPingInterval(int pingInterval) {
         this.pingInterval = pingInterval;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
 }
