@@ -13,8 +13,6 @@ if [ $2 = 'ssl' ]; then
 network.bind_host: 0.0.0.0
 searchguard.authentication.settingsdb.user.admin: supersecret
 searchguard.authentication.authorization.settingsdb.roles.admin: ["admin"]
-searchguard.actionrequestfilter.names: ["readonly"]
-searchguard.actionrequestfilter.readonly.allowed_actions: [ "/"]
 searchguard:
   allow_all_from_loopback: true
   ssl:
