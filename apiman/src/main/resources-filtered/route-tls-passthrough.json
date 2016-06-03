@@ -2,14 +2,14 @@
   "kind": "Route",
   "apiVersion": "v1",
   "metadata": {
-    "name": "apiman-gateway",
+    "name": "${artifactId}",
     "namespace": "default"
   },
   "spec": {
-    "host": "apiman.vagrant.f8",
+    "host": "${artifactId}.${env.KUBERNETES_DOMAIN}",
     "to": {
       "kind": "Service",
-      "name": "apiman-gateway"
+      "name": "${artifactId}"
     },
     "tls": {
       "termination": "passthrough"
