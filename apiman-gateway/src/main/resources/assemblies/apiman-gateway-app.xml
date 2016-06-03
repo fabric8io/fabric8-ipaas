@@ -26,7 +26,7 @@
             <directory>${project.basedir}/data</directory>
             <outputDirectory>/secret/apiman-gateway/users</outputDirectory>
             <includes>
-                <include>gateway.user</include>
+                <include>gateway-user</include>
             </includes>
         </fileSet>
     </fileSets>
