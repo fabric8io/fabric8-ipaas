@@ -127,13 +127,12 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
         Config config = new ConfigBuilder().withOauthToken(AuthToken.get()).build();
         if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
         KubernetesClient k8sClient = new DefaultKubernetesClient(config);
-        OpenShiftClient osClient = k8sClient.adapt(OpenShiftClient.class);
+        OpenShiftClient osClient = new DefaultOpenShiftClient(config);
         List<AvailableApiBean> availableServiceBeans = new ArrayList<AvailableApiBean>();
         try {
             if (namespace==null) namespace = k8sClient.getNamespace();
             //Obtain a list from Kubernetes, using the Kubernetes API
             Map<String,String> iconUrls = new HashMap<String,String>();
-
             TemplateList templateList = osClient.templates().inNamespace(namespace).list();
             for (Template item: templateList.getItems()) {
                 if (item.getMetadata().getAnnotations() != null) {
@@ -157,7 +156,7 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
             }
         } finally {
             k8sClient.close();
-
+            osClient.close();
         }
         return availableServiceBeans;
     }
