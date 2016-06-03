@@ -9,7 +9,7 @@
                 <include>bin/*</include>
             </includes>
             <directory>${project.build.directory}/hawt-app</directory>
-            <outputDirectory>.</outputDirectory>
+            <outputDirectory>deployments</outputDirectory>
             <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
@@ -17,14 +17,14 @@
                 <include>lib/*</include>
             </includes>
             <directory>${project.build.directory}/hawt-app</directory>
-            <outputDirectory>.</outputDirectory>
+            <outputDirectory>deployments</outputDirectory>
             <fileMode>0644</fileMode>
         </fileSet>
 
         <!-- Apiman Gateway -->
         <fileSet>
             <directory>${project.basedir}/data</directory>
-            <outputDirectory>/secret/apiman-gateway/users</outputDirectory>
+            <outputDirectory>secret/apiman-gateway/users</outputDirectory>
             <includes>
                 <include>gateway-user</include>
             </includes>
