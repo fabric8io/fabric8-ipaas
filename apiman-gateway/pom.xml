@@ -19,10 +19,13 @@
         <http.port>7777</http.port>
         <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
         <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
+        <docker.env.apiman.ssl>false</docker.env.apiman.ssl>
         <docker.port.container.http>${http.port}</docker.port.container.http>
         <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
         <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
+        <fabric8.volume.users.hostPath>/home/vagrant/apiman-gateway</fabric8.volume.users.hostPath>
+        <fabric8.volume.users.mountPath>/secret/apiman-gateway/users</fabric8.volume.users.mountPath>
         <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
         <fabric8.label.component>ApimanGateway</fabric8.label.component>
         <fabric8.label.group>io.fabric8.ipaas.apps</fabric8.label.group>
