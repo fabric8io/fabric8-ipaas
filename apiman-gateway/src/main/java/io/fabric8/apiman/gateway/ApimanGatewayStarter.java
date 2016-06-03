@@ -15,6 +15,7 @@
  */
 package io.fabric8.apiman.gateway;
 
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
@@ -90,7 +91,10 @@ public class ApimanGatewayStarter {
             log.info("Found " + elasticEndpoint);
         }
         
-        setConfigProp(Users.USERS_FILE_PROP, APIMAN_GATEWAY_USER_PATH);
+        File usersFile = new File(APIMAN_GATEWAY_USER_PATH);
+        if (usersFile.exists()) {
+            setConfigProp(Users.USERS_FILE_PROP, APIMAN_GATEWAY_USER_PATH);
+        }
         
         log.info("** ******************************************** **");
         
