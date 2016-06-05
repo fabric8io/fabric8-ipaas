@@ -15,54 +15,32 @@
 
 package io.fabric8.msg.jnatsd;
 
-import io.nats.client.Connection;
-import io.nats.client.ConnectionFactory;
-import io.nats.client.Message;
-import io.nats.client.MessageHandler;
-import io.nats.client.Subscription;
-import org.junit.After;
+import io.fabric8.msg.jnatsd.embedded.EmbeddedConnection;
+import io.fabric8.msg.jnatsd.protocol.Msg;
+import io.vertx.core.Handler;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {JNatsdConfiguration.class, JNatsd.class}, loader = AnnotationConfigContextLoader.class)
-public class TestLoad {
-
-    @Autowired
-    private JNatsd jNatsd;
-
-    @Before
-    public void before() throws Exception {
-        jNatsd.start();
-    }
-
-    @After
-    public void after() throws Exception {
-        jNatsd.stop();
-    }
+public class TestEmbedded {
 
     @Test
-    public void testLoad() throws Exception {
-        Connection subConnection = new ConnectionFactory().createConnection();
+    public void testEmbedded() throws Exception {
+        EmbeddedConnection subConnection = new EmbeddedConnection();
+        subConnection.start();
         final int count = 1000;
         CountDownLatch countDownLatch = new CountDownLatch(count);
-        Subscription subscription = subConnection.subscribe("foo", new MessageHandler() {
+        String subscription = subConnection.addSubscriber("foo", new Handler<Msg>() {
             @Override
-            public void onMessage(Message message) {
+            public void handle(Msg msg) {
                 countDownLatch.countDown();
             }
         });
 
-        Connection pubConnection = new ConnectionFactory().createConnection();
+        EmbeddedConnection pubConnection = new EmbeddedConnection();
+        pubConnection.start();
 
         long start = System.currentTimeMillis();
 

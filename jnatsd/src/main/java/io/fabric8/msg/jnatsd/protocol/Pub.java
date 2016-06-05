@@ -21,7 +21,9 @@ import io.vertx.core.buffer.Buffer;
 
 import java.util.Collection;
 
-public class Pub extends Command<Pub> {
+import static io.fabric8.msg.jnatsd.protocol.BufferWrapper.bufferWrapper;
+
+public class Pub extends AbstractCommand<Pub> {
     private Address subject;
     private BufferWrapper replyTo;
     private BufferWrapper noBytesBuffer;
@@ -41,12 +43,20 @@ public class Pub extends Command<Pub> {
         return subject;
     }
 
+    public void setSubject(String subject) {
+        this.subject = new Address(subject);
+    }
+
     public void setSubject(Address subject) {
         this.subject = subject;
     }
 
     public BufferWrapper getReplyTo() {
         return replyTo;
+    }
+
+    public void setReplyTo(String replyTo) {
+        this.replyTo = bufferWrapper(replyTo);
     }
 
     public void setReplyTo(BufferWrapper replyTo) {
@@ -63,6 +73,24 @@ public class Pub extends Command<Pub> {
 
     public BufferWrapper getPayload() {
         return payload;
+    }
+
+    public void setPayload(String payload) {
+        this.payload = BufferWrapper.bufferWrapper(payload);
+        payloadSize = this.payload.getEnd();
+        noBytesBuffer = BufferWrapper.bufferWrapper("" + payloadSize);
+    }
+
+    public void setPayload(byte[] payload) {
+        this.payload = bufferWrapper(payload);
+        payloadSize = this.payload.getEnd();
+        noBytesBuffer = bufferWrapper("" + payloadSize);
+    }
+
+    public void setPayload(Buffer payload) {
+        BufferWrapper bufferWrapper = bufferWrapper(payload);
+        payloadSize = bufferWrapper.getEnd();
+        noBytesBuffer = bufferWrapper("" + payloadSize);
     }
 
     public void setPayload(BufferWrapper payload) {

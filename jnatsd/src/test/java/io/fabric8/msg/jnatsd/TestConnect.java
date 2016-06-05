@@ -68,7 +68,6 @@ public class TestConnect {
         for (int i = 0; i < count; i++) {
             String test = "Test" + i;
             pubConnection.publish("foo", "bah", test.getBytes());
-            //System.err.println("SENT " + test);
         }
 
         countDownLatch.await(2, TimeUnit.SECONDS);

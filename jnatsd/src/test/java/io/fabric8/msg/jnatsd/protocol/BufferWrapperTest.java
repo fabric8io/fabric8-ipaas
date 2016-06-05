@@ -31,7 +31,7 @@ public class BufferWrapperTest {
         Buffer test = Buffer.buffer();
         test.appendBytes(new byte[2]);
         test.appendString("foo");
-        BufferWrapper bufferWrapper = new BufferWrapper(test, 2, test.length());
+        BufferWrapper bufferWrapper = BufferWrapper.bufferWrapper(test, 2, test.length());
         bufferWrapper.appendTo(buffer);
 
         System.err.println(buffer);
@@ -40,7 +40,7 @@ public class BufferWrapperTest {
     @Test
     public void parseIntToInt() throws Exception {
         Buffer buffer = Buffer.buffer("Test 41 ");
-        BufferWrapper bufferWrapper = new BufferWrapper(buffer, 5, 7);
+        BufferWrapper bufferWrapper = BufferWrapper.bufferWrapper(buffer, 5, 7);
         System.err.println(bufferWrapper);
 
         int test = bufferWrapper.parseToInt();

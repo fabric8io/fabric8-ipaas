@@ -17,29 +17,17 @@ package io.fabric8.msg.jnatsd.protocol;
 
 import io.vertx.core.buffer.Buffer;
 
-public abstract class Command<T> {
-    protected static final Buffer CRLF = Buffer.buffer("\r\n");
+/**
+ * Created by rajdavies on 04/06/2016.
+ */
+public interface Command<T> {
+    int bytesRead();
 
-    private int read;
+    void bytesRead(int value);
 
-    public int bytesRead() {
-        return read;
-    }
+    CommandType getType();
 
-    public void bytesRead(int value) {
-        read = value;
-    }
+    T build(Buffer buffer, int start, int end);
 
-    public abstract CommandType getType();
-
-    public abstract T build(Buffer buffer, int start, int end);
-
-    public Buffer getBuffer() {
-        String str = toString();
-        Buffer buffer = Buffer.buffer(str.length());
-        buffer.appendString(str);
-        buffer.appendBuffer(CRLF);
-        return buffer;
-    }
-
+    Buffer getBuffer();
 }

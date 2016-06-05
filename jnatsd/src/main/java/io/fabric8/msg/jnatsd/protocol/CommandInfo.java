@@ -19,7 +19,7 @@ public class CommandInfo<T> {
     private int start;
     private int end;
     private int read;
-    private Command<T> command;
+    private AbstractCommand<T> command;
 
     public int getStart() {
         return start;
@@ -45,11 +45,11 @@ public class CommandInfo<T> {
         this.read = read;
     }
 
-    public Command<T> getCommand() {
+    public AbstractCommand<T> getCommand() {
         return command;
     }
 
-    public void setCommand(Command<T> command) {
+    public void setCommand(AbstractCommand<T> command) {
         this.command = command;
     }
 }

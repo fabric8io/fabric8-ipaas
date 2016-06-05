@@ -19,7 +19,7 @@ import io.vertx.core.buffer.Buffer;
 
 import java.util.Map;
 
-public class Info extends Command<Info> {
+public class Info extends AbstractCommand<Info> {
     private String id;
     private String host;
     private int port;
