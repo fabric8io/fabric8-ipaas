@@ -53,20 +53,17 @@ public class TestNullPayload {
     @Test
     public void testNullPayload() throws Exception {
         Connection connection = new ConnectionFactory().createConnection();
-        final int count = 10;
+        final int count = 100;
         CountDownLatch countDownLatch = new CountDownLatch(count);
         Subscription subscription = connection.subscribe("foo", new MessageHandler() {
             @Override
             public void onMessage(Message message) {
                 countDownLatch.countDown();
-                System.out.println("GOT " + message);
             }
         });
 
         for (int i = 0; i < count; i++) {
-            String test = "Test" + i;
             connection.publish("foo", null);
-            System.err.println("SENT " + test);
         }
 
         countDownLatch.await(10, TimeUnit.SECONDS);

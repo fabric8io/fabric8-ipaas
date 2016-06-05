@@ -17,18 +17,28 @@ package io.fabric8.msg.jnatsd.protocol;
 
 import io.vertx.core.buffer.Buffer;
 
-public class Pong extends AbstractCommand<Pong> {
+public abstract class AbstractCommand<T> implements Command<T> {
+    protected static final Buffer CRLF = Buffer.buffer("\r\n");
+
+    private int read;
 
     @Override
-    public CommandType getType() {
-        return CommandType.PONG;
+    public int bytesRead() {
+        return read;
     }
 
-    public Pong build(Buffer buffer, int start, int end) {
-        return this;
+    @Override
+    public void bytesRead(int value) {
+        read = value;
     }
 
-    public String toString() {
-        return "PONG";
+    @Override
+    public Buffer getBuffer() {
+        String str = toString();
+        Buffer buffer = Buffer.buffer(str.length());
+        buffer.appendString(str);
+        buffer.appendBuffer(CRLF);
+        return buffer;
     }
+
 }

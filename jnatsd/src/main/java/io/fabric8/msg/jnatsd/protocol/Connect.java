@@ -19,10 +19,10 @@ import io.vertx.core.buffer.Buffer;
 
 import java.util.Map;
 
-public class Connect extends Command<Connect> {
+public class Connect extends AbstractCommand<Connect> {
 
     private boolean verbose = true;
-    private boolean pedantic;
+    private boolean pedantic = true;
     private boolean sslRequired;
     private String auth_token;
     private String user;
@@ -143,7 +143,7 @@ public class Connect extends Command<Connect> {
     }
 
     public String toString() {
-        String result = "CONNECT {" + getProperties() + " }";
+        String result = "connect {" + getProperties() + " }";
         return result;
     }
 }

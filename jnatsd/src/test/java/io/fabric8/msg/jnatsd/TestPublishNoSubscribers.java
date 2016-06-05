@@ -51,7 +51,6 @@ public class TestPublishNoSubscribers {
         for (int i = 0; i < count; i++) {
             String test = "Test" + i;
             connection.publish("foo", "bah", test.getBytes());
-            System.err.println("SENT " + test);
         }
 
         connection.flush();

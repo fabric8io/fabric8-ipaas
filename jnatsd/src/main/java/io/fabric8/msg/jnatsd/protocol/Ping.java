@@ -17,7 +17,7 @@ package io.fabric8.msg.jnatsd.protocol;
 
 import io.vertx.core.buffer.Buffer;
 
-public class Ping extends Command<Ping> {
+public class Ping extends AbstractCommand<Ping> {
 
     @Override
     public CommandType getType() {

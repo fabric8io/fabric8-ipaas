@@ -12,23 +12,22 @@
  *  * permissions and limitations under the License.
  *
  */
+package io.fabric8.msg.jnatsd.camel;
 
-package io.fabric8.msg.jnatsd.protocol;
+import org.apache.camel.Endpoint;
+import org.apache.camel.impl.DefaultComponent;
 
-import io.vertx.core.buffer.Buffer;
+import java.util.Map;
 
-public class Pong extends AbstractCommand<Pong> {
+public class JNatsdComponent extends DefaultComponent {
 
     @Override
-    public CommandType getType() {
-        return CommandType.PONG;
+    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
+        JNatsdConfiguration config = new JNatsdConfiguration();
+        setProperties(config, parameters);
+        config.setTopic(remaining);
+        JNatsdEndpoint endpoint = new JNatsdEndpoint(uri, this, config);
+        return endpoint;
     }
 
-    public Pong build(Buffer buffer, int start, int end) {
-        return this;
-    }
-
-    public String toString() {
-        return "PONG";
-    }
 }

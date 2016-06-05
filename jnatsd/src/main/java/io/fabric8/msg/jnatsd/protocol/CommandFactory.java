@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
-import static io.fabric8.msg.jnatsd.protocol.Command.CRLF;
+import static io.fabric8.msg.jnatsd.protocol.AbstractCommand.CRLF;
 import static io.fabric8.msg.jnatsd.protocol.ProtocolHelper.skipWhiteSpace;
 
 public class CommandFactory {
@@ -33,20 +33,17 @@ public class CommandFactory {
     private static final Buffer SPACE = Buffer.buffer(" ");
     private static final byte NEWLINE = (byte) '\n';
 
-    public static Command processBuffer(RoutingMap routingMap, Buffer buffer, final int start, final int end) {
-        try {
-            int startPos = skipWhiteSpace(buffer, start, end);
-            if (isPub(buffer, startPos, end)) {
-                return getPub(routingMap, buffer, startPos, end);
-            }
-            return getCommand(buffer, startPos, end);
-        } catch (Throwable e) {
-            LOG.error("Failed to process buffer ", e);
+    public static AbstractCommand processBuffer(RoutingMap routingMap, boolean pedantic, Buffer buffer, final int start, final int end) throws ProtocolException {
+
+        int startPos = skipWhiteSpace(buffer, start, end);
+        if (isPub(buffer, startPos, end)) {
+            return getPub(routingMap, pedantic, buffer, startPos, end);
         }
-        return null;
+        return getCommand(buffer, pedantic, startPos, end);
+
     }
 
-    static Command getPub(RoutingMap routingMap, Buffer buffer, final int start, final int end) {
+    static AbstractCommand getPub(RoutingMap routingMap, boolean pedantic, Buffer buffer, final int start, final int end) {
         int pos = start + 3;
         BufferWrapper subject;
         BufferWrapper replyTo = null;
@@ -75,7 +72,6 @@ public class CommandFactory {
             int messageStart = start + 3;
             int messageEnd = secondNewLine;
 
-            BufferTokenizer blob = new BufferTokenizer(buffer, messageStart, firstNewLine);
             BufferTokenizer tokenizer = new BufferTokenizer(buffer, messageStart, firstNewLine);
             subject = tokenizer.nextToken();
             Address address = new Address(subject);
@@ -98,7 +94,7 @@ public class CommandFactory {
                 int payloadEnd = payloadSize + offset;
 
                 if (payloadEnd < buffer.length()) {
-                    payload = new BufferWrapper(buffer, offset, payloadEnd);
+                    payload = BufferWrapper.bufferWrapper(buffer, offset, payloadEnd);
                 }
 
                 if (replyTo != null) {
@@ -113,12 +109,27 @@ public class CommandFactory {
                 pub.bytesRead(secondNewLine - start);
                 return pub;
             }
+        } else if (pedantic && firstNewLine > 0) {
+            //Parse the header - which should throw exception if not valid
+            BufferTokenizer tokenizer = new BufferTokenizer(buffer, start + 3, firstNewLine);
+            subject = tokenizer.nextToken();
+            Address address = new Address(subject);
+
+            if (tokenizer.countTokens() >= 2) {
+                replyTo = tokenizer.nextToken();
+                sizeBuffer = tokenizer.nextToken();
+            } else {
+                sizeBuffer = tokenizer.nextToken();
+            }
+
+            int size = sizeBuffer.parseToInt();
+
         }
         return null;
     }
 
-    static Command getCommand(Buffer buffer, final int start, final int end) {
-        Command command;
+    static AbstractCommand getCommand(Buffer buffer, boolean pedantic, final int start, final int end) throws ProtocolException {
+        AbstractCommand command;
         int pos = start;
         StringBuffer stringBuffer = new StringBuffer(20);
         for (; pos < end; pos++) {
@@ -142,7 +153,7 @@ public class CommandFactory {
                 } else if (strCommand.startsWith("UN")) {
                     command = new UnSub();
                 } else {
-                    throw new IllegalArgumentException("Unexpected command: " + +strCommand.length() + " len " + strCommand + " COMPLETE BUFFER = " + buffer.toString());
+                    throw new ProtocolException("Unexpected command: " + +strCommand.length() + " len " + strCommand + " COMPLETE BUFFER = " + buffer.toString());
                 }
                 command.build(buffer, start, pos);
                 command.bytesRead(pos - start);
@@ -182,8 +193,8 @@ public class CommandFactory {
         }
         msg.getNoBytes().appendTo(buffer);
         buffer.appendBuffer(CRLF);
-        if (msg.getPayload() != null) {
-            msg.getPayload().appendTo(buffer);
+        if (msg.getRawPayload() != null) {
+            msg.getRawPayload().appendTo(buffer);
         }
         buffer.appendBuffer(CRLF);
         return msg;

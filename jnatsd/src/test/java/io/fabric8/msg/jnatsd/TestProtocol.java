@@ -74,7 +74,6 @@ public class TestProtocol {
                 } catch (InterruptedException e) {
                 }
                 Message m = s.nextMessage(10000);
-                System.err.println("m = " + m);
                 assertArrayEquals("Message received does not match: ", omsg, m.getData());
             }
         } catch (IOException | TimeoutException e) {

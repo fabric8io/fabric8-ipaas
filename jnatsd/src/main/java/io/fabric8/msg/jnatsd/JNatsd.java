@@ -59,52 +59,61 @@ public class JNatsd {
     }
 
     public JNatsdConfiguration getConfiguration() {
+        if (configuration == null) {
+            //not set nor autowired - so we are probably embedded
+            configuration = new JNatsdConfiguration();
+            configuration.setVerbose(false);
+        }
         return configuration;
     }
 
     @PostConstruct
-    public void start() throws Exception {
+    public void start() {
         if (started.compareAndSet(false, true)) {
-            serverInfo.setHost("0.0.0.0");
-            serverInfo.setPort(configuration.getClientPort());
-            serverInfo.setVersion("1.0");
-            serverInfo.setMaxPayload(configuration.getMaxPayLoad());
+            try {
+                serverInfo.setHost("0.0.0.0");
+                serverInfo.setPort(configuration.getClientPort());
+                serverInfo.setVersion("1.0");
+                serverInfo.setMaxPayload(configuration.getMaxPayLoad());
 
-            int numberOfServers = configuration.getNumberOfNetServers();
-            if (numberOfServers <= 0) {
-                numberOfServers = Runtime.getRuntime().availableProcessors();
+                int numberOfServers = configuration.getNumberOfNetServers();
+                if (numberOfServers <= 0) {
+                    numberOfServers = Runtime.getRuntime().availableProcessors();
+                }
+
+                final CountDownLatch countDownLatch = new CountDownLatch(numberOfServers);
+
+                VertxOptions vertxOptions = new VertxOptions();
+
+                vertx = Vertx.vertx(vertxOptions);
+
+                LOG.info("Creating " + numberOfServers + " vert.x servers for JNatsd");
+                for (int i = 0; i < numberOfServers; i++) {
+
+                    NetServer server = vertx.createNetServer();
+                    server.connectHandler(socket -> {
+                        JNatsSocketClient natsClient = new JNatsSocketClient(this, serverInfo, socket);
+                        addClient(natsClient);
+                    });
+
+                    server.listen(configuration.getClientPort(), event -> {
+                        if (event.succeeded()) {
+                            actualPort = event.result().actualPort();
+                            countDownLatch.countDown();
+                        }
+                    });
+
+                    servers.add(server);
+                }
+
+                countDownLatch.await();
+
+                pingPong.start();
+
+                LOG.info("JNatsd initialized (" + numberOfServers + " servers:port=" + actualPort + ") and running ...");
+            } catch (Throwable e) {
+                LOG.error("Failed to initialize JNatsd", e);
             }
-
-            final CountDownLatch countDownLatch = new CountDownLatch(numberOfServers);
-
-            VertxOptions vertxOptions = new VertxOptions();
-
-            vertx = Vertx.vertx(vertxOptions);
-
-            LOG.info("Creating " + numberOfServers + " vert.x servers for JNatsd");
-            for (int i = 0; i < numberOfServers; i++) {
-
-                NetServer server = vertx.createNetServer();
-                server.connectHandler(socket -> {
-                    JNatsClient natsClient = new JNatsClient(this, serverInfo, socket);
-                    clients.add(natsClient);
-                });
-
-                server.listen(configuration.getClientPort(), event -> {
-                    if (event.succeeded()) {
-                        actualPort = event.result().actualPort();
-                        countDownLatch.countDown();
-                    }
-                });
-
-                servers.add(server);
-            }
-
-            countDownLatch.await();
-
-            pingPong.start();
-
-            LOG.info("JNatsd initialized (" + numberOfServers + " servers:port=" + actualPort + ") and running ...");
         }
     }
 
@@ -127,12 +136,24 @@ public class JNatsd {
         }
     }
 
-    protected boolean authorize(JNatsClient natsClient, Connect connect) {
-        return true;
+    public void addClient(JNatsClient client) {
+        clients.add(client);
     }
 
-    protected void removeClient(JNatsClient natsClient) {
-        clients.remove(natsClient);
+    public void removeClient(JNatsClient client) {
+        clients.remove(client);
+    }
+
+    public boolean isEmpty() {
+        return clients.isEmpty();
+    }
+
+    public Info getServerInfo() {
+        return serverInfo;
+    }
+
+    protected boolean authorize(JNatsClient natsClient, Connect connect) {
+        return true;
     }
 
     protected void addSubscription(JNatsClient client, Subscription subscription) {
@@ -143,7 +164,7 @@ public class JNatsd {
         routingMap.removeSubscription(client, subscription);
     }
 
-    protected RoutingMap getRoutingMap() {
+    public RoutingMap getRoutingMap() {
         return routingMap;
     }
 
@@ -153,7 +174,7 @@ public class JNatsd {
             if (matches != null && !matches.isEmpty()) {
                 for (Subscription subscription : matches) {
                     Msg msg = CommandFactory.createMsg(subscription.getSid(), pub);
-                    subscription.getNatsClient().writeCommand(msg);
+                    subscription.getNatsClient().consume(msg);
                 }
             } else {
                 if (LOG.isDebugEnabled()) {
