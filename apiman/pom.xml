@@ -77,12 +77,10 @@
     <dependency>
      <groupId>io.fabric8</groupId>
      <artifactId>kubernetes-client</artifactId>
-     <version>1.3.92</version>
     </dependency>
     <dependency>
      <groupId>io.fabric8</groupId>
      <artifactId>openshift-client</artifactId>
-     <version>1.3.92</version>
     </dependency>
 
     <!-- Override versions -->
@@ -206,48 +204,15 @@
     </pluginManagement>
   </build>
 
-<!--
-  Default sample commands:
-
-  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
-  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
-  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
-
-  For individual goal usage please consult the fabric8 documentation
-  -->
   <profiles>
-    <profile>
-      <id>f8-build</id>
-      <build>
-        <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
-      </build>
-    </profile>
-    <profile>
-      <id>f8-deploy</id>
-      <properties>
-        <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
-        <fabric8.recreate>true</fabric8.recreate>
-      </properties>
-      <build>
-        <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
-      </build>
-    </profile>
-    <profile>
-      <id>f8-local-deploy</id>
-      <properties>
-        <fabric8.recreate>true</fabric8.recreate>
-      </properties>
-      <build>
-        <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
-      </build>
-    </profile>
-<!-- activate the ssl profile to start apiman with a selfsigned certificate -->
+  <!-- activate the ssl profile to start apiman with a selfsigned certificate -->
     <profile>
       <id>ssl</id>
       <properties>
         <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
-        <docker.env.apiman.elasticsearch.url>https://elasticsearch-v1:9200</docker.env.apiman.elasticsearch.url>
         <keystore.password>supersecret</keystore.password>
+        <client.keystore.password>supersecret</client.keystore.password>
+        <truststore.password>supersecret</truststore.password>
         <fabric8.volume.keystore.secret>apiman-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/apiman</fabric8.volume.keystore.mountPath>
         <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
@@ -274,7 +239,7 @@
               <storepass>${keystore.password}</storepass>
               <keypass>${keystore.password}</keypass>
               <alias>SSLforAPIMAN</alias>
-              <dname>CN=apiman-${KUBERNETES_NAMESPACE}.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
+              <dname>CN=apiman.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
                  L=Ipswich, S=Massachusetts, C=US</dname>
               <sigalg>SHA1withRSA</sigalg>
               <ext></ext>
@@ -306,8 +271,58 @@
               </execution>
             </executions>
           </plugin>
-
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <executions>
+              <execution>
+                <id>Deploy Secret</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>${basedir}/ssl.sh</executable>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
+      </build>
+    </profile>
+    <!--
+  Default sample commands:
+
+  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
+  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
+  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
+
+  For individual goal usage please consult the fabric8 documentation
+  -->
+
+    <profile>
+      <id>f8-build</id>
+      <build>
+        <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
+      </build>
+    </profile>
+    <profile>
+      <id>f8-deploy</id>
+      <properties>
+        <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
+        <fabric8.recreate>true</fabric8.recreate>
+      </properties>
+      <build>
+        <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
+      </build>
+    </profile>
+    <profile>
+      <id>f8-local-deploy</id>
+      <properties>
+        <fabric8.recreate>true</fabric8.recreate>
+      </properties>
+      <build>
+        <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
       </build>
     </profile>
   </profiles>

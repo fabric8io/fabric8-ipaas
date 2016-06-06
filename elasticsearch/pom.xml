@@ -200,11 +200,11 @@
             </execution>
             </executions>
             <configuration>
-              <keystore>${project.build.directory}/secret/elasticsearch-v1/keystore</keystore>
+              <keystore>${project.build.directory}/secret/${project.artifactId}/keystore</keystore>
               <storepass>${keystore.password}</storepass>
               <keypass>${keystore.password}</keypass>
               <alias>SSLforELASTIC</alias>
-              <dname>CN=localhost, OU=Example, O=Fabric8 Inc.,
+              <dname>CN=${project.artifactId}.default.svc.cluster.local, OU=Example, O=Fabric8 Inc.,
                  L=Ipswich, S=Massachusetts, C=US</dname>
               <sigalg>SHA1withRSA</sigalg>
               <ext></ext>
@@ -212,7 +212,7 @@
               <keyalg>RSA</keyalg>
               <keysize>2048</keysize>
               <rfc>true</rfc>
-              <file>${project.build.directory}/secret/elasticsearch-v1/public.key</file>
+              <file>${project.build.directory}/secret/${project.artifactId}/public.key</file>
             </configuration>
           </plugin>
           <plugin>
@@ -226,7 +226,7 @@
                   <goal>copy-resources</goal>
                 </goals>
                 <configuration>
-                  <outputDirectory>${basedir}/target/secret/elasticsearch-v1</outputDirectory>
+                  <outputDirectory>${basedir}/target/secret/${project.artifactId}</outputDirectory>
                   <resources>
                     <resource>
                       <directory>${basedir}/ssl</directory>

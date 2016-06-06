@@ -34,9 +34,11 @@ public class KeyStoreUtil {
             return kmf.getKeyManagers();
         } else {
             if (! clientKeyStoreFile.exists())
-                log.info("No KeyManager: " + pathInfo.store    + " does not exist");
+                log.debug("No KeyManager: " + pathInfo.store    + " does not exist. "
+                        + "You can ignore this if you are not using client certificate authentication.");
             if (! clientKeyStorePasswordFile.exists())
-                log.info("No KeyManager: " + pathInfo.password + " does not exist");
+                log.debug("No KeyManager: " + pathInfo.password + " does not exist. "
+                        + "You can ignore this if you are not using client certificate authentication.");
             return null;
         }
     }
@@ -58,9 +60,13 @@ public class KeyStoreUtil {
             return tmf.getTrustManagers();
         } else {
             if (! trustStoreFile.exists())
-                log.info("No TrustManager: " + pathInfo.store    + " does not exist");
+                log.debug("No TrustManager: " + pathInfo.store    + " does not exist"
+                        + "You can ignore this if you are not using the default truststore that ships with the JRE."
+                        + "However this is important if you are uing self signed certificates.");
             if (! trustStorePasswordFile.exists())
-                log.info("No TrustManager: " + pathInfo.password + " does not exist");
+                log.debug("No TrustManager: " + pathInfo.password + " does not exist" 
+                        + "You can ignore this if you are not using the default truststore that ships with the JRE."
+                        + "However this is important if you are uing self signed certificates.");
             return null;
         }
     }

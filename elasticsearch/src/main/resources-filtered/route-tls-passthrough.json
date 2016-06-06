@@ -2,11 +2,11 @@
   "kind": "Route",
   "apiVersion": "v1",
   "metadata": {
-    "name": "${artifactId}",
+    "name": "${project.artifactId}",
     "namespace": "default"
   },
   "spec": {
-    "host": "${artifactId}.${env.KUBERNETES_DOMAIN}",
+    "host": "${project.artifactId}.${env.KUBERNETES_DOMAIN}",
     "to": {
       "kind": "Service",
       "name": "${artifactId}"

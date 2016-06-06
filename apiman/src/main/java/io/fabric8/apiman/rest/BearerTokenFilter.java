@@ -21,7 +21,6 @@ import com.google.common.cache.LoadingCache;
 import io.apiman.common.auth.AuthPrincipal;
 import io.fabric8.apiman.AuthToken;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.openshift.api.model.SubjectAccessReview;
 import io.fabric8.openshift.api.model.SubjectAccessReviewBuilder;
 import io.fabric8.openshift.api.model.SubjectAccessReviewResponse;
