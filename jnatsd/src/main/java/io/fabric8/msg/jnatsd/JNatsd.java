@@ -72,11 +72,11 @@ public class JNatsd {
         if (started.compareAndSet(false, true)) {
             try {
                 serverInfo.setHost("0.0.0.0");
-                serverInfo.setPort(configuration.getClientPort());
+                serverInfo.setPort(getConfiguration().getClientPort());
                 serverInfo.setVersion("1.0");
-                serverInfo.setMaxPayload(configuration.getMaxPayLoad());
+                serverInfo.setMaxPayload(getConfiguration().getMaxPayLoad());
 
-                int numberOfServers = configuration.getNumberOfNetServers();
+                int numberOfServers = getConfiguration().getNumberOfNetServers();
                 if (numberOfServers <= 0) {
                     numberOfServers = Runtime.getRuntime().availableProcessors();
                 }
@@ -96,7 +96,7 @@ public class JNatsd {
                         addClient(natsClient);
                     });
 
-                    server.listen(configuration.getClientPort(), event -> {
+                    server.listen(getConfiguration().getClientPort(), event -> {
                         if (event.succeeded()) {
                             actualPort = event.result().actualPort();
                             countDownLatch.countDown();
@@ -190,9 +190,9 @@ public class JNatsd {
         private long timerId = -1;
 
         private void start() {
-            int pingInterval = configuration.getPingInterval();
+            int pingInterval = getConfiguration().getPingInterval();
             if (pingInterval > 0) {
-                timerId = vertx.setPeriodic(configuration.getPingInterval(), time -> {
+                timerId = vertx.setPeriodic(getConfiguration().getPingInterval(), time -> {
                     for (JNatsClient client : clients) {
                         client.pingTime();
                     }
