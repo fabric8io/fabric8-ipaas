@@ -18,7 +18,7 @@ package io.fabric8.msg.jnatsd.protocol;
 import io.fabric8.msg.jnatsd.routing.Address;
 import io.vertx.core.buffer.Buffer;
 
-public class Sub extends Command<Sub> {
+public class Sub extends AbstractCommand<Sub> {
 
     private Address subject;
     private String queueGroup;
@@ -49,12 +49,20 @@ public class Sub extends Command<Sub> {
         this.sid = sid;
     }
 
+    public void setSid(String sid) {
+        this.sid = Buffer.buffer(sid);
+    }
+
     public Address getSubject() {
         return subject;
     }
 
     public void setSubject(Address subject) {
         this.subject = subject;
+    }
+
+    public void setSubject(String address) {
+        this.subject = new Address(address);
     }
 
     public String getQueueGroup() {

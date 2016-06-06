@@ -32,10 +32,14 @@ public class TestPublishNoSubscribers {
 
     @Autowired
     private JNatsd jNatsd;
+    private ConnectionFactory connectionFactory;
 
     @Before
     public void before() throws Exception {
+        jNatsd.getConfiguration().setClientPort(0);
         jNatsd.start();
+        connectionFactory = new ConnectionFactory();
+        connectionFactory.setServers("nats://0.0.0.0:" + jNatsd.getServerInfo().getPort());
     }
 
     @After
@@ -45,13 +49,12 @@ public class TestPublishNoSubscribers {
 
     @Test
     public void testPublish() throws Exception {
-        Connection connection = new ConnectionFactory().createConnection();
+        Connection connection = connectionFactory.createConnection();
         final int count = 1000;
 
         for (int i = 0; i < count; i++) {
             String test = "Test" + i;
             connection.publish("foo", "bah", test.getBytes());
-            System.err.println("SENT " + test);
         }
 
         connection.flush();

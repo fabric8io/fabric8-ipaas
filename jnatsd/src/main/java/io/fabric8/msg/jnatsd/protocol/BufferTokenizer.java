@@ -51,7 +51,7 @@ public class BufferTokenizer {
         int start = currentPosition;
         int stop = scanToken(currentPosition);
         currentPosition = scanToken(currentPosition);
-        return new BufferWrapper(buffer, start, stop);
+        return BufferWrapper.bufferWrapper(buffer, start, stop);
     }
 
     public int countTokens() {

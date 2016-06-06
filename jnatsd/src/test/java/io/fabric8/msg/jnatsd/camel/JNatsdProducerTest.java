@@ -12,23 +12,27 @@
  *  * permissions and limitations under the License.
  *
  */
+package io.fabric8.msg.jnatsd.camel;
 
-package io.fabric8.msg.jnatsd.protocol;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.test.junit4.CamelTestSupport;
+import org.junit.Test;
 
-import io.vertx.core.buffer.Buffer;
+public class JNatsdProducerTest extends CamelTestSupport {
 
-public class Pong extends AbstractCommand<Pong> {
+    @Test
+    public void sendTest() throws Exception {
+
+        template.sendBody("direct:send", "pippo");
+    }
 
     @Override
-    public CommandType getType() {
-        return CommandType.PONG;
-    }
-
-    public Pong build(Buffer buffer, int start, int end) {
-        return this;
-    }
-
-    public String toString() {
-        return "PONG";
+    protected RouteBuilder createRouteBuilder() throws Exception {
+        return new RouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                from("direct:send").to("jnatsd:test?clientPort=0");
+            }
+        };
     }
 }

@@ -29,12 +29,12 @@ public class JNatsdConfiguration {
 
     @Max(64)
     @Min(0)
-    private Integer numberOfNetServers;
-    private Integer maxPayLoad;
-    private Integer maxPendingSize;
-    private Integer clientPort;
-    private Integer pingInterval;
-    private Boolean verbose;
+    private int numberOfNetServers;
+    private int maxPayLoad = 1048576;
+    private int maxPendingSize = 10485760;
+    private int clientPort = 4222;
+    private int pingInterval = 600000;
+    private boolean verbose = true;
 
     public int getNumberOfNetServers() {
         return numberOfNetServers;

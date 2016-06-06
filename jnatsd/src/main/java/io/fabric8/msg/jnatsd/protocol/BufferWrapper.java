@@ -22,10 +22,36 @@ public class BufferWrapper {
     private final int start;
     private final int end;
 
-    public BufferWrapper(Buffer buffer, int start, int end) {
+    private BufferWrapper(Buffer buffer, int start, int end) {
         this.buffer = buffer;
         this.start = start;
         this.end = end;
+    }
+
+    private BufferWrapper(Buffer buffer) {
+        this.buffer = buffer;
+        this.start = 0;
+        this.end = buffer.length();
+    }
+
+    private BufferWrapper(String string) {
+        this(Buffer.buffer(string));
+    }
+
+    public static BufferWrapper bufferWrapper(Buffer buffer, int start, int end) {
+        return new BufferWrapper(buffer, start, end);
+    }
+
+    public static BufferWrapper bufferWrapper(Buffer buffer) {
+        return new BufferWrapper(buffer);
+    }
+
+    public static BufferWrapper bufferWrapper(byte[] buffer) {
+        return new BufferWrapper(Buffer.buffer(buffer));
+    }
+
+    public static BufferWrapper bufferWrapper(String buffer) {
+        return new BufferWrapper(buffer);
     }
 
     /**
@@ -59,6 +85,14 @@ public class BufferWrapper {
 
     public byte getByte(int i) {
         return buffer.getByte(i + start);
+    }
+
+    public String getAsString() {
+        return buffer.getString(start, end);
+    }
+
+    public byte[] getAsBytes() {
+        return buffer.getBytes(start, end);
     }
 
     @Override

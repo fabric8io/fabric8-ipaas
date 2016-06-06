@@ -17,7 +17,7 @@ package io.fabric8.msg.jnatsd.protocol;
 
 import io.vertx.core.buffer.Buffer;
 
-public class UnSub extends Command<UnSub> {
+public class UnSub extends AbstractCommand<UnSub> {
 
     int maxMessages = -1;
     private Buffer sid;
@@ -42,6 +42,10 @@ public class UnSub extends Command<UnSub> {
 
     public void setSid(Buffer sid) {
         this.sid = sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = Buffer.buffer(sid);
     }
 
     public int getMaxMessages() {

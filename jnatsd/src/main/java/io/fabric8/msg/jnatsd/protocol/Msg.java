@@ -18,7 +18,7 @@ package io.fabric8.msg.jnatsd.protocol;
 import io.fabric8.msg.jnatsd.routing.Address;
 import io.vertx.core.buffer.Buffer;
 
-public class Msg extends Command<Msg> {
+public class Msg extends AbstractCommand<Msg> {
     private Address subject;
     private Buffer sid;
     private BufferWrapper replyTo;
@@ -62,8 +62,16 @@ public class Msg extends Command<Msg> {
         this.noBytes = noBytes;
     }
 
-    public BufferWrapper getPayload() {
+    public BufferWrapper getRawPayload() {
         return payload;
+    }
+
+    public String getPayloadAsString() {
+        return payload != null ? payload.getAsString() : null;
+    }
+
+    public byte[] getPayloadAsBytes() {
+        return payload != null ? payload.getAsBytes() : null;
     }
 
     public void setPayload(BufferWrapper payload) {

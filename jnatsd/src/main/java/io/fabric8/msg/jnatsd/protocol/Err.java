@@ -17,7 +17,7 @@ package io.fabric8.msg.jnatsd.protocol;
 
 import io.vertx.core.buffer.Buffer;
 
-public class Err extends Command<Err> {
+public class Err extends AbstractCommand<Err> {
 
     private String message;
 

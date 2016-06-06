@@ -17,7 +17,7 @@ package io.fabric8.msg.jnatsd.protocol;
 
 import io.vertx.core.buffer.Buffer;
 
-public class Ok extends Command<Ok> {
+public class Ok extends AbstractCommand<Ok> {
 
     @Override
     public CommandType getType() {
