@@ -22,7 +22,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import io.apiman.gateway.engine.GatewayConfigProperties;
 import io.apiman.gateway.engine.es.PollCachingESRegistry;
-import io.apiman.gateway.platforms.war.WarEngineConfig;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroService;
 import io.apiman.gateway.platforms.war.micro.GatewayMicroServicePlatform;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;

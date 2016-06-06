@@ -31,6 +31,7 @@ public class Fabric8EsClientFactory extends DefaultEsClientFactory {
     /**
      * @return the config
      */
+    @Override
     protected Map<String, String> getConfig() {
         return config;
     }
