@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SpringBootApplication
@@ -93,6 +94,7 @@ public class JNatsd {
                     NetServer server = vertx.createNetServer();
                     server.connectHandler(socket -> {
                         JNatsSocketClient natsClient = new JNatsSocketClient(this, serverInfo, socket);
+                        natsClient.start();
                         addClient(natsClient);
                     });
 
@@ -106,11 +108,15 @@ public class JNatsd {
                     servers.add(server);
                 }
 
-                countDownLatch.await();
+                if (countDownLatch.await(5, TimeUnit.SECONDS)){
+                    pingPong.start();
+                    serverInfo.setPort(actualPort);
+                    LOG.info("JNatsd initialized (" + numberOfServers + " servers:port=" + actualPort + ") and running ...");
+                }else{
+                    LOG.error("Failed to initialize JNatsd - could not bind to port");
+                    stop();
+                }
 
-                pingPong.start();
-
-                LOG.info("JNatsd initialized (" + numberOfServers + " servers:port=" + actualPort + ") and running ...");
             } catch (Throwable e) {
                 LOG.error("Failed to initialize JNatsd", e);
             }
@@ -131,7 +137,7 @@ public class JNatsd {
                     countDownLatch.countDown();
                 });
             }
-            countDownLatch.await();
+            countDownLatch.await(5,TimeUnit.SECONDS);
             LOG.info("JNatsd shutdown");
         }
     }

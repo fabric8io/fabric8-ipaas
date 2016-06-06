@@ -31,7 +31,7 @@ public class JNatsdProducerTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("direct:send").to("jnatsd:test");
+                from("direct:send").to("jnatsd:test?clientPort=0");
             }
         };
     }

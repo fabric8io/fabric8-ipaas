@@ -14,7 +14,8 @@
  */
 package io.fabric8.msg.jnatsd.camel;
 
-import io.fabric8.msg.jnatsd.embedded.EmbeddedConnection;
+import io.nats.client.Connection;
+import io.nats.client.ConnectionFactory;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -32,13 +33,13 @@ public class JNatsdConsumerLoadTest extends CamelTestSupport {
     @Test
     public void testLoadConsumer() throws InterruptedException, IOException, TimeoutException {
         mockResultEndpoint.setExpectedMessageCount(10000);
-        EmbeddedConnection embeddedConnection = new EmbeddedConnection();
-        embeddedConnection.start();
+        Connection connection = new ConnectionFactory().createConnection();
 
         for (int i = 0; i < 10000; i++) {
-            embeddedConnection.publish("test", ("test" + i).getBytes());
+            connection.publish("test", ("test" + i).getBytes());
         }
 
+        connection.close();
         mockResultEndpoint.assertIsSatisfied();
     }
 

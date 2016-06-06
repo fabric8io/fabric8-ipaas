@@ -53,7 +53,7 @@ public class JNatsdConsumer extends DefaultConsumer {
         executor = getEndpoint().createExecutor();
 
         LOG.debug("Getting Nats Connection");
-        connection = new EmbeddedConnection();
+        connection = new EmbeddedConnection(getEndpoint().getjNatsd());
         connection.start();
 
         topic = getEndpoint().getJNatsConfiguration().getTopic();

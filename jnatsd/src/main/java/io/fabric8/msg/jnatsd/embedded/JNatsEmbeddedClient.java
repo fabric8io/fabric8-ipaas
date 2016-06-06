@@ -33,6 +33,12 @@ public class JNatsEmbeddedClient extends JNatsAbstractClient {
     }
 
     @Override
+    public void start(){
+        publish(getConnect());
+    }
+
+
+    @Override
     public void consume(Command command) {
         if (command != null && closed.get() == false) {
             commandHandler.handle(command);

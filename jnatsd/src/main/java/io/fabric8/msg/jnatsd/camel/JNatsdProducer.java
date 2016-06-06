@@ -57,7 +57,7 @@ public class JNatsdProducer extends DefaultProducer {
         LOG.debug("Starting Nats Producer");
 
         LOG.debug("Getting Nats Connection");
-        connection = new EmbeddedConnection();
+        connection = new EmbeddedConnection(getEndpoint().getjNatsd());
         connection.start();
     }
 

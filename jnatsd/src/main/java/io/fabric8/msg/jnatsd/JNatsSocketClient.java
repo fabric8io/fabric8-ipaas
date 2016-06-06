@@ -61,6 +61,10 @@ public class JNatsSocketClient extends JNatsAbstractClient {
     }
 
     @Override
+    public void start(){
+    }
+
+    @Override
     public String toString() {
         String result = "NatsClient{";
         if (connect != null) {

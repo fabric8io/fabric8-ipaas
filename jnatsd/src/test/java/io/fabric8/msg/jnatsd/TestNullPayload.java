@@ -39,10 +39,14 @@ public class TestNullPayload {
 
     @Autowired
     private JNatsd jNatsd;
+    private ConnectionFactory connectionFactory;
 
     @Before
     public void before() throws Exception {
+        jNatsd.getConfiguration().setClientPort(0);
         jNatsd.start();
+        connectionFactory = new ConnectionFactory();
+        connectionFactory.setServers("nats://0.0.0.0:" + jNatsd.getServerInfo().getPort());
     }
 
     @After
@@ -52,7 +56,7 @@ public class TestNullPayload {
 
     @Test
     public void testNullPayload() throws Exception {
-        Connection connection = new ConnectionFactory().createConnection();
+        Connection connection = connectionFactory.createConnection();
         final int count = 100;
         CountDownLatch countDownLatch = new CountDownLatch(count);
         Subscription subscription = connection.subscribe("foo", new MessageHandler() {

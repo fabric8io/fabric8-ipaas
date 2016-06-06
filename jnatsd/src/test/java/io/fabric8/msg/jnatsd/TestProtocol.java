@@ -47,10 +47,14 @@ public class TestProtocol {
 
     @Autowired
     private JNatsd jNatsd;
+    private ConnectionFactory connectionFactory;
 
     @Before
     public void before() throws Exception {
+        jNatsd.getConfiguration().setClientPort(0);
         jNatsd.start();
+        connectionFactory = new ConnectionFactory();
+        connectionFactory.setServers("nats://0.0.0.0:" + jNatsd.getServerInfo().getPort());
     }
 
     @After
@@ -60,7 +64,7 @@ public class TestProtocol {
 
     @Test
     public void testPubSubWithReply() {
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             try (SyncSubscription s = c.subscribeSync("foo")) {
                 final byte[] omsg = "Hello World".getBytes();
                 c.publish("foo", "reply", omsg);
@@ -85,7 +89,7 @@ public class TestProtocol {
     public void testFlush() {
         final byte[] omsg = "Hello World".getBytes();
 
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             c.subscribeSync("foo");
             c.publish("foo", "reply", omsg);
             try {
@@ -101,7 +105,7 @@ public class TestProtocol {
     @Test
     public void testQueueSubscriber() {
         final byte[] omsg = "Hello World".getBytes();
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             SyncSubscription s1 = c.subscribeSync("foo", "bar"), s2 = c.subscribeSync("foo", "bar");
             c.publish("foo", omsg);
             try {
@@ -140,7 +144,6 @@ public class TestProtocol {
             r2 = s2.getQueuedMessageCount();
             assertEquals("Incorrect number of messages: ", total, r1 + r2);
 
-            System.err.println("R1 = " + r1 + ", R2 = " + r2);
             double expected = total / 2;
             int d1 = (int) Math.abs((expected - r1));
             int d2 = (int) Math.abs((expected - r2));
@@ -158,7 +161,7 @@ public class TestProtocol {
         final String ts;
 
         final Channel<Boolean> ch = new Channel<Boolean>();
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             try (AsyncSubscription s = c.subscribeAsync("foo", new MessageHandler() {
                 @Override
                 public void onMessage(Message msg) {
@@ -181,7 +184,7 @@ public class TestProtocol {
     @Test
     public void testSyncReplyArg() {
         String replyExpected = "bar";
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             try (SyncSubscription s = c.subscribeSync("foo")) {
                 try {
                     sleep(500);
@@ -206,9 +209,8 @@ public class TestProtocol {
         final Channel<Boolean> ch = new Channel<Boolean>();
         final AtomicInteger count = new AtomicInteger(0);
         final int max = 20;
-        ConnectionFactory cf = new ConnectionFactory();
-        cf.setReconnectAllowed(false);
-        try (Connection c = cf.createConnection()) {
+        connectionFactory.setReconnectAllowed(false);
+        try (Connection c = connectionFactory.createConnection()) {
             try (final AsyncSubscription s = c.subscribeAsync("foo", new MessageHandler() {
                 @Override
                 public void onMessage(Message m) {
@@ -241,7 +243,7 @@ public class TestProtocol {
 
     @Test(expected = IllegalStateException.class)
     public void testDoubleUnsubscribe() {
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             try (SyncSubscription s = c.subscribeSync("foo")) {
                 s.unsubscribe();
                 try {
@@ -259,8 +261,7 @@ public class TestProtocol {
     public void testManyRequests() {
         int numMsgs = 500;
         try {
-            ConnectionFactory cf = new ConnectionFactory(ConnectionFactory.DEFAULT_URL);
-            try (final Connection conn = cf.createConnection()) {
+            try (final Connection conn = connectionFactory.createConnection()) {
                 try (Subscription s = conn.subscribe("foo", new MessageHandler() {
                     public void onMessage(Message message) {
                         try {
@@ -292,7 +293,7 @@ public class TestProtocol {
 
     @Test
     public void testLargeSubjectAndReply() {
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             int size = 1066;
             byte[] subjBytes = new byte[size];
             for (int i = 0; i < size; i++) {
@@ -336,7 +337,7 @@ public class TestProtocol {
 
     @Test
     public void testLargeMessage() {
-        try (final Connection c = new ConnectionFactory().createConnection()) {
+        try (final Connection c = connectionFactory.createConnection()) {
             int msgSize = 51200;
             final byte[] omsg = new byte[msgSize];
             byte[] output = null;
@@ -374,7 +375,7 @@ public class TestProtocol {
 
     @Test
     public void testSendAndRecv() throws Exception {
-        try (Connection c = new ConnectionFactory().createConnection()) {
+        try (Connection c = connectionFactory.createConnection()) {
             assertFalse(c.isClosed());
             final AtomicInteger received = new AtomicInteger();
             int count = 1000;
@@ -398,30 +399,6 @@ public class TestProtocol {
                 assertTrue(String.format("Received (%s) != count (%s)", received, count),
                     received.get() == count);
             }
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBadOptionTimeoutConnect() {
-        ConnectionFactory cf = new ConnectionFactory();
-        cf.setConnectionTimeout(-1);
-    }
-
-    @Test
-    public void testSimplePublish() {
-        try (Connection c = new ConnectionFactory().createConnection()) {
-            c.publish("foo", "Hello World".getBytes());
-        } catch (IOException | TimeoutException e) {
-            fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testSimplePublishNoData() {
-        try (Connection c = new ConnectionFactory().createConnection()) {
-            c.publish("foo", null);
-        } catch (IOException | TimeoutException e) {
-            fail(e.getMessage());
         }
     }
 }

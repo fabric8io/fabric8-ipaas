@@ -33,11 +33,14 @@ public class JNatsdConfiguration {
     @UriParam(defaultValue = "false")
     private boolean verbose;
     @UriParam(defaultValue = "4222")
-    private int port = 4222;
+    private int clientPort = 4222;
     @UriParam(label = "producer")
     private String replySubject;
     @UriParam(label = "consumer")
     private String queueGroup;
+    private String user;
+    private String pass;
+    private String name;
     @UriParam(label = "consumer", defaultValue = "10")
     private int poolSize = 10;
 
@@ -58,27 +61,15 @@ public class JNatsdConfiguration {
         this.topic = topic;
     }
 
-    /**
-     * Whether or not running in pedantic mode (this affects performace)
-     */
-    public boolean isPedantic() {
-        return pedantic;
+
+    public int getClientPort() {
+        return clientPort;
     }
 
-    public void setPedantic(boolean pedantic) {
-        this.pedantic = pedantic;
+    public void setClientPort(int clientPort) {
+        this.clientPort = clientPort;
     }
 
-    /**
-     * Whether or not running in verbose mode
-     */
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
 
     /**
      * the subject to which subscribers should send response
@@ -108,6 +99,52 @@ public class JNatsdConfiguration {
 
     public void setPoolSize(int poolSize) {
         this.poolSize = poolSize;
+    }
+
+    /**
+     * Whether or not running in pedantic mode (this affects performace)
+     */
+    public boolean isPedantic() {
+        return pedantic;
+    }
+
+    public void setPedantic(boolean pedantic) {
+        this.pedantic = pedantic;
+    }
+
+    /**
+     * Whether or not running in verbose mode
+     */
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Properties createProperties() {

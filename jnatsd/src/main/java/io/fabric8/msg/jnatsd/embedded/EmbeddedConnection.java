@@ -36,19 +36,34 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class EmbeddedConnection {
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedConnection.class);
-    private static final JNatsd J_NATSD = new JNatsd();
     private static final Pong PONG = new Pong();
     private final Map<String, Handler<Msg>> subscribers = new ConcurrentHashMap<>();
     private final AtomicInteger sidGenerator = new AtomicInteger();
     private final AtomicBoolean started = new AtomicBoolean();
+    private final JNatsd jNatsd;
     private JNatsEmbeddedClient embeddedClient;
+    private boolean pedantic;
+    private boolean verbose;
+    private String user;
+    private String pass;
+    private String name;
+
+    public EmbeddedConnection(JNatsd jNatsd){
+        this.jNatsd = jNatsd;
+    }
 
     public void start() {
         if (started.compareAndSet(false, true)) {
-            J_NATSD.start();
-            embeddedClient = new JNatsEmbeddedClient(J_NATSD, command -> {
+            jNatsd.start();
+            embeddedClient = new JNatsEmbeddedClient(jNatsd, command -> {
                 processCommand(command);
             });
+            embeddedClient.getConnect().setVerbose(isVerbose());
+            embeddedClient.getConnect().setPedantic(isPedantic());
+            embeddedClient.getConnect().setUser(getUser());
+            embeddedClient.getConnect().setPass(getPass());
+            embeddedClient.getConnect().setName(getName());
+            embeddedClient.start();
         }
     }
 
@@ -61,10 +76,10 @@ public class EmbeddedConnection {
             if (embeddedClient != null) {
                 embeddedClient.close();
                 subscribers.clear();
-                J_NATSD.removeClient(embeddedClient);
-                if (J_NATSD.isEmpty()) {
+                jNatsd.removeClient(embeddedClient);
+                if (jNatsd.isEmpty()) {
                     try {
-                        J_NATSD.stop();
+                        jNatsd.stop();
                     } catch (Exception e) {
                         LOG.error("Failed to stop Jnatsd cleanly");
                     }
@@ -72,6 +87,53 @@ public class EmbeddedConnection {
             }
         }
     }
+
+    /**
+     * Whether or not running in pedantic mode (this affects performace)
+     */
+    public boolean isPedantic() {
+        return pedantic;
+    }
+
+    public void setPedantic(boolean pedantic) {
+        this.pedantic = pedantic;
+    }
+
+    /**
+     * Whether or not running in verbose mode
+     */
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 
     /**
      * Subscribe to messages
@@ -151,7 +213,7 @@ public class EmbeddedConnection {
     }
 
     private void publish(Pub pub) {
-        Collection<Subscription> matches = J_NATSD.getRoutingMap().getMatches(pub.getSubject());
+        Collection<Subscription> matches = jNatsd.getRoutingMap().getMatches(pub.getSubject());
         pub.setMatches(matches);
         embeddedClient.publish(pub);
     }

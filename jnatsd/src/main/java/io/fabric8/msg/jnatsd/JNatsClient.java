@@ -19,6 +19,8 @@ import io.fabric8.msg.jnatsd.protocol.Command;
 
 public interface JNatsClient {
 
+    void start();
+
     boolean close();
 
     void consume(Command command);

@@ -14,6 +14,7 @@
  */
 package io.fabric8.msg.jnatsd.camel;
 
+import io.fabric8.msg.jnatsd.JNatsd;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
@@ -28,10 +29,15 @@ public class JNatsdEndpoint extends DefaultEndpoint {
 
     @UriParam
     private JNatsdConfiguration configuration;
+    private JNatsd jNatsd;
 
     public JNatsdEndpoint(String uri, JNatsdComponent component, JNatsdConfiguration config) {
         super(uri, component);
-        this.configuration = config;
+        configuration = config;
+        jNatsd = new JNatsd();
+        jNatsd.getConfiguration().setVerbose(configuration.isVerbose());
+        jNatsd.getConfiguration().setClientPort(configuration.getClientPort());
+
     }
 
     @Override
@@ -55,5 +61,9 @@ public class JNatsdEndpoint extends DefaultEndpoint {
 
     public JNatsdConfiguration getJNatsConfiguration() {
         return configuration;
+    }
+
+    public JNatsd getjNatsd(){
+        return jNatsd;
     }
 }

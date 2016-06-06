@@ -28,7 +28,9 @@ public class TestEmbedded {
 
     @Test
     public void testEmbedded() throws Exception {
-        EmbeddedConnection subConnection = new EmbeddedConnection();
+        JNatsd jNatsd = new JNatsd();
+        jNatsd.getConfiguration().setClientPort(0);
+        EmbeddedConnection subConnection = new EmbeddedConnection(jNatsd);
         subConnection.start();
         final int count = 1000;
         CountDownLatch countDownLatch = new CountDownLatch(count);
@@ -39,7 +41,7 @@ public class TestEmbedded {
             }
         });
 
-        EmbeddedConnection pubConnection = new EmbeddedConnection();
+        EmbeddedConnection pubConnection = new EmbeddedConnection(jNatsd);
         pubConnection.start();
 
         long start = System.currentTimeMillis();
@@ -61,5 +63,6 @@ public class TestEmbedded {
         System.err.println("Duration to pub/sub " + count + " messages = " + totalTime + " ms = " + messagesPerSecond + " msg/sec");
         pubConnection.close();
         subConnection.close();
+        jNatsd.stop();
     }
 }

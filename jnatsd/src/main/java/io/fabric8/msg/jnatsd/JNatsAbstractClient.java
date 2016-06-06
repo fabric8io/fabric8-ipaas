@@ -57,6 +57,10 @@ public abstract class JNatsAbstractClient implements JNatsClient {
         this.connect.setVerbose(jnatsd.getConfiguration().isVerbose());
     }
 
+    public Connect getConnect(){
+        return connect;
+    }
+
     @Override
     public void publish(Command command) {
         if (command != null) {
