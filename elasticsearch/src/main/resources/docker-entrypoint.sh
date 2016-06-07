@@ -15,6 +15,7 @@ searchguard.authentication.settingsdb.user.admin: supersecret
 searchguard.authentication.authorization.settingsdb.roles.admin: ["admin"]
 searchguard:
   allow_all_from_loopback: true
+  config_index_name: ".searchguard"
   ssl:
     transport:
       http:
@@ -29,11 +30,51 @@ searchguard:
 EOF
 fi
 
+echo "Searchguard config update completed"
+
 cd /usr/share/elasticsearch/bin
 
 # Add elasticsearch as command if needed
 if [ "${1:0:1}" = '-' ]; then
     set -- elasticsearch "$1"
+fi
+
+
+if [ $2 = 'ssl' ]; then
+
+echo "Starting elastic to load the ACL..."
+gosu elasticsearch ./elasticsearch -Des.pidfile=/usr/share/elasticsearch/bin/elasticsearch.pid -d
+
+# check to see if ES has started up yet
+until $(curl -k -s -f -o /dev/null --connect-timeout 1 -m 1 --head https://localhost:9200); do
+  sleep 0.1;
+done
+  
+  curl -k -q -XPUT "https://localhost:9200/.searchguard/ac/ac?pretty" -d '{
+    "acl": [
+    {    
+        "__Comment__": "By default no filters are executed and no filters a by-passed. In such a case an exception is thrown and access will be denied.",
+        "filters_bypass": [],
+        "filters_execute": []
+     },
+     {
+           "__Comment__": "For role *admin* all filters are bypassed (so none will be executed). This means unrestricted access.",
+           "roles": [
+               "admin"
+           ],
+           "filters_bypass": ["*"],
+           "filters_execute": [""]
+     }
+     ]
+  }'
+  
+  echo "Completed the ACL"
+  # check to make sure the ACL has been persisted
+  until $(curl -k -s -f -o /dev/null --connect-timeout 1 -m 1 https://localhost:9200/.searchguard/ac/ac); do
+    sleep 0.1;
+  done
+
+  kill `cat /usr/share/elasticsearch/bin/elasticsearch.pid`
 fi
 
 # Drop root privileges if we are running elasticsearch
