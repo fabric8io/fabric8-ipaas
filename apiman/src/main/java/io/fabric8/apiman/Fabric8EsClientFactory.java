@@ -45,6 +45,7 @@ public class Fabric8EsClientFactory extends DefaultEsClientFactory {
         String timeout  = config.get("timeout"); //$NON-NLS-1$
         if (username != null) {
             httpConfig.defaultCredentials(username, password);
+            log.info("Setting creds for " + username);
         }
         if (timeout == null) {
             timeout = "10000"; //$NON-NLS-1$

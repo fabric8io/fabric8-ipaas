@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.apiman.manager.api.core.config.ApiManagerConfig;
 import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.utils.KubernetesServices;
+import io.fabric8.utils.Systems;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.IOUtils;
@@ -155,19 +156,19 @@ public class ApimanStarter {
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_CLIENT_FACTORY, Fabric8EsClientFactory.class.getName());
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_TYPE, "es");
-        setConfigProp("apiman-manager.storage.es.protocol", "${apiman.es.protocol}");
-        setConfigProp("apiman-manager.storage.es.host",     "${apiman.es.host}");
-        setConfigProp("apiman-manager.storage.es.port",     "${apiman.es.port}");
-        setConfigProp("apiman-manager.storage.es.username", "${apiman.es.username}");
-        setConfigProp("apiman-manager.storage.es.password", "${apiman.es.password}");
+        setConfigProp("apiman-manager.storage.es.protocol", Systems.getEnvVarOrSystemProperty("apiman.es.protocol"));
+        setConfigProp("apiman-manager.storage.es.host",     Systems.getEnvVarOrSystemProperty("apiman.es.host"));
+        setConfigProp("apiman-manager.storage.es.port",     Systems.getEnvVarOrSystemProperty("apiman.es.port"));
+        setConfigProp("apiman-manager.storage.es.username", Systems.getEnvVarOrSystemProperty("apiman.es.username"));
+        setConfigProp("apiman-manager.storage.es.password", Systems.getEnvVarOrSystemProperty("apiman.es.password"));
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_STORAGE_ES_INITIALIZE, "true");
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_METRICS_TYPE, "es");
-        setConfigProp("apiman-manager.metrics.es.protocol", "${apiman.es.protocol}");
-        setConfigProp("apiman-manager.metrics.es.host",     "${apiman.es.host}");
-        setConfigProp("apiman-manager.metrics.es.port",     "${apiman.es.port}");
-        setConfigProp("apiman-manager.metrics.es.username", "${apiman.es.username}");
-        setConfigProp("apiman-manager.metrics.es.password", "${apiman.es.password}");
+        setConfigProp("apiman-manager.metrics.es.protocol", Systems.getEnvVarOrSystemProperty("apiman.es.protocol"));
+        setConfigProp("apiman-manager.metrics.es.host",     Systems.getEnvVarOrSystemProperty("apiman.es.host"));
+        setConfigProp("apiman-manager.metrics.es.port",     Systems.getEnvVarOrSystemProperty("apiman.es.port"));
+        setConfigProp("apiman-manager.metrics.es.username", Systems.getEnvVarOrSystemProperty("apiman.es.username"));
+        setConfigProp("apiman-manager.metrics.es.password", Systems.getEnvVarOrSystemProperty("apiman.es.password"));
 
         setConfigProp(ApiManagerConfig.APIMAN_MANAGER_API_CATALOG_TYPE, KubernetesServiceCatalog.class.getName());
 
