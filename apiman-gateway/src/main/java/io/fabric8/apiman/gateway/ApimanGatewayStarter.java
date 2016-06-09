@@ -55,8 +55,8 @@ public class ApimanGatewayStarter {
     
     public final static String APIMAN_GATEWAY_USER_PATH         = "/secret/apiman-gateway/gateway.user";
     public final static String APIMAN_GATEWAY_PROPERTIES        = "/secret/apiman-gateway/apiman-gateway.properties";
-    public final static String APIMAN_GATEWAY_ES_USERNAME       = "client.username";
-    public final static String APIMAN_GATEWAY_ES_PASSWORD       = "client.password";
+    public final static String APIMAN_GATEWAY_ES_USERNAME       = "apiman.es.username";
+    public final static String APIMAN_GATEWAY_ES_PASSWORD       = "apiman.es.password";
 
     //KeyStore used by Jetty to serve SSL
     public static String KEYSTORE_PATH                           = "/secret/apiman-gateway/keystore";
@@ -209,7 +209,7 @@ public class ApimanGatewayStarter {
                     }
                     if (Utils.isNotNullOrEmpty(username)) {
                         String encoded = Base64.getEncoder().encodeToString((username + ":" + password).getBytes("UTF-8"));
-                        log.info(username + ":" + password + ":" + encoded);
+                        log.info(username + ":******");
                         urlConnection.setRequestProperty("Authorization", "Basic "+ encoded);
                     }
                     isLive = IOUtils.toString(urlConnection.getInputStream());

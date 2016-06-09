@@ -38,7 +38,7 @@ public class Fabric8AuthenticationFilter extends AuthenticationFilter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
     ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
-        log.info(req.getPathInfo());
+        log.debug(req.getPathInfo());
         if ("/system/status".equals(req.getPathInfo()) || "/swagger.json".equals(req.getPathInfo())) {
             log.debug("Allowing anonymous access to " + req.getPathInfo());
             chain.doFilter(request, response);
