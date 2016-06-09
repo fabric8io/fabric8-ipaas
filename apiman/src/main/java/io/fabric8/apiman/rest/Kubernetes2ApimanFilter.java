@@ -372,8 +372,8 @@ public class Kubernetes2ApimanFilter implements Filter {
 
     private boolean isServiceRegisterToApiman(Service service) {
         Map<String,String> annotations = service.getMetadata().getAnnotations();
-        if (annotations!=null && annotations.containsKey(OPENSHIFT_API_MANAGER)) {
-            return "apiman".equalsIgnoreCase(annotations.get(OPENSHIFT_API_MANAGER));
+        if (annotations!=null && annotations.containsKey(APIMAN_PUBLISH)) {
+            return true;
         }
         return false;
     }

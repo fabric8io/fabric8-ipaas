@@ -3,6 +3,12 @@
 #This script is called by maven to deploy the secret after the maven validate phase.
 #Note that for this script to succeed you must oc login first
 
+oc get secret apiman-keystore
+if [ $? == 1 ]; then
+  echo "[INFO] Not logged in, no 'apiman-keystore' secret is created"
+  exit 0;
+fi
+
 dependenciesOK=true
 if [ ! -f "../elasticsearch/target/secret/elasticsearch-v1/public.key" ]; then
   echo "[WARNING] Please run 'mvn -Pssl package' to create the elasticsearch public.key"
