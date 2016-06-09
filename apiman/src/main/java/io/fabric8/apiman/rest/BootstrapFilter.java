@@ -54,7 +54,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 /**
- * The Boostrap class loads up default roles and policies
+ * The Boostrap class loads up default roles and policies into the Apiman backend
+ * storage. This only happens once after Apiman starts.
  *
  */
 @SuppressWarnings("nls")
