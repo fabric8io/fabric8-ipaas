@@ -24,11 +24,13 @@ public class Fabric8GatewayEsClientFactory extends SimpleJestClientFactory {
     /**
      * @param httpConfig
      */
+    @Override
     protected void updateHttpConfig(Builder httpConfig, Map<String, String> config) {
         String username = config.get("client.username"); //$NON-NLS-1$
         String password = config.get("client.password"); //$NON-NLS-1$
         String timeout  = config.get("client.timeout"); //$NON-NLS-1$
         if (username != null) {
+            log.info("Using username '" + username + "'");
             httpConfig.defaultCredentials(username, password);
         }
         if (timeout == null) {
