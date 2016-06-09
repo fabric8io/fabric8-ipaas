@@ -118,13 +118,18 @@ public class KubernetesServiceCatalog implements IApiCatalog  {
             throw new RuntimeException("Could not find AuthHeader");
         }
     }
+    
+    private List<AvailableApiBean> searchKube(String keyword, String namespace){
+        String authToken = AuthToken.get();
+        return searchKube(keyword, namespace, authToken);
+    }
 
     /**
      * Returns all available services in the namespace. If namespace is null, use
      * the current namespace.
      */
-    private List<AvailableApiBean> searchKube(String keyword, String namespace){
-        Config config = new ConfigBuilder().withOauthToken(AuthToken.get()).build();
+     List<AvailableApiBean> searchKube(String keyword, String namespace, String authToken){
+        Config config = new ConfigBuilder().withOauthToken(authToken).build();
         if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
         KubernetesClient k8sClient = new DefaultKubernetesClient(config);
         OpenShiftClient osClient = new DefaultOpenShiftClient(config);

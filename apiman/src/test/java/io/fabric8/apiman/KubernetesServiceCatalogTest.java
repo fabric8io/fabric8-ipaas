@@ -41,5 +41,12 @@ public class KubernetesServiceCatalogTest {
 		assertEquals("http://localhost:8080/_?wsdl", sc.descriptionUrl);
 		assertEquals("wsdl", sc.descriptionLanguage);
 	}
+	
+	@Test @Ignore
+	public void testK8s() {
+	    KubernetesServiceCatalog catalog = new KubernetesServiceCatalog();
+	    String authToken = "4q1_NL3LFhndlLFevYiU5KQvvimzkEoLaJmkWQwuIxY";
+	    catalog.searchKube("*", "default", authToken);
+	}
 
 }

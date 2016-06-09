@@ -35,6 +35,7 @@ import io.apiman.manager.api.rest.contract.IActionResource;
 import io.apiman.manager.api.rest.contract.IOrganizationResource;
 import io.apiman.manager.api.rest.contract.IUserResource;
 import io.apiman.manager.api.rest.contract.exceptions.OrganizationNotFoundException;
+import io.fabric8.apiman.ApimanStarter;
 import io.fabric8.apiman.Kubernetes2ApimanMapper;
 import io.fabric8.apiman.SudoSecurityContext;
 import io.fabric8.kubernetes.api.model.Namespace;
@@ -63,6 +64,9 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+
+import static io.fabric8.kubernetes.client.utils.Utils.getSystemPropertyOrEnvVar;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -134,7 +138,8 @@ public class Kubernetes2ApimanFilter implements Filter {
                             }
                         });
         }
-        if (! isWatching) {
+        boolean isTestMode = getSystemPropertyOrEnvVar(ApimanStarter.APIMAN_TESTMODE, false);
+        if (! isTestMode && ! isWatching) {
             watchNamespaces();
         }
 
@@ -311,8 +316,8 @@ public class Kubernetes2ApimanFilter implements Filter {
                     } else {
                         if (! isServiceRegisterToApiman(service)) {
                             log.info("Adding " + OPENSHIFT_API_MANAGER + " annotation to service " + service.getMetadata().getName());
-                            service.getMetadata().getAnnotations().put(OPENSHIFT_API_MANAGER, OPENSHIFT_API_MANAGER);
-                            osClient.services().replace(service);
+                            //service.getMetadata().getAnnotations().put(OPENSHIFT_API_MANAGER, OPENSHIFT_API_MANAGER);
+                            //osClient.services().replace(service);
                         }
                     }
                 }
