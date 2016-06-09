@@ -78,9 +78,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A simple implementation of an bearer token filter that checks the validity of
- * an incoming bearer token with the OpenShift issuer. The OpenShift call
- * returns a JSON from which the UserPrincipal can be set.
+ * This filter compares the services in the namespaces of the current user, to 
+ * the data in Apiman. If a service is annotated with the apiman.io/publish annotation
+ * it will be imported into the Apiman. 
  *
  */
 @SuppressWarnings("nls")
