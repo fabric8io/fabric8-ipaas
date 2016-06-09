@@ -53,7 +53,7 @@ public class Kubernetes2ApimanMapper {
             bean = new AvailableApiBean();
             Map<String,String> annotations = service.getMetadata().getAnnotations();
             String port = "";
-            if (service.getSpec().getPorts().size() > 0) port = String.valueOf(service.getSpec().getPorts().get(0).getTargetPort().getIntVal());
+            if (service.getSpec().getPorts().size() > 0) port = String.valueOf(service.getSpec().getPorts().get(0).getPort());
             String scheme = "http";
             if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) {
                 scheme = annotations.get(SERVICE_SCHEME);
