@@ -31,6 +31,7 @@ import io.apiman.manager.api.beans.summary.ApiVersionSummaryBean;
 import io.apiman.manager.api.beans.summary.AvailableApiBean;
 import io.apiman.manager.api.beans.summary.ClientSummaryBean;
 import io.apiman.manager.api.beans.summary.OrganizationSummaryBean;
+import io.apiman.manager.api.beans.summary.PolicySummaryBean;
 import io.apiman.manager.api.rest.contract.IActionResource;
 import io.apiman.manager.api.rest.contract.IOrganizationResource;
 import io.apiman.manager.api.rest.contract.IUserResource;
@@ -97,12 +98,14 @@ public class Kubernetes2ApimanFilter implements Filter {
     IActionResource actionResource;
 
     final private static Log log = LogFactory.getLog(Kubernetes2ApimanFilter.class);
-
-    public static final String NS_TTL                = "NS_CACHE_TTL";
-    public static final String NS_CACHE_MAXSIZE      = "NS_CACHE_MAXSIZE";
-    public static final String OPENSHIFT_API_MANAGER = "api.service.openshift.io/api-manager";
-    public static final String APIMAN_PLANS          = "apiman.io/plans";
-    public static final String APIMAN_PUBLISH        = "apiman.io/publish";
+    
+    public static final String NS_TTL                 = "NS_CACHE_TTL";
+    public static final String NS_CACHE_MAXSIZE       = "NS_CACHE_MAXSIZE";
+    public static final String APIMAN_PLANS           = "apiman.io/plans";
+    public static final String APIMAN_PUBLISH         = "apiman.io/publish";
+    
+    public static final String APIMAN_PUBLISH_PUBLISH = "publish";
+    public static final String APIMAN_PUBLISH_IMPORT  = "import";
 
     private static LoadingCache<String, ApimanInfo> nsCache = null;
 
@@ -167,8 +170,7 @@ public class Kubernetes2ApimanFilter implements Filter {
                     SudoSecurityContext sudoSecurityContext = new SudoSecurityContext();
                     for (Iterator<String> iter = deletedNamespaces.iterator(); iter.hasNext();) {
                         String orgId = BeanUtils.idFromName(iter.next());
-                        sudoSecurityContext.sudo(organizationResource, "Kubernetes2Apiman", true);
-                        deleteOrganization(orgId);
+                        deleteOrganization(orgId, sudoSecurityContext, "Kubernetes2Apiman");
                         sudoSecurityContext.exit();
                         iter.remove();
                     }
@@ -221,9 +223,7 @@ public class Kubernetes2ApimanFilter implements Filter {
             for (OrganizationSummaryBean org: orgBeans) {
                 if (! namespaceIds.contains(org.getId())) {
                     //delete the organization in apiman
-                    sudoSecurityContext.sudo(organizationResource, username, false);
-                    deleteOrganization(org.getId());
-                    sudoSecurityContext.exit();
+                    deleteOrganization(org.getId(), sudoSecurityContext, username);
                 } else {
                     apimanOrganizationIdsForUser.add(org.getId());
                 }
@@ -271,8 +271,12 @@ public class Kubernetes2ApimanFilter implements Filter {
                 for (ApiSummaryBean bean : apiSummaryBeans) {
                     //retire and delete from apiman if no longer in openshift
                     if (! serviceIds.contains(bean.getId())) {
+                        sudoSecurityContext.sudo(actionResource, username, true);
                         retireApi(orgId, bean.getId());
-                        organizationResource.deleteApi(orgId, bean.getId());
+                        sudoSecurityContext.exit();
+                        sudoSecurityContext.sudo(organizationResource, username, true);
+                        deleteApi(orgId, bean.getId(), sudoSecurityContext);
+                        sudoSecurityContext.exit();
                     } else {
                         apimanApiIds.add(bean.getId());
                     }
@@ -282,7 +286,9 @@ public class Kubernetes2ApimanFilter implements Filter {
                 Kubernetes2ApimanMapper mapper = new Kubernetes2ApimanMapper(osClient);
                 for (Service service : serviceList.getItems()) {
                     if (! apimanApiIds.contains(BeanUtils.idFromName(service.getMetadata().getName()))) {
-                        if (isServiceRegisterToApiman(service)) {
+                        String action = getApimanPublishAnnotation(service);
+                        log.info(APIMAN_PUBLISH + " annotation value is set to " + action);
+                        if (action!=null) {
                             log.info("Creating API '" + service.getMetadata().getName() + "' in apiman");
                             //map service to bean
                             AvailableApiBean bean = mapper.createAvailableApiBean(service, null);
@@ -308,16 +314,21 @@ public class Kubernetes2ApimanFilter implements Filter {
                                 }
                                 log.info("New API: " + newApiBean);
                                 organizationResource.createApi(orgId, newApiBean);
-                                apimanInfo.apis.add(BeanUtils.idFromName(service.getMetadata().getName()));
+                                String apiId = BeanUtils.idFromName(service.getMetadata().getName());
+                                apimanInfo.apis.add(apiId);
+                                
+                                if (action.equalsIgnoreCase("publish")) {
+                                    ActionBean publishApiAction = new ActionBean();
+                                    publishApiAction.setOrganizationId(orgId);
+                                    publishApiAction.setEntityId(apiId);
+                                    publishApiAction.setEntityVersion("1.0");
+                                    publishApiAction.setType(ActionType.publishAPI);
+                                    log.info("Publish API: " + publishApiAction);
+                                    actionResource.performAction(publishApiAction);
+                                }
                             }
                         } else {
-                            log.debug("Auto registration not requested for this service");
-                        }
-                    } else {
-                        if (! isServiceRegisterToApiman(service)) {
-                            log.info("Adding " + OPENSHIFT_API_MANAGER + " annotation to service " + service.getMetadata().getName());
-                            //service.getMetadata().getAnnotations().put(OPENSHIFT_API_MANAGER, OPENSHIFT_API_MANAGER);
-                            //osClient.services().replace(service);
+                            log.debug("Apiman import not requested for this service");
                         }
                     }
                 }
@@ -373,12 +384,12 @@ public class Kubernetes2ApimanFilter implements Filter {
         return true;
     }
 
-    private boolean isServiceRegisterToApiman(Service service) {
+    private String getApimanPublishAnnotation(Service service) {
         Map<String,String> annotations = service.getMetadata().getAnnotations();
         if (annotations!=null && annotations.containsKey(APIMAN_PUBLISH)) {
-            return true;
+            return annotations.get(APIMAN_PUBLISH);
         }
-        return false;
+        return null;
     }
 
     private Set<ApiPlanBean> getPlansForApiman(Service service) {
@@ -406,7 +417,7 @@ public class Kubernetes2ApimanFilter implements Filter {
         isWatching = true;
         Config config = new ConfigBuilder().withWatchReconnectLimit(1).build();
         if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
-        log.info("Starting namespace watcher");
+        log.info("Starting service and namespace watcher");
         KubernetesClient k8sClient = new DefaultKubernetesClient(config);
         try {
             k8sClient.namespaces().watch(new Watcher<Namespace>() {
@@ -440,7 +451,7 @@ public class Kubernetes2ApimanFilter implements Filter {
                 @Override
                 public void eventReceived(Action action, Service resource) {
                     log.info("Watcher received service " + action.name() + " action");
-                    if (Action.ADDED.equals(action)) {
+                    if (Action.ADDED.equals(action) || Action.DELETED.equals(action)) {
                         log.info("Invalidating nsCache");
                         nsCache.invalidateAll();
                     }
@@ -452,13 +463,13 @@ public class Kubernetes2ApimanFilter implements Filter {
         }
     }
 
-    private void retireApi(String organizationId, String id) {
-        List<ApiVersionSummaryBean> versionBeans = organizationResource.listApiVersions(organizationId, id);
+    private void retireApi(String organizationId, String apiId) {
+        List<ApiVersionSummaryBean> versionBeans = organizationResource.listApiVersions(organizationId, apiId);
         for (ApiVersionSummaryBean versionBean : versionBeans) {
             if (ApiStatus.Published.equals(versionBean.getStatus())) {
                 ActionBean retireApiAction = new ActionBean();
                 retireApiAction.setOrganizationId(organizationId);
-                retireApiAction.setEntityId(id);
+                retireApiAction.setEntityId(apiId);
                 retireApiAction.setEntityVersion(versionBean.getVersion());
                 retireApiAction.setType(ActionType.retireAPI);
                 actionResource.performAction(retireApiAction);
@@ -473,17 +484,33 @@ public class Kubernetes2ApimanFilter implements Filter {
         unregisterClientAction.setType(ActionType.unregisterClient);
         actionResource.performAction(unregisterClientAction);
     }
+    
+    private void deleteApi(String orgId, String apiId, SudoSecurityContext sudoSecurityContext) {
+        List<ApiVersionSummaryBean> versionBeans = organizationResource.listApiVersions(orgId, apiId);
+        for (ApiVersionSummaryBean versionBean : versionBeans) {
+            List<PolicySummaryBean> apiPolicies = organizationResource.listApiPolicies(orgId, apiId, versionBean.getVersion());
+            for (PolicySummaryBean apiPolicy : apiPolicies) {
+                organizationResource.deleteApiPolicy(orgId, apiId, versionBean.getVersion(), apiPolicy.getId());
+            }
+            //organizationResource.getApiVersionContracts(organizationId, apiId, version, page, pageSize)
+        }
+        organizationResource.deleteApi(orgId, apiId);
+    }
 
-    private void deleteOrganization(String organizationId) {
+    private void deleteOrganization(String organizationId, SudoSecurityContext sudoSecurityContext, String username) {
         List<ApiSummaryBean> apiSymmaryBeans = organizationResource.listApi(organizationId);
+        sudoSecurityContext.sudo(organizationResource, username, true);
         for (ApiSummaryBean apiSummaryBean : apiSymmaryBeans) {
+            sudoSecurityContext.sudo(actionResource, username, true);
             retireApi(organizationId, apiSummaryBean.getId());
+            sudoSecurityContext.exit();
         }
         List<ClientSummaryBean> clientSymmaryBeans = organizationResource.listClients(organizationId);
         for (ClientSummaryBean clientSymmaryBean : clientSymmaryBeans) {
             unregisterClient(organizationId, clientSymmaryBean.getId());
         }
         organizationResource.delete(organizationId);
+        sudoSecurityContext.exit();
     }
 
 

@@ -20,7 +20,9 @@ import java.util.Set;
 import javax.enterprise.inject.Vetoed;
 
 import io.apiman.manager.api.beans.idm.PermissionType;
+import io.apiman.manager.api.rest.contract.IActionResource;
 import io.apiman.manager.api.rest.contract.IOrganizationResource;
+import io.apiman.manager.api.rest.impl.ActionResourceImpl;
 import io.apiman.manager.api.rest.impl.OrganizationResourceImpl;
 import io.apiman.manager.api.security.ISecurityContext;
 
@@ -30,7 +32,9 @@ public class SudoSecurityContext implements ISecurityContext {
     private String currentUser;
     private boolean isAdmin;
     private OrganizationResourceImpl organizationResource;
-    private ISecurityContext originalSecurityContext;
+    private ActionResourceImpl actionResource;
+    private ISecurityContext originalOrganizationSecurityContext;
+    private ISecurityContext originalActionSecurityContext;
     
     /**
      * Constructor.
@@ -42,13 +46,25 @@ public class SudoSecurityContext implements ISecurityContext {
         this.currentUser = currentUser;
         this.isAdmin = isAdmin;
         this.organizationResource = (OrganizationResourceImpl) organizationResource;
-        this.originalSecurityContext = this.organizationResource.getSecurityContext();
-        this.organizationResource.setSecurityContext(this);
+        this.originalOrganizationSecurityContext = this.organizationResource.getSecurityContext();
+        ((OrganizationResourceImpl) organizationResource).setSecurityContext(this);
     }
+    
+    public void sudo (IActionResource actionResource, String currentUser, boolean isAdmin) {
+        this.currentUser = currentUser;
+        this.isAdmin = isAdmin;
+        this.actionResource = (ActionResourceImpl) actionResource;
+        this.originalActionSecurityContext = this.actionResource.getSecurityContext();
+        ActionResourceImpl actionResourceImpl = ((ActionResourceImpl) actionResource);
+        actionResourceImpl.setSecurityContext(this);
+        ((OrganizationResourceImpl) actionResourceImpl.getOrgs()).setSecurityContext(this);
+    }
+    
     public void exit() {
         this.currentUser = null;
         this.isAdmin = false;
-        if (this.organizationResource!=null) this.organizationResource.setSecurityContext(originalSecurityContext);
+        if (this.organizationResource!=null) this.organizationResource.setSecurityContext(originalOrganizationSecurityContext);
+        if (this.actionResource      !=null) this.actionResource.setSecurityContext(originalActionSecurityContext);
     }
 
     /**
