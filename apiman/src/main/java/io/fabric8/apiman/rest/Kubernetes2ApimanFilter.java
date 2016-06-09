@@ -205,7 +205,7 @@ public class Kubernetes2ApimanFilter implements Filter {
             osClient = new DefaultOpenShiftClient(config);
             String username = osClient.inAnyNamespace().users().withName("~").get().getMetadata().getName();
             apimanInfo.token = authToken;
-
+            
             //get k8s projects owned by user
             Set<String> namespaceIds = new HashSet<String>();
             ProjectList projectList = osClient.projects().list();
@@ -349,21 +349,24 @@ public class Kubernetes2ApimanFilter implements Filter {
      */
     private boolean isServiceReady(AvailableApiBean bean) {
         log.debug("DefinitionType: " + bean.getDefinitionType());
+        URL defUrl = null;
         if (bean.getDefinitionType()!=null && ! "".equals(bean.getDefinitionType())) {
             try {
-                URL defUrl = new URL(bean.getDefinitionUrl());
+                defUrl = new URL(bean.getDefinitionUrl());
                 URLConnection urlConnection =  defUrl.openConnection();
                 log.info("Trying to obtain descriptionDoc for service " + bean.getName());
                 urlConnection.setConnectTimeout(250);
                 if (urlConnection.getContentLength() > 0) {
-                    log.debug("DefinitionDoc Ready to be read " + urlConnection.getContent());
+                    log.debug("DefinitionDoc at 'Ready to be read " + urlConnection.getContent());
+                    
                     return true;
                 } else {
-                    log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read " + urlConnection.getContent());
+                    log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read from " +  defUrl.toExternalForm());
                     return false;
                 }
             } catch (Exception e) {
-                log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read. " + e.getMessage());
+                log.info("DefinitionDoc for '" + bean.getName() + "' can't be read from " 
+                        +  defUrl.toExternalForm() +  ". " + e.getMessage());
                 return false;
             }
         }
