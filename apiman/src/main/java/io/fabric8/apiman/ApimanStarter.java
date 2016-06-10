@@ -124,6 +124,10 @@ public class ApimanStarter {
             log.info("Found " + gatewayEndpoint);
         }
 
+        setConfigProp("apiman.plugins.repositories",
+                "http://repo1.maven.org/maven2/");
+        setConfigProp("apiman-manager.plugins.registries",
+                "http://cdn.rawgit.com/apiman/apiman-plugin-registry/1.2.6.Final/registry.json");
         setFabric8Props(elasticEndpoint);
         if (isSsl) {
             microService.startSsl();
