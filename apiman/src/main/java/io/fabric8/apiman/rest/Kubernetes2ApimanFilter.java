@@ -283,6 +283,7 @@ public class Kubernetes2ApimanFilter implements Filter {
                 }
 
                 sudoSecurityContext.sudo(organizationResource, username, false);
+                sudoSecurityContext.sudo(actionResource, username, false);
                 Kubernetes2ApimanMapper mapper = new Kubernetes2ApimanMapper(osClient);
                 for (Service service : serviceList.getItems()) {
                     if (! apimanApiIds.contains(BeanUtils.idFromName(service.getMetadata().getName()))) {
@@ -369,10 +370,19 @@ public class Kubernetes2ApimanFilter implements Filter {
                 urlConnection.setConnectTimeout(250);
                 if (urlConnection.getContentLength() > 0) {
                     log.debug("DefinitionDoc at 'Ready to be read " + urlConnection.getContent());
-                    
                     return true;
                 } else {
-                    log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read from " +  defUrl.toExternalForm());
+                    //try the route
+                    defUrl = new URL(bean.getRouteDefinitionUrl());
+                    urlConnection =  defUrl.openConnection();
+                    log.info("Trying to obtain descriptionDoc for service " + bean.getName());
+                    urlConnection.setConnectTimeout(250);
+                    if (urlConnection.getContentLength() > 0) {
+                        bean.setDefinitionUrl(defUrl.toExternalForm());
+                        return true;
+                    } else {
+                        log.info("DefinitionDoc for '" + bean.getName() + "' not ready to be read from " +  defUrl.toExternalForm());
+                    }
                     return false;
                 }
             } catch (Exception e) {
@@ -509,10 +519,9 @@ public class Kubernetes2ApimanFilter implements Filter {
     private void deleteOrganization(String organizationId, SudoSecurityContext sudoSecurityContext, String username) {
         List<ApiSummaryBean> apiSymmaryBeans = organizationResource.listApi(organizationId);
         sudoSecurityContext.sudo(organizationResource, username, true);
+        sudoSecurityContext.sudo(actionResource, username, true);
         for (ApiSummaryBean apiSummaryBean : apiSymmaryBeans) {
-            sudoSecurityContext.sudo(actionResource, username, true);
             retireApi(organizationId, apiSummaryBean.getId());
-            sudoSecurityContext.exit();
         }
         List<ClientSummaryBean> clientSymmaryBeans = organizationResource.listClients(organizationId);
         for (ClientSummaryBean clientSymmaryBean : clientSymmaryBeans) {
