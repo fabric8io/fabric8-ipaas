@@ -19,6 +19,7 @@
     <http.port>7777</http.port>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
+    <docker.env.apiman-gateway.ssl>false</docker.env.apiman-gateway.ssl>
     <docker.port.container.http>${http.port}</docker.port.container.http>
     <docker.port.container.jolokia>8778</docker.port.container.jolokia>
 
