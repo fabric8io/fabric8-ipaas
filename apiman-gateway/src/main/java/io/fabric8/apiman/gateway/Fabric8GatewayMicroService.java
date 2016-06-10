@@ -27,13 +27,13 @@ import io.apiman.gateway.platforms.war.micro.GatewayMicroServicePlatform;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.utils.Systems;
 
 public class Fabric8GatewayMicroService extends GatewayMicroService {
     
     private URL elasticEndpoint = null;
-    String gatewayRoute = "http://apiman-gateway";
     
     private Server sslServer;
     
@@ -93,27 +93,20 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
         log.info("** **********CONFIG COMPLETED*********** **");
     }
 
-    /**
-     * @see io.apiman.gateway.platforms.war.micro.GatewayMicroService#configure()
-     */
-    @Override
-    protected void configure() {
-        log.info("** Setting API Manager Configuration Properties **");
-        KubernetesClient kubernetes = new DefaultKubernetesClient();
-        try {
-            OpenShiftClient osClient = kubernetes.adapt(OpenShiftClient.class);
-            Route route = osClient.routes().withName("apiman-gateway").get();
-            gatewayRoute = "http://" + route.getSpec().getHost();
-        } catch (Exception e) {
-            log.warn("Warning: Not an Openshift client - no route info can be looked up");
-        } finally {
-            kubernetes.close();
-        }
-    }
 
 	@Override
 	protected void configureGlobalVars() {
 	   
+	    String gatewayRoute = "http://apiman-gateway";
+	    DefaultOpenShiftClient osClient = new DefaultOpenShiftClient();
+	    try {
+	        Route route = osClient.routes().withName("apiman-gateway").get();
+            gatewayRoute = "http://" + route.getSpec().getHost();
+	    } catch (Exception e) {
+            log.warn("Warning: Not an Openshift client - no route info can be looked up");
+        } finally {
+            osClient.close();
+        }
     	// Discover and set the gateway endpoint.
     	if (Systems.getEnvVarOrSystemProperty(GatewayMicroServicePlatform.APIMAN_GATEWAY_ENDPOINT) == null) {
     	    log.info("Using Gateway Route " + gatewayRoute);
