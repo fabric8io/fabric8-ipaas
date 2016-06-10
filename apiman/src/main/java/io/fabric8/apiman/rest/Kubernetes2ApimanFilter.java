@@ -42,6 +42,7 @@ import io.fabric8.apiman.SudoSecurityContext;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -51,7 +52,7 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectList;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
-import io.fabric8.openshift.client.NamespacedOpenShiftClient;
+import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.utils.Systems;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,9 +66,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-
-import static io.fabric8.kubernetes.client.utils.Utils.getSystemPropertyOrEnvVar;
-
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -77,6 +75,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static io.fabric8.kubernetes.client.utils.Utils.getSystemPropertyOrEnvVar;
 
 /**
  * This filter compares the services in the namespaces of the current user, to 
@@ -192,7 +192,7 @@ public class Kubernetes2ApimanFilter implements Filter {
 
     /**
      * Given a token is
-     * @param token
+     * @param authToken
      * @return
      */
     public ApimanInfo syncKubernetesToApiman(final String authToken){
@@ -200,12 +200,12 @@ public class Kubernetes2ApimanFilter implements Filter {
         SudoSecurityContext sudoSecurityContext = new SudoSecurityContext();
         ApimanInfo apimanInfo = new ApimanInfo();
 
-        NamespacedOpenShiftClient osClient = null;
+        OpenShiftClient osClient = null;
         try {
             Config config = new ConfigBuilder().withOauthToken(authToken).build();
             if (kubernetesMasterUrl!=null) config.setMasterUrl(kubernetesMasterUrl);
             osClient = new DefaultOpenShiftClient(config);
-            String username = osClient.inAnyNamespace().users().withName("~").get().getMetadata().getName();
+            String username = osClient.users().withName("~").get().getMetadata().getName();
             apimanInfo.token = authToken;
             
             //get k8s projects owned by user
@@ -428,6 +428,11 @@ public class Kubernetes2ApimanFilter implements Filter {
                 }
 
                 @Override
+                public void errorReceived(Status status) {
+                    log.warn("Watcher " + this + " errorReceived: " + status.getMessage() + " " + status.getStatus());
+                }
+
+                @Override
                 public void eventReceived(Action action, Namespace resource) {
                     log.info("Watcher received namespace " + action.name() + " action");
                     if (Action.ADDED.equals(action)) {
@@ -446,6 +451,10 @@ public class Kubernetes2ApimanFilter implements Filter {
                 @Override
                 public void onClose(KubernetesClientException cause) {
                     log.error(cause.getMessage(),cause);
+                }
+
+                public void errorReceived(Status status) {
+                    log.warn("Watcher " + this + " errorReceived: " + status.getMessage() + " " + status.getStatus());
                 }
 
                 @Override

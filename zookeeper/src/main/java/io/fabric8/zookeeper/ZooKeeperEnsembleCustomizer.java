@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.builder.Visitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
@@ -49,33 +48,42 @@ public class ZooKeeperEnsembleCustomizer {
     private static int ENSEMBLE_SIZE = Integer.parseInt(System.getProperty(ENSEMBLE_SIZE_PROP, DEFAULT_ENSEMBLE_SIZE));
     private static VolumeProvider VOLUME_PROVIDER = VolumeProvider.valueOf(System.getProperty(VOLUME_TYPE_PROP, DEFAULT_VOLUME_TYPE));
 
-    public void on(KubernetesListBuilder builder) {
-        List<HasMetadata> newItems = process(builder.getItems());
+    public void on(KubernetesListBuilder builder) throws Throwable {
+        try {
+            List<HasMetadata> newItems = process(BuilderHelpers.getItems(builder));
 
-        for (HasMetadata item : builder.getItems()) {
-            if (item instanceof ReplicationController) {
-                builder.removeFromReplicationControllerItems((ReplicationController) item);
-            } else if (item instanceof Service) {
-                builder.removeFromServiceItems((Service) item);
+            for (HasMetadata item : BuilderHelpers.getItems(builder)) {
+                if (item instanceof ReplicationController) {
+                    builder.removeFromReplicationControllerItems((ReplicationController) item);
+                } else if (item instanceof Service) {
+                    builder.removeFromServiceItems((Service) item);
+                }
             }
-        }
 
-        builder.withItems(newItems);
+            builder.withItems(newItems);
+        } catch (Throwable e) {
+            BuilderHelpers.logException(e);
+        }
     }
 
-    public void on(TemplateBuilder builder) {
-        List<HasMetadata> newItems = process(builder.getObjects());
+    public void on(TemplateBuilder builder) throws Throwable {
+        try {
+            List<HasMetadata> newItems = process(BuilderHelpers.getObjects(builder));
 
-        for (HasMetadata item : builder.getObjects()) {
-            if (item instanceof ReplicationController) {
-                builder.removeFromReplicationControllerObjects((ReplicationController) item);
-            } else if (item instanceof Service) {
-                builder.removeFromServiceObjects((Service) item);
+            for (HasMetadata item : BuilderHelpers.getObjects(builder)) {
+                if (item instanceof ReplicationController) {
+                    builder.removeFromReplicationControllerObjects((ReplicationController) item);
+                } else if (item instanceof Service) {
+                    builder.removeFromServiceObjects((Service) item);
+                }
             }
-        }
 
-        builder.withObjects(newItems);
+            builder.withObjects(newItems);
+        } catch (Throwable e) {
+            BuilderHelpers.logException(e);
+        }
     }
+
 
     List<HasMetadata> process(Collection<HasMetadata> resources) {
         Service service = null;
@@ -120,18 +128,19 @@ public class ZooKeeperEnsembleCustomizer {
             }
         }
 
-        newItems.add(new ServiceBuilder(service)
-                .editSpec()
-                .withType(LOADBALANCER_TYPE)
-                .withClusterIP(null)
-                .withPorts(new ServicePortBuilder()
-                        .withName(CLIENT)
-                        .withPort(2181)
-                        .withNewTargetPort(2181)
-                        .build())
-                .endSpec()
-                .build());
-
+        if (service != null) {
+            newItems.add(new ServiceBuilder(service)
+                    .editSpec()
+                    .withType(LOADBALANCER_TYPE)
+                    .withClusterIP(null)
+                    .withPorts(new ServicePortBuilder()
+                            .withName(CLIENT)
+                            .withPort(2181)
+                            .withNewTargetPort(2181)
+                            .build())
+                    .endSpec()
+                    .build());
+        }
         return newItems;
     }
 
