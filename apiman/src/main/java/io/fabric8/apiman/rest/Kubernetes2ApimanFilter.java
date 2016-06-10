@@ -283,6 +283,7 @@ public class Kubernetes2ApimanFilter implements Filter {
                 }
 
                 sudoSecurityContext.sudo(organizationResource, username, false);
+                sudoSecurityContext.sudo(actionResource, username, false);
                 Kubernetes2ApimanMapper mapper = new Kubernetes2ApimanMapper(osClient);
                 for (Service service : serviceList.getItems()) {
                     if (! apimanApiIds.contains(BeanUtils.idFromName(service.getMetadata().getName()))) {
@@ -509,10 +510,9 @@ public class Kubernetes2ApimanFilter implements Filter {
     private void deleteOrganization(String organizationId, SudoSecurityContext sudoSecurityContext, String username) {
         List<ApiSummaryBean> apiSymmaryBeans = organizationResource.listApi(organizationId);
         sudoSecurityContext.sudo(organizationResource, username, true);
+        sudoSecurityContext.sudo(actionResource, username, true);
         for (ApiSummaryBean apiSummaryBean : apiSymmaryBeans) {
-            sudoSecurityContext.sudo(actionResource, username, true);
             retireApi(organizationId, apiSummaryBean.getId());
-            sudoSecurityContext.exit();
         }
         List<ClientSummaryBean> clientSymmaryBeans = organizationResource.listClients(organizationId);
         for (ClientSummaryBean clientSymmaryBean : clientSymmaryBeans) {
