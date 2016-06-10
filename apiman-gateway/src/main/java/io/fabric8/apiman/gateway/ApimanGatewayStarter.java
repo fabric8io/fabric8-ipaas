@@ -70,6 +70,8 @@ public class ApimanGatewayStarter {
     public static String TRUSTSTORE_PASSWORD_PATH                = "/secret/apiman-gateway/truststore.password";
     
     final private static Log log = LogFactory.getLog(ApimanGatewayStarter.class);
+    static boolean isSsl = false;
+    
     /**
      * Main entry point for the Apiman Gateway micro service.
      * @param args the arguments
@@ -82,7 +84,7 @@ public class ApimanGatewayStarter {
         if (isTestMode) log.info("Apiman Gateway Running in TestMode");
         
         String isSslString = Systems.getEnvVarOrSystemProperty(APIMAN_GATEWAY_SSL,"false");
-        boolean isSsl = "true".equalsIgnoreCase(isSslString);
+        isSsl = "true".equalsIgnoreCase(isSslString);
         log.info("Apiman Gateway running in SSL: " + isSsl);
         String protocol = "http";
         if (isSsl) protocol = "https";

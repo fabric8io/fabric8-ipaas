@@ -103,7 +103,9 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
 	    DefaultOpenShiftClient osClient = new DefaultOpenShiftClient();
 	    try {
 	        Route route = osClient.routes().withName("apiman-gateway").get();
-            gatewayRoute = "http://" + route.getSpec().getHost();
+	        String scheme = "http://";
+	        if (ApimanGatewayStarter.isSsl) scheme = "https://";
+            gatewayRoute = scheme + route.getSpec().getHost();
 	    } catch (Exception e) {
             log.warn("Warning: Not an Openshift client - no route info can be looked up");
         } finally {
