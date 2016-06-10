@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import org.slf4j.Logger;
@@ -75,6 +76,11 @@ public class EndpointWatcher implements Watcher<Endpoints> {
         } catch (IOException | InterruptedException e) {
             LOG.warn("Caught: " + e, e);
         }
+    }
+
+    @Override
+    public void errorReceived(Status status) {
+        LOG.warn("Watcher " + this + " errorReceived: " + status);
     }
 
     private void upsertEndpoint(Endpoints endpoints) throws IOException {
