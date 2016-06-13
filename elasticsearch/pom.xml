@@ -38,6 +38,8 @@
     <docker.port.container.transport>9300</docker.port.container.transport>
     <docker.port.container.jolokia />
 
+    <elastic-ssl/>
+
     <fabric8.env.SERVICE_DNS>elasticsearch-v1-masters</fabric8.env.SERVICE_DNS>
 
     <fabric8.service.port>9200</fabric8.service.port>
