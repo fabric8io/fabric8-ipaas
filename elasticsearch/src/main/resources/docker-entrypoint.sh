@@ -6,7 +6,7 @@ chmod a+w -R /usr/share/elasticsearch/bin
 
 echo 'Second argument is ' $2
 
-if [ $2 = 'ssl' ]; then
+if [ "$2" = 'ssl' ]; then
   /usr/share/elasticsearch/bin/plugin -i com.floragunn/search-guard/0.5.1 -url https://github.com/lukas-vlcek/origin-aggregated-logging/releases/download/v0.1/search-guard-0.5.1.zip
   cat <<EOF >> /usr/share/elasticsearch/config/elasticsearch.yml
 
@@ -40,7 +40,7 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 
-if [ $2 = 'ssl' ]; then
+if [ "$2" = 'ssl' ]; then
 
 echo "Starting elastic to load the ACL..."
 gosu elasticsearch ./elasticsearch -Des.pidfile=/usr/share/elasticsearch/bin/elasticsearch.pid -d
