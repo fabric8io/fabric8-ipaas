@@ -127,6 +127,8 @@ public class Fabric8GatewayMicroService extends GatewayMicroService {
             setConfigProperty("apiman-gateway.metrics.client.index" , esIndexPrefix + "metrics");
             setConfigProperty("apiman-gateway.components.ICacheStoreComponent.client.index"  , esIndexPrefix + "cache");
         }
+        //turn off metrics workaround
+        setConfigProperty("apiman-gateway.metrics","io.apiman.gateway.engine.impl.InMemoryMetrics");
 	}
 	
 	/**
