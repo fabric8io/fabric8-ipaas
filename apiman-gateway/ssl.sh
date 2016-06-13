@@ -3,9 +3,9 @@
 #This script is called by maven to deploy the secret after the maven validate phase.
 #Note that for this script to succeed you must oc login first
 
-oc get secret apiman-gateway-keystore
+oc whoami > /dev/null
 if [ $? == 1 ]; then
-  echo "[INFO] Not logged in, no 'apiman-gateway-keystore' secret is created"
+  echo "[ERROR] Not logged in, no 'apiman-gateway-keystore' secret is created"
   exit 0;
 fi
 
@@ -14,7 +14,7 @@ if [ ! -f "../elasticsearch/target/secret/elasticsearch-v1/public.key" ]; then
     echo "[WARNING] No 'apiman-gateway-keystore'secret is created"
 else
     # deleting existing secret if there
-    oc get secret apiman-gateway-keystore | grep 'Opaque' &> /dev/null
+    oc get secret apiman-gateway-keystore &> /dev/null
     if [ $? == 0 ]; then
       echo [INFO] Delete existing secret/apiman-gateway-keystore
       oc delete secret apiman-gateway-keystore

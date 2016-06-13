@@ -3,9 +3,9 @@
 #This script is called by maven to deploy the secret after the maven validate phase.
 #Note that for this script to succeed you must oc login first
 
-oc get secret apiman-keystore
+oc whoami > /dev/null
 if [ $? == 1 ]; then
-  echo "[INFO] Not logged in, no 'apiman-keystore' secret is created"
+  echo "[ERROR] Not logged in, no 'apiman-keystore' secret is created"
   exit 0;
 fi
 
@@ -23,7 +23,7 @@ fi
 if [ "$dependenciesOK" = true ]; then
 
 #   deleting existing secret if there
-    oc get secret apiman-keystore | grep 'Opaque' &> /dev/null
+    oc get secret apiman-keystore &> /dev/null
     if [ $? == 0 ]; then
       echo "[INFO] Delete existing secret/apiman-keystore"
       oc delete secret apiman-keystore
