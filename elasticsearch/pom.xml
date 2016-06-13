@@ -89,16 +89,16 @@
         <artifactId>docker-maven-plugin</artifactId>
         <version>${docker.maven.plugin.version}</version>
         <configuration>
-          <image>${fabric8.dockerUser}${artifactId}:${project.version}</image>
+          <image>${fabric8.dockerUser}${project.artifactId}:${project.version}</image>
           <images>
             <image>
-              <name>${fabric8.dockerUser}${artifactId}:${project.version}</name>
+              <name>${fabric8.dockerUser}${project.artifactId}:${project.version}</name>
               <build>
                 <from>docker.io/${fabric8.dockerUser}elasticsearch-k8s:1.5.2</from>
                 <assembly>
                   <basedir>/</basedir>
                   <inline xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-                    <id>${artifactId}</id>
+                    <id>${project.artifactId}</id>
                     <fileSets>
                       <fileSet>
                         <directory>${project.basedir}/src/main/resources</directory>
@@ -111,7 +111,7 @@
                   </inline>
                 </assembly>
                 <entryPoint>
-                  <shell>/docker-entrypoint.sh elasticsearch ${elastic-ssl}</shell>
+                  <shell>/docker-entrypoint.sh elasticsearch ${elasticssl}</shell>
                 </entryPoint>
 <!--
                 <runCmds>
@@ -168,7 +168,7 @@
       <id>ssl</id>
       <properties>
         <docker.env.apiman.ssl>true</docker.env.apiman.ssl>
-        <elastic-ssl>ssl</elastic-ssl>
+        <elasticssl>ssl</elasticssl>
         <keystore.password>supersecret</keystore.password>
         <fabric8.volume.keystore.secret>elasticsearch-v1-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/elasticsearch-v1/</fabric8.volume.keystore.mountPath>
