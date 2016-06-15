@@ -288,7 +288,6 @@ public class Kubernetes2ApimanFilter implements Filter {
                 for (Service service : serviceList.getItems()) {
                     if (! apimanApiIds.contains(BeanUtils.idFromName(service.getMetadata().getName()))) {
                         String action = getApimanPublishAnnotation(service);
-                        log.info(APIMAN_PUBLISH + " annotation value is set to " + action);
                         if (action!=null) {
                             log.info("Creating API '" + service.getMetadata().getName() + "' in apiman");
                             //map service to bean
