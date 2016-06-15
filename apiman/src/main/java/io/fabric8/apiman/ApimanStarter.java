@@ -187,7 +187,7 @@ public class ApimanStarter {
     }
 
     static final void setConfigProp(String propName, String defaultValue) {
-        if (getSystemPropertyOrEnvVar(propName) == null) {
+        if (getSystemPropertyOrEnvVar(propName) == null && defaultValue!=null) {
             System.setProperty(propName, defaultValue);
         }
         if (propName.toLowerCase().contains("password")) {
