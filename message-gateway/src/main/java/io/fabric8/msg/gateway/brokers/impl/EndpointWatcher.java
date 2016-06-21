@@ -78,11 +78,6 @@ public class EndpointWatcher implements Watcher<Endpoints> {
         }
     }
 
-    @Override
-    public void errorReceived(Status status) {
-        LOG.warn("Watcher " + this + " errorReceived: " + status);
-    }
-
     private void upsertEndpoint(Endpoints endpoints) throws IOException {
         synchronized (endpointsVersions) {
             NamespaceName namespacedName = NamespaceName.create(endpoints);

@@ -437,11 +437,6 @@ public class Kubernetes2ApimanFilter implements Filter {
                 }
 
                 @Override
-                public void errorReceived(Status status) {
-                    log.warn("Watcher " + this + " errorReceived: " + status.getMessage() + " " + status.getStatus());
-                }
-
-                @Override
                 public void eventReceived(Action action, Namespace resource) {
                     log.info("Watcher received namespace " + action.name() + " action");
                     if (Action.ADDED.equals(action)) {
@@ -460,10 +455,6 @@ public class Kubernetes2ApimanFilter implements Filter {
                 @Override
                 public void onClose(KubernetesClientException cause) {
                     log.error(cause.getMessage(),cause);
-                }
-
-                public void errorReceived(Status status) {
-                    log.warn("Watcher " + this + " errorReceived: " + status.getMessage() + " " + status.getStatus());
                 }
 
                 @Override
