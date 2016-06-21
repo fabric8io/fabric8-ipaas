@@ -1,6 +1,6 @@
 package io.fabric8.zookeeper;
 
-import io.fabric8.kubernetes.api.builder.Visitor;
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -144,7 +144,7 @@ public class ZooKeeperEnsembleCustomizer {
         return newItems;
     }
 
-    private static class MetadataCustormizer implements Visitor<ObjectMetaBuilder> {
+    private static class MetadataCustormizer extends TypedVisitor<ObjectMetaBuilder> {
         private final int serverId;
 
         private MetadataCustormizer(int serverId) {
@@ -158,7 +158,7 @@ public class ZooKeeperEnsembleCustomizer {
     }
 
 
-    private static class ContainerCommandCustomizer implements Visitor<ContainerBuilder> {
+    private static class ContainerCommandCustomizer extends TypedVisitor<ContainerBuilder> {
 
         private final int serverId;
 
@@ -175,7 +175,7 @@ public class ZooKeeperEnsembleCustomizer {
         }
     }
 
-    private static class ReplicationControllerSpecCustomizer implements Visitor<ReplicationControllerSpecBuilder> {
+    private static class ReplicationControllerSpecCustomizer extends TypedVisitor<ReplicationControllerSpecBuilder> {
         private final int serverId;
 
         private ReplicationControllerSpecCustomizer(int serverId) {
@@ -189,7 +189,7 @@ public class ZooKeeperEnsembleCustomizer {
     }
 
 
-    private static class VolumeCustomizer implements Visitor<PodSpecBuilder> {
+    private static class VolumeCustomizer extends TypedVisitor<PodSpecBuilder> {
 
         private final int serverId;
 
@@ -204,7 +204,7 @@ public class ZooKeeperEnsembleCustomizer {
         }
     }
 
-    private static class ServiceSpecCustormizer implements Visitor<ServiceSpecBuilder> {
+    private static class ServiceSpecCustormizer extends TypedVisitor<ServiceSpecBuilder> {
         private final int serverId;
 
         private ServiceSpecCustormizer(int serverId) {
