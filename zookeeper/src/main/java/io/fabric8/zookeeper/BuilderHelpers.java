@@ -49,7 +49,7 @@ public class BuilderHelpers {
                 // ignore any validation errors
             }
         }
-        return answer != null ? new ArrayList<>() : answer;
+        return answer != null ? answer : new ArrayList<>();
     }
 
     /**
@@ -64,6 +64,6 @@ public class BuilderHelpers {
                 // ignore any validation errors
             }
         }
-        return answer != null ? new ArrayList<>() : answer;
+        return answer != null ? answer : new ArrayList<>();
     }
 }
