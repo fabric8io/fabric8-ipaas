@@ -21,6 +21,8 @@ import org.apache.activemq.camel.component.ActiveMQConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jms.ConnectionFactory;
+
 /**
  * A configuration object for the {@link AMQComponent} which uses Kubernetes service wiring
  * to find the correct ActiveMQ broker service to communicate with
@@ -34,14 +36,14 @@ public class AMQConfiguration extends ActiveMQConfiguration {
     public AMQConfiguration() {
         // use MQConnectionFactory as the out of the box connection factory
         // as it can lookup the ActiveMQ broker using kubernetes services and the ENV variables
-        setConnectionFactory(new MQConnectionFactory());
+        super.setConnectionFactory(new MQConnectionFactory());
     }
 
     public AMQConfiguration(AMQComponent component) {
         super.setActiveMQComponent(component);
         // use MQConnectionFactory as the out of the box connection factory
         // as it can lookup the ActiveMQ broker using kubernetes services and the ENV variables
-        setConnectionFactory(new MQConnectionFactory());
+        super.setConnectionFactory(new MQConnectionFactory());
     }
 
     @Override
@@ -78,6 +80,11 @@ public class AMQConfiguration extends ActiveMQConfiguration {
         this.failoverUrlParameters = failoverUrlParameters;
     }
 
+    @Override
+    public void setConnectionFactory(ConnectionFactory connectionFactory) {
+        // noop
+        // the connectionFactory cannot be changed
+    }
 
     // TODO if ever ActiveMQConfiguration provides a template method
     // to create a vanilla ActiveMQConnectionFactory before its wrapped in pooling
