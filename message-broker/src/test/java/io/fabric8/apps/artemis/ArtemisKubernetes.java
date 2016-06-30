@@ -41,8 +41,8 @@ public class ArtemisKubernetes {
     @Test
     public void testKubernetes() throws Exception {
         String serviceName = "amqbroker";
-        assertThat(client).replicationController(serviceName, session.getNamespace()).isNotNull();
-        assertThat(client).hasServicePort(serviceName, session.getNamespace(), 6163);
+        assertThat(client).replicationController(serviceName).isNotNull();
+        assertThat(client).hasServicePort(serviceName, 6163);
 
         assertThat(client).pods()
             .runningStatus()

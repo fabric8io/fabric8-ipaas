@@ -39,8 +39,8 @@ public class QpidDispatchKubernetesTest {
     @Test
     public void testConsole() throws Exception {
         String serviceName = "qpid-dispatch";
-        assertThat(client).replicationController(serviceName, session.getNamespace()).isNotNull();
-        assertThat(client).hasServicePort(serviceName, session.getNamespace(), 80);
+        assertThat(client).replicationController(serviceName).isNotNull();
+        assertThat(client).hasServicePort(serviceName, 80);
 
         assertThat(client).pods()
                 .runningStatus()
