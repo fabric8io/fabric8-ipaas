@@ -1,5 +1,9 @@
 ## Camel master component
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8.ipaas.camel/camel-master/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8.ipaas.camel/camel-master/)
+[![Javadocs](http://www.javadoc.io/badge/io.fabric8.ipaas.camel/camel-master.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8.ipaas.camel/camel-master)
+
+
 This library implements the `master` endpoint so that only one single pod can consume from a given named endpoint at once.
 
 This allows you to run many pods for high availability but only a single pod can consume from the underlying Camel endpoint.
