@@ -89,7 +89,9 @@ public class KubernetesLock implements Closeable {
         if (configMap == null) {
             // lets create an empty ConfigMap
             configMap = new ConfigMapBuilder().
-                    withNewMetadata().withName(configMapName).addToLabels("provider", "fabric8").endMetadata().build();
+                    withNewMetadata().withName(configMapName).
+                    addToLabels("provider", "fabric8").addToLabels("kind", "camel-locks").
+                    endMetadata().build();
             create = true;
         } else {
             // lets watch the ConfigMap to see if another pod takes ownership to ensure we keep watching the correct pod
