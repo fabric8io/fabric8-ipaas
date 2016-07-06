@@ -84,111 +84,118 @@ public class KubernetesLock implements Closeable {
      */
     public void tryAcquireLock() {
         ClientResource<ConfigMap, DoneableConfigMap> configMapResource = client.configMaps().inNamespace(namespace).withName(configMapName);
-        ConfigMap configMap = configMapResource.get();
-        boolean create = false;
-        if (configMap == null) {
-            // lets create an empty ConfigMap
-            configMap = new ConfigMapBuilder().
-                    withNewMetadata().withName(configMapName).
-                    addToLabels("provider", "fabric8").addToLabels("kind", "camel-locks").
-                    endMetadata().build();
-            create = true;
-        } else {
-            // lets watch the ConfigMap to see if another pod takes ownership to ensure we keep watching the correct pod
-            // for when that one dies
-            configMapWatch = configMapResource.watch(new Watcher<ConfigMap>() {
-                @Override
-                public void eventReceived(Action action, ConfigMap configMap) {
-                    switch (action) {
-                        case MODIFIED:
-                        case DELETED:
-                            LOG.info("ConfigMap " + configMapName + " " + action + " so lets try acquire the lock again");
-                            tryAcquireLock();
+        boolean retry = false;
+        do {
+            retry = false;
+            ConfigMap configMap = configMapResource.get();
+            boolean create = false;
+            if (configMap == null) {
+                // lets create an empty ConfigMap
+                configMap = new ConfigMapBuilder().
+                        withNewMetadata().withName(configMapName).
+                        addToLabels("provider", "fabric8").addToLabels("kind", "camel-locks").
+                        endMetadata().build();
+                create = true;
+            } else {
+                // lets watch the ConfigMap to see if another pod takes ownership to ensure we keep watching the correct pod
+                // for when that one dies
+                configMapWatch = configMapResource.watch(new Watcher<ConfigMap>() {
+                    @Override
+                    public void eventReceived(Action action, ConfigMap configMap) {
+                        switch (action) {
+                            case MODIFIED:
+                            case DELETED:
+                                LOG.info("ConfigMap " + configMapName + " " + action + " so lets try acquire the lock again");
+                                tryAcquireLock();
+                        }
                     }
-                }
 
-                @Override
-                public void onClose(KubernetesClientException e) {
-                }
-            });
-        }
-        Map<String, String> data = configMap.getData();
-        if (data == null) {
-            data = new HashMap<>();
-        }
-
-        String currentOwnerPodName = data.get(endpointName);
-        if (myPodId.equals(currentOwnerPodName)) {
-            // we are already the owner
-            // e.g. the pod restarted
-            LOG.info("This pod " + myPodId + " already has the lock for endpoint: " + endpointName + " in ConfigMap " + configMapName);
-            notifyHasLock();
-            return;
-        }
-        if (!isEmpty(currentOwnerPodName)) {
-            // a different pod claims to own this lock
-            // so lets watch if the pod dies
-            if (podWatch != null) {
-                podWatch.close();
-            }
-            final String deadPodName = currentOwnerPodName;
-            LOG.info("Pod " + deadPodName + " has the lock for endpoint: " + endpointName + " in ConfigMap " + configMapName + " so lets watch it...");
-
-            ClientPodResource<Pod, DoneablePod> podResource = client.pods().inNamespace(namespace).withName(currentOwnerPodName);
-            podWatch = podResource.watch(new Watcher<Pod>() {
-                @Override
-                public void eventReceived(Action action, Pod pod) {
-                    if (action == Action.DELETED) {
-                        LOG.info("Pod " + deadPodName + " has died so lets try grab the lock");
-                        tryAcquireLock();
+                    @Override
+                    public void onClose(KubernetesClientException e) {
                     }
-                }
-
-                @Override
-                public void onClose(KubernetesClientException e) {
-                }
-            });
-
-            // lets see if the pod is already dead so we may have missed the watch event
-            Pod pod = null;
-            try {
-                pod = podResource.get();
-            } catch (Exception e) {
-                // ignore
+                });
+            }
+            Map<String, String> data = configMap.getData();
+            if (data == null) {
+                data = new HashMap<>();
             }
 
-            // pod has died so lets try claim it right now
-            if (pod == null) {
-                // we don't need the watch any more
-                podWatch.close();
-                podWatch = null;
-
-                LOG.info("Pod " + deadPodName + " has died so lets try grab the lock");
-                currentOwnerPodName = null;
-            }
-        }
-
-        if (isEmpty(currentOwnerPodName)) {
-            // lets try claim the lock!
-            LOG.info("Trying to grab the lock for " + endpointName + " in ConfigMap " + configMapName);
-
-            data.put(endpointName, myPodId);
-            try {
-                if (create) {
-                    configMapResource.create(configMap);
-                } else {
-                    configMapResource.patch(configMap);
-                }
-                String operation = create ? "Created" : "Updated";
-                LOG.info(operation + " ConfigMap: " + configMapName + " with data " + configMap.getData());
-
+            String currentOwnerPodName = data.get(endpointName);
+            if (myPodId.equals(currentOwnerPodName)) {
+                // we are already the owner
+                // e.g. the pod restarted
+                LOG.info("This pod " + myPodId + " already has the lock for endpoint: " + endpointName + " in ConfigMap " + configMapName);
                 notifyHasLock();
-            } catch (Exception e) {
-                // if failed to update its probably someone beat us to it..
-                // so lets watch the owner pod again
-                LOG.info("Failed to update ConfigMap " + configMapName + ". Probably due other pod winning: " + e);
+                return;
             }
-        }
+            if (!isEmpty(currentOwnerPodName)) {
+                // a different pod claims to own this lock
+                // so lets watch if the pod dies
+                if (podWatch != null) {
+                    podWatch.close();
+                }
+                final String deadPodName = currentOwnerPodName;
+                LOG.info("Pod " + deadPodName + " has the lock for endpoint: " + endpointName + " in ConfigMap " + configMapName + " so lets watch it...");
+
+                ClientPodResource<Pod, DoneablePod> podResource = client.pods().inNamespace(namespace).withName(currentOwnerPodName);
+                podWatch = podResource.watch(new Watcher<Pod>() {
+                    @Override
+                    public void eventReceived(Action action, Pod pod) {
+                        if (action == Action.DELETED) {
+                            LOG.info("Pod " + deadPodName + " has died so lets try grab the lock");
+                            tryAcquireLock();
+                        }
+                    }
+
+                    @Override
+                    public void onClose(KubernetesClientException e) {
+                    }
+                });
+
+                // lets see if the pod is already dead so we may have missed the watch event
+                Pod pod = null;
+                try {
+                    pod = podResource.get();
+                } catch (Exception e) {
+                    // ignore
+                }
+
+                // pod has died so lets try claim it right now
+                if (pod == null) {
+                    // we don't need the watch any more
+                    podWatch.close();
+                    podWatch = null;
+
+                    LOG.info("Pod " + deadPodName + " has died so lets try grab the lock");
+                    currentOwnerPodName = null;
+                }
+            }
+
+            if (isEmpty(currentOwnerPodName)) {
+                // lets try claim the lock!
+                LOG.info("Trying to grab the lock for " + endpointName + " in ConfigMap " + configMapName);
+
+                data.put(endpointName, myPodId);
+                try {
+                    if (create) {
+                        configMapResource.create(configMap);
+                    } else {
+                        configMapResource.patch(configMap);
+                    }
+                    String operation = create ? "Created" : "Updated";
+                    LOG.info(operation + " ConfigMap: " + configMapName + " with data " + configMap.getData());
+
+                    notifyHasLock();
+                } catch (Exception e) {
+                    // if failed to update its probably someone beat us to it..
+                    // so lets watch the owner pod again
+                    LOG.info("Failed to update ConfigMap " + configMapName + ". Probably due other pod winning: " + e);
+
+                    // lets try to grab the lock again, either we'll get it or someone will have beaten us again!
+                    retry = true;
+                }
+            }
+        } while (retry);
     }
 
     /**
