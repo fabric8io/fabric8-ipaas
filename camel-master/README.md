@@ -10,13 +10,73 @@ This allows you to run many pods for high availability but only a single pod can
 
 e.g.
 
-```
+```java
 from("master:cheese:seda:beer").to("seda:something");
 ```
 
 Then the lock called `cheese` will be acquired by a single pod in Kubernetes and the pod with the lock will really consume from the endpoint `seda:beer`. All other pods will wait for the lock.
 
 You can have many named locks and use them across different pods.
+
+### Using camel-master on OpenShift
+
+Things should just work OOTB on Kubernetes. However When using OpenShift everything has fine grained access control with access disabled by default.
+
+So you will need to 
+
+1. create a ServiceAccount to your app that's using camel-master
+2. associate the ServiceAccount with your Pods
+3. [enable access for your Service Account](https://docs.openshift.com/enterprise/3.1/dev_guide/service_accounts.html) so that it can read and write ConfigMap resources
+
+For (3) to enable edit role on your ServiceAccount type a command line this:
+ 
+
+```
+oc policy add-role-to-user edit system:serviceaccount:cheese:robot    
+```
+
+where `robot` is the name of your ServiceAccount and `cheese` is the project you are using in OpenShift.
+
+
+#### Creating the ServiceAccount and associating it with your Pods
+
+When using the [fabric8-maven-plugin](https://github.com/fabric8io/fabric8-maven-plugin) 3.x or later you can create a Service Account for your app by creating a file called `src/main/fabric8/sa.yml` like this:
+
+``` yaml
+metadata:
+  name: robot
+```
+
+where `robot` is the name of the ServiceAccount you want to create. This would probably be `${project.artifactId}` by default to reuse the same name as the project artifact.
+
+Then to associate the pods with this ServiceAccount add a file called `src/main/fabric8/deployment.yml` that looks like this:
+
+```yaml
+spec:
+  template:
+    spec:
+      serviceAccount: robot
+```
+
+
+If you are using the older 2.x version of fabric8-maven-plugin then you can add these maven properties to your pom.xml:
+ 
+```xml
+    <fabric8.serviceAccount>robot</fabric8.serviceAccount>
+    <fabric8.serviceAccountCreate>true</fabric8.serviceAccountCreate>
+``` 
+
+#### Testing the ServiceAccount is properly created
+
+Once your app is deployed in OpenShift you should be able to view your rc and see the serviceAccount
+
+```
+$ oc export rc myapp | grep serviceAccount
+      serviceAccount: robot
+      serviceAccountName: robot
+```
+
+which should show that `myapp` has the associated ServiceAccount of `robot`. If not its likely the generated YAML/JSON doesn't have the `serviceAccount` configuration.
 
 
 ### How it works
