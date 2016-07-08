@@ -99,6 +99,11 @@
       <artifactId>camel-quartz2</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-mock</artifactId>
+      <scope>test</scope>
+    </dependency>
 <!--
     <dependency>
       <groupId>org.apache.camel</groupId>
