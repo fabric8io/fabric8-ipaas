@@ -76,7 +76,7 @@
         <!-- upstream vs redhat versions of dependencies goes here -->
         <apiman.version>1.2.7.Beta1</apiman.version>
         <camel.version>2.17.1</camel.version>
-        <fabric8.version>2.2.140</fabric8.version>
+        <fabric8.version>2.2.143</fabric8.version>
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
         <fabric8.devops.version>2.2.54</fabric8.devops.version>
 
@@ -119,8 +119,8 @@
             org.apache.activemq.*;version="[5.11,6)",
             org.apache.camel.*;version="[2.17,3)",
         </fuse.osgi.import.defaults>
-        <fuse.osgi.import.before.defaults />
-        <fuse.osgi.import.additional />
+        <fuse.osgi.import.before.defaults/>
+        <fuse.osgi.import.additional/>
         <fuse.osgi.import.pkg>
             io.fabric8.*;${fuse.osgi.import.fabric.version},
             ${fuse.osgi.import.before.defaults},
@@ -128,21 +128,21 @@
             ${fuse.osgi.import.additional},
             *
         </fuse.osgi.import.pkg>
-        <fuse.osgi.activator />
+        <fuse.osgi.activator/>
         <fuse.osgi.failok>false</fuse.osgi.failok>
-        <fuse.osgi.private.pkg />
+        <fuse.osgi.private.pkg/>
         <fuse.osgi.export>io.fabric8.*;version=${fuse.osgi.version};-noimport:=true</fuse.osgi.export>
         <fuse.osgi.split.pkg>-split-package:=first</fuse.osgi.split.pkg>
         <fuse.osgi.import>${fuse.osgi.import.pkg}</fuse.osgi.import>
-        <fuse.osgi.dynamic />
+        <fuse.osgi.dynamic/>
         <fuse.osgi.symbolic.name>${project.groupId}.${project.artifactId}</fuse.osgi.symbolic.name>
         <fuse.osgi.exclude.dependencies>false</fuse.osgi.exclude.dependencies>
         <fuse.osgi.resource>{maven-resources}</fuse.osgi.resource>
         <fuse.osgi.embed.dependency>!*</fuse.osgi.embed.dependency>
         <fuse.osgi.embed.transitive>false</fuse.osgi.embed.transitive>
-        <fuse.osgi.require.bundle />
-        <fuse.osgi.capabilities.provide />
-        <fuse.osgi.capabilities.require />
+        <fuse.osgi.require.bundle/>
+        <fuse.osgi.capabilities.provide/>
+        <fuse.osgi.capabilities.require/>
 
     </properties>
 
