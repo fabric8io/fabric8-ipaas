@@ -47,6 +47,13 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
+      <artifactId>cassandra</artifactId>
+      <version>${project.version}</version>
+      <classifier>kubernetes</classifier>
+      <type>yml</type>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>example-message-consumer</artifactId>
       <version>${project.version}</version>
       <classifier>kubernetes</classifier>
