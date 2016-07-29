@@ -151,6 +151,7 @@
         <module>apiman-gateway</module>
         <module>camel-amq</module>
         <module>camel-master</module>
+        <module>cassandra</module>
         <module>elasticsearch</module>
         <module>example-message-consumer</module>
         <module>example-message-producer</module>
@@ -236,30 +237,6 @@
       </pluginManagement>
       <plugins>
         <!-- generate a .zip with all the quickstarts -->
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>${fabric8.version}</version>
-          <executions>
-            <execution>
-              <id>json</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>json</goal>
-              </goals>
-             </execution>
-             <execution>
-              <id>attach</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
-          </configuration>
-        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>

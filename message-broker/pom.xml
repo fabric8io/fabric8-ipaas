@@ -193,6 +193,30 @@
 
     <build>
         <plugins>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>fabric8-maven-plugin</artifactId>
+          <version>${fabric8.version}</version>
+          <executions>
+            <execution>
+              <id>json</id>
+              <phase>generate-resources</phase>
+              <goals>
+                <goal>json</goal>
+              </goals>
+             </execution>
+             <execution>
+              <id>attach</id>
+              <phase>package</phase>
+              <goals>
+                <goal>attach</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
+          </configuration>
+        </plugin>
             <!-- Compiler plugin enforces Java 1.8 compatibility and activates annotation processors -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
