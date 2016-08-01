@@ -43,3 +43,4 @@ spec:
       volumes:
         - name: data
           emptyDir: {}
+      serviceAccount: cassandra
