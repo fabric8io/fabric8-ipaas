@@ -37,11 +37,10 @@ To list all the pods:
 
     oc get pods
 
-Use the name of one of the Cassandra pods in your list and run the following command:
+If you want to use the Cassandra client console you can run the following command (where pod_id is the id of one of the pod in the cluster):
 
     oc exec <pod_id> -it cqlsh
 
-As input use the cql code in `src/main/resources/cql/users.cql`. This way you've created the keyspace for using the cassandra-client code.
 You can watch the status of your Cluster with the following command:
 
     oc exec <pod_id> -it nodetool status
