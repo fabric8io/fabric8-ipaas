@@ -1,5 +1,7 @@
 ## Fabric8 iPaaS 
 
+[![Join the chat at https://gitter.im/fabric8io/fabric8-ipaas](https://badges.gitter.im/fabric8io/fabric8-ipaas.svg)](https://gitter.im/fabric8io/fabric8-ipaas?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This repository contains the iPaaS related apps that can be run as part of the fabric8 platform on any OpenShift v3 and Kubernetes environment.
 
 
