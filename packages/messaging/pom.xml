@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
      Copyright 2005-2015 Red Hat, Inc.
 
@@ -15,8 +14,7 @@
      implied.  See the License for the specific language governing
      permissions and limitations under the License.
 
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>io.fabric8.ipaas.packages</groupId>
     <artifactId>packages</artifactId>
@@ -25,36 +23,41 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>messaging</artifactId>
-  <packaging>pom</packaging>
 
   <name>Fabric8 iPaas :: Packages :: Messaging</name>
-
-  <properties>
-    <fabric8.combineDependencies>true</fabric8.combineDependencies>
-  </properties>
 
   <dependencies>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>message-broker</artifactId>
       <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>message-gateway</artifactId>
       <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>zookeeper</artifactId>
       <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-maven-plugin</artifactId>
+        <configuration>
+          <enricher>
+            <excludes>
+              <exclude>fmp-controller</exclude>
+            </excludes>
+          </enricher>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

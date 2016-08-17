@@ -1,0 +1,47 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations:
+    fabric8.io/iconUrl: "img/icons/activemq.svg"
+  labels:
+    provider: "fabric8"
+    group: "io.fabric8.ipaas.apps"
+    project: "message-gateway"
+    version: "${project.version}"
+  name: "message-gateway"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      provider: "fabric8"
+      group: "io.fabric8.ipaas.apps"
+      project: "message-gateway"
+  template:
+    metadata:
+      labels:
+        provider: "fabric8"
+        group: "io.fabric8.ipaas.apps"
+        project: "message-gateway"
+        version: "${project.version}"
+    spec:
+      containers:
+      - env:
+        - name: "KUBERNETES_NAMESPACE"
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.namespace"
+        image: "fabric8/message-gateway:${project.version}"
+        name: "message-gateway"
+        ports:
+        - containerPort: 61616
+          name: "amq"
+        - containerPort: 8778
+          name: "jolokia"
+        resources:
+          limits:
+            cpu: "0"
+            memory: "0"
+          requests:
+            cpu: "0"
+            memory: "0"

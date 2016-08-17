@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>io.fabric8.ipaas.apps</groupId>
@@ -20,24 +21,6 @@
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
     <docker.env.MAIN>io.fabric8.apiman.gateway.ApimanGatewayStarter</docker.env.MAIN>
     <docker.env.apiman-gateway.ssl>false</docker.env.apiman-gateway.ssl>
-    <docker.port.container.http>${http.port}</docker.port.container.http>
-    <docker.port.container.jolokia>8778</docker.port.container.jolokia>
-
-    <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
-    <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
-    <fabric8.label.component>ApimanGateway</fabric8.label.component>
-    <fabric8.label.group>io.fabric8.ipaas.apps</fabric8.label.group>
-    <fabric8.label.provider>fabric8</fabric8.label.provider>
-    <fabric8.service.port>${http.port}</fabric8.service.port>
-    <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
-    <fabric8.annotations.service.api.service.kubernetes.io.path>api</fabric8.annotations.service.api.service.kubernetes.io.path>
-    <fabric8.annotations.service.api.service.kubernetes.io.protocol>REST</fabric8.annotations.service.api.service.kubernetes.io.protocol>
-    <fabric8.annotations.service.api.service.kubernetes.io.description-path>api/swagger.json</fabric8.annotations.service.api.service.kubernetes.io.description-path>
-    <fabric8.annotations.service.api.service.kubernetes.io.description-language>SwaggerJSON</fabric8.annotations.service.api.service.kubernetes.io.description-language>
-    <fabric8.readinessProbe.httpGet.port>${http.port}</fabric8.readinessProbe.httpGet.port>
-    <fabric8.readinessProbe.httpGet.path>/api/system/status</fabric8.readinessProbe.httpGet.path>
-    <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
-    <fabric8.readinessProbe.initialDelaySeconds>5</fabric8.readinessProbe.initialDelaySeconds>
   </properties>
 
   <dependencyManagement>
@@ -57,7 +40,7 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  
+
   <dependencies>
     <dependency>
       <groupId>io.apiman</groupId>
@@ -72,8 +55,8 @@
       <artifactId>kubernetes-api</artifactId>
     </dependency>
     <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>kubernetes-client</artifactId>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
     </dependency>
 
     <!-- overriding versions from dependencyManagement -->
@@ -82,7 +65,7 @@
       <artifactId>javax.servlet-api</artifactId>
       <version>3.1.0</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -107,50 +90,21 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-    
+
     <plugins>
-
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>${fabric8.version}</version>
-          <executions>
-            <execution>
-              <id>json</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>json</goal>
-              </goals>
-             </execution>
-             <execution>
-              <id>attach</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
-          </configuration>
-        </plugin>
-
       <plugin>
         <groupId>io.fabric8</groupId>
-        <artifactId>hawt-app-maven-plugin</artifactId>
-        <version>${fabric8.version}</version>
+        <artifactId>fabric8-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>hawt-app</id>
-            <goals><goal>build</goal></goals>
+            <id>fmp</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>helm</goal>
+              <goal>build</goal>
+            </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.version}</version>
         <configuration>
           <images>
             <image>
@@ -178,6 +132,21 @@
       </plugin>
 
       <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>hawt-app-maven-plugin</artifactId>
+        <version>${fabric8.version}</version>
+        <executions>
+          <execution>
+            <id>hawt-app</id>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.4.0</version>
@@ -200,13 +169,14 @@
         <truststore.password>supersecret</truststore.password>
         <fabric8.volume.keystore.secret>apiman-gateway-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/apiman-gateway</fabric8.volume.keystore.mountPath>
-        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
+        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https
+        </fabric8.annotations.service.api.service.kubernetes.io.scheme>
         <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
         <fabric8.extra.json>${project.build.directory}/classes/route-tls-passthrough.json</fabric8.extra.json>
       </properties>
       <build>
         <plugins>
-        
+
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>keytool-maven-plugin</artifactId>
@@ -223,18 +193,19 @@
                 <goals>
                   <goal>exportCertificate</goal>
                 </goals>
-              <phase>generate-resources</phase>
-            </execution>
+                <phase>generate-resources</phase>
+              </execution>
             </executions>
             <configuration>
               <keystore>${project.build.directory}/secret/${project.artifactId}/keystore</keystore>
               <storepass>${keystore.password}</storepass>
               <keypass>${keystore.password}</keypass>
-              <alias>SSLforAPIMAN-GATEWAY</alias> 
+              <alias>SSLforAPIMAN-GATEWAY</alias>
               <dname>CN=${project.artifactId}.default.svc.cluster.local, OU=Example, O=Fabric8 Inc.,
-                 L=Ipswich, S=Massachusetts, C=US</dname>
+                L=Ipswich, S=Massachusetts, C=US
+              </dname>
               <sigalg>SHA1withRSA</sigalg>
-              <ext></ext>
+              <ext/>
               <validity>100</validity>
               <keyalg>RSA</keyalg>
               <keysize>2048</keysize>
@@ -254,7 +225,7 @@
                 </goals>
                 <configuration>
                   <outputDirectory>${basedir}/target/secret/${project.artifactId}</outputDirectory>
-                  <resources>          
+                  <resources>
                     <resource>
                       <directory>${basedir}/ssl</directory>
                       <filtering>true</filtering>
