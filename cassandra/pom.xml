@@ -27,7 +27,6 @@
 
     <!-- maven plugin versions -->
     <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
-    <fabric8.maven.plugin.version>3.0.28</fabric8.maven.plugin.version>
     <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
     <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
     <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
@@ -66,19 +65,6 @@
             <exclude>**/*KT.java</exclude>
           </excludes>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-maven-plugin</artifactId>
-        <version>${fabric8.maven.plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>resource</goal>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

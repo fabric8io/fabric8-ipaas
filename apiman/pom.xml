@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>io.fabric8.ipaas.apps</groupId>
@@ -23,26 +25,6 @@
     <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
     <docker.env.MAIN>io.fabric8.apiman.ApimanStarter</docker.env.MAIN>
     <docker.env.apiman.ssl>false</docker.env.apiman.ssl>
-    <docker.port.container.http>${http.port}</docker.port.container.http>
-    <docker.port.container.jolokia>8778</docker.port.container.jolokia>
-
-    <fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>
-    <fabric8.serviceAccount>fabric8</fabric8.serviceAccount>
-    <fabric8.label.component>ApimanManagerAPI</fabric8.label.component>
-    <fabric8.label.group>io.fabric8.ipaas.apps</fabric8.label.group>
-    <fabric8.label.provider>fabric8</fabric8.label.provider>
-    <fabric8.service.port>${http.port}</fabric8.service.port>
-    <fabric8.service.containerPort>${http.port}</fabric8.service.containerPort>
-    <fabric8.annotations.service.api.service.kubernetes.io.path>apiman</fabric8.annotations.service.api.service.kubernetes.io.path>
-    <fabric8.annotations.service.api.service.kubernetes.io.protocol>REST</fabric8.annotations.service.api.service.kubernetes.io.protocol>
-    <fabric8.annotations.service.api.service.kubernetes.io.description-path>apiman/swagger.json</fabric8.annotations.service.api.service.kubernetes.io.description-path>
-    <fabric8.annotations.service.api.service.kubernetes.io.description-language>SwaggerJSON</fabric8.annotations.service.api.service.kubernetes.io.description-language>
-
-    <fabric8.readinessProbe.httpGet.port>${http.port}</fabric8.readinessProbe.httpGet.port>
-    <fabric8.readinessProbe.httpGet.path>/apiman/</fabric8.readinessProbe.httpGet.path>
-    <fabric8.readinessProbe.timeoutSeconds>60</fabric8.readinessProbe.timeoutSeconds>
-    <fabric8.readinessProbe.initialDelaySeconds>15</fabric8.readinessProbe.initialDelaySeconds>
-
   </properties>
 
   <dependencyManagement>
@@ -57,7 +39,7 @@
     </dependencies>
   </dependencyManagement>
 
-<dependencies>
+  <dependencies>
     <dependency>
       <groupId>io.apiman</groupId>
       <artifactId>apiman-manager-api-micro</artifactId>
@@ -71,23 +53,23 @@
 
     <!-- fabric8 -->
     <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>kubernetes-api</artifactId>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-api</artifactId>
     </dependency>
     <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>kubernetes-client</artifactId>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
     </dependency>
     <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>openshift-client</artifactId>
+      <groupId>io.fabric8</groupId>
+      <artifactId>openshift-client</artifactId>
     </dependency>
 
     <!-- Override versions -->
     <dependency>
-     <groupId>javax.servlet</groupId>
-     <artifactId>javax.servlet-api</artifactId>
-     <version>3.1.0</version>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp</groupId>
@@ -102,7 +84,7 @@
       <scope>test</scope>
     </dependency>
 
-</dependencies>
+  </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
@@ -119,48 +101,19 @@
     </resources>
 
     <plugins>
-
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>${fabric8.version}</version>
-          <executions>
-            <execution>
-              <id>json</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>json</goal>
-              </goals>
-             </execution>
-             <execution>
-              <id>attach</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
-          </configuration>
-        </plugin>
-
       <plugin>
         <groupId>io.fabric8</groupId>
-        <artifactId>hawt-app-maven-plugin</artifactId>
-        <version>${fabric8.version}</version>
+        <artifactId>fabric8-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>hawt-app</id>
-            <goals><goal>build</goal></goals>
+            <id>fmp</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>helm</goal>
+              <goal>build</goal>
+            </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.version}</version>
         <configuration>
           <images>
             <image>
@@ -186,6 +139,7 @@
           </images>
         </configuration>
       </plugin>
+
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -217,7 +171,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -229,7 +183,7 @@
   </build>
 
   <profiles>
-  <!-- activate the ssl profile to start apiman with a selfsigned certificate -->
+    <!-- activate the ssl profile to start apiman with a selfsigned certificate -->
     <profile>
       <id>ssl</id>
       <properties>
@@ -239,7 +193,8 @@
         <truststore.password>supersecret</truststore.password>
         <fabric8.volume.keystore.secret>apiman-keystore</fabric8.volume.keystore.secret>
         <fabric8.volume.keystore.mountPath>/secret/apiman</fabric8.volume.keystore.mountPath>
-        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https</fabric8.annotations.service.api.service.kubernetes.io.scheme>
+        <fabric8.annotations.service.api.service.kubernetes.io.scheme>https
+        </fabric8.annotations.service.api.service.kubernetes.io.scheme>
         <fabric8.readinessProbe.httpGet.scheme>HTTPS</fabric8.readinessProbe.httpGet.scheme>
         <fabric8.extra.json>${project.build.directory}/classes/route-tls-passthrough.json</fabric8.extra.json>
       </properties>
@@ -264,9 +219,10 @@
               <keypass>${keystore.password}</keypass>
               <alias>SSLforAPIMAN</alias>
               <dname>CN=apiman.${KUBERNETES_DOMAIN}, OU=Example, O=Fabric8 Inc.,
-                 L=Ipswich, S=Massachusetts, C=US</dname>
+                L=Ipswich, S=Massachusetts, C=US
+              </dname>
               <sigalg>SHA1withRSA</sigalg>
-              <ext></ext>
+              <ext/>
               <validity>100</validity>
               <keyalg>RSA</keyalg>
               <keysize>2048</keysize>

@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
      Copyright 2005-2015 Red Hat, Inc.
 
@@ -15,7 +15,8 @@
      permissions and limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -36,9 +37,9 @@
     <maven.compiler.target>1.7</maven.compiler.target>
 
     <!-- Spring-boot version, used for testing purposes only -->
-<!--
-    <spring-boot.version>1.3.5.RELEASE</spring-boot.version>
--->
+    <!--
+        <spring-boot.version>1.3.5.RELEASE</spring-boot.version>
+    -->
 
     <fuse.osgi.export>io.fabric8.camel.master;version=${fuse.osgi.version};-noimport:=true</fuse.osgi.export>
   </properties>
@@ -66,16 +67,16 @@
       <artifactId>kubernetes-api</artifactId>
     </dependency>
     <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>kubernetes-client</artifactId>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
     </dependency>
     <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-utils</artifactId>
+      <groupId>io.fabric8</groupId>
+      <artifactId>fabric8-utils</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <!-- testing -->
@@ -104,23 +105,23 @@
       <artifactId>kubernetes-mock</artifactId>
       <scope>test</scope>
     </dependency>
-<!--
+    <!--
+        <dependency>
+          <groupId>org.apache.camel</groupId>
+          <artifactId>camel-spring-boot</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-autoconfigure</artifactId>
+          <version>${spring-boot.version}</version>
+          <scope>test</scope>
+        </dependency>
+    -->
     <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-spring-boot</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>${spring-boot.version}</version>
-      <scope>test</scope>
-    </dependency>
--->
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -132,61 +133,36 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
       </plugin>
-
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>${fabric8.version}</version>
-          <executions>
-            <execution>
-              <id>json</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>json</goal>
-              </goals>
-             </execution>
-             <execution>
-              <id>attach</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
-          </configuration>
-        </plugin>
-<!--
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-scr-plugin</artifactId>
-        <executions>
-            <execution>
-                <phase>prepare-package</phase>
-                <goals>
-                    <goal>scr</goal>
-                </goals>
-                <configuration>
-                    <specVersion>1.2</specVersion>
-                    <strictMode>false</strictMode>
-                </configuration>
-            </execution>
-        </executions>
-      </plugin>
--->
+      <!--
+            <plugin>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-scr-plugin</artifactId>
+              <executions>
+                  <execution>
+                      <phase>prepare-package</phase>
+                      <goals>
+                          <goal>scr</goal>
+                      </goals>
+                      <configuration>
+                          <specVersion>1.2</specVersion>
+                          <strictMode>false</strictMode>
+                      </configuration>
+                  </execution>
+              </executions>
+            </plugin>
+      -->
       <plugin>
         <groupId>org.apache.camel</groupId>
         <artifactId>camel-package-maven-plugin</artifactId>
         <version>${camel.version}</version>
         <dependencies>
           <!-- for the security fix in commons-collections -->
-<!--
-          <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-          </dependency>
--->
+          <!--
+                    <dependency>
+                      <groupId>commons-collections</groupId>
+                      <artifactId>commons-collections</artifactId>
+                    </dependency>
+          -->
         </dependencies>
         <executions>
           <execution>

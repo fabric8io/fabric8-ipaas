@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
      Copyright 2005-2015 Red Hat, Inc.
 
@@ -15,7 +15,8 @@
      permissions and limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -30,20 +31,12 @@
   <name>Fabric8 Messaging :: Example Message Producer</name>
   <description>Fabric8 Messaging Example Message Producer</description>
 
-    <properties>
-      <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
-      <destinationName>TEST.FOO</destinationName>
-      <docker.env.MAIN>io.fabric8.mq.producer.ProducerMain</docker.env.MAIN>
+  <properties>
+    <version.maven-surefire-plugin>2.15</version.maven-surefire-plugin>
+    <destinationName>TEST.FOO</destinationName>
+    <docker.env.MAIN>io.fabric8.mq.producer.ProducerMain</docker.env.MAIN>
 
-      <fabric8.env.ACTIVEMQ_SERVICE_NAME>activemq</fabric8.env.ACTIVEMQ_SERVICE_NAME>
-      <fabric8.env.AMQ_QUEUENAME>${destinationName}</fabric8.env.AMQ_QUEUENAME>
-
-      <fabric8.label.component>exampleMessageProducer</fabric8.label.component>
-      <fabric8.label.group>messaging</fabric8.label.group>
-      <fabric8.label.provider>fabric8</fabric8.label.provider>
-      <fabric8.label.queueName>${destinationName}</fabric8.label.queueName>
-      <fabric8.iconRef>icons/activemq.svg</fabric8.iconRef>
-    </properties>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -74,14 +67,14 @@
       <scope>test</scope>
     </dependency>
 
-<!--
-    <dependency>
-      <groupId>io.fabric8.ipaas.apps</groupId>
-      <artifactId>fabric8mq</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
--->
+    <!--
+        <dependency>
+          <groupId>io.fabric8.ipaas.apps</groupId>
+          <artifactId>fabric8mq</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+    -->
 
     <dependency>
       <groupId>junit</groupId>
@@ -99,31 +92,46 @@
     </resources>
 
     <plugins>
-
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>${fabric8.version}</version>
-          <executions>
-            <execution>
-              <id>json</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>json</goal>
-              </goals>
-             </execution>
-             <execution>
-              <id>attach</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
-          </configuration>
-        </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>fmp</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>helm</goal>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <images>
+            <image>
+              <name>${docker.image}</name>
+              <build>
+                <from>${docker.from}</from>
+                <assembly>
+                  <basedir>/app</basedir>
+                  <descriptorRef>artifact-with-dependencies</descriptorRef>
+                </assembly>
+                <env>
+                  <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
+                  <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
+                  <ACTIVEMQ_SERVICE_NAME>activemq</ACTIVEMQ_SERVICE_NAME>
+                  <AMQ_QUEUENAME>${destinationName}</AMQ_QUEUENAME>
+                  <AMQ_INTERVAL>50</AMQ_INTERVAL>
+                  <AMQ_MESSAGE_SIZE_BYTES>1024</AMQ_MESSAGE_SIZE_BYTES>
+                  <AMQ_MESSAGE_COUNT>10000</AMQ_MESSAGE_COUNT>
+                </env>
+                <ports>
+                  <port>8778</port>
+                </ports>
+              </build>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
 
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -131,20 +139,6 @@
         <configuration>
           <forkMode>perTest</forkMode>
         </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-maven-plugin</artifactId>
-        <version>${fabric8.version}</version>
-        <executions>
-          <execution>
-            <id>json</id>
-            <goals>
-              <goal>json</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
@@ -169,37 +163,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.version}</version>
-        <configuration>
-          <images>
-            <image>
-              <name>${docker.image}</name>
-              <build>
-                <from>${docker.from}</from>
-                <assembly>
-                  <basedir>/app</basedir>
-                  <descriptorRef>artifact-with-dependencies</descriptorRef>
-                </assembly>
-                <env>
-                  <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
-                  <JAVA_MAIN_CLASS>${docker.env.MAIN}</JAVA_MAIN_CLASS>
-                  <ACTIVEMQ_SERVICE_NAME>${fabric8.env.ACTIVEMQ_SERVICE_NAME}</ACTIVEMQ_SERVICE_NAME>
-                  <AMQ_QUEUENAME>${destinationName}</AMQ_QUEUENAME>
-                  <AMQ_INTERVAL>50</AMQ_INTERVAL>
-                  <AMQ_MESSAGE_SIZE_BYTES>1024</AMQ_MESSAGE_SIZE_BYTES>
-                  <AMQ_MESSAGE_COUNT>10000</AMQ_MESSAGE_COUNT>
-                </env>
-                <ports>
-                  <port>8778</port>
-                </ports>
-              </build>
-            </image>
-          </images>
-        </configuration>
-      </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -213,15 +176,15 @@
     </plugins>
   </build>
 
-<!--
-  Default sample commands:
+  <!--
+    Default sample commands:
 
-  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
-  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
-  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
+    mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
+    mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
+    mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
 
-  For individual goal usage please consult the fabric8 documentation
-  -->
+    For individual goal usage please consult the fabric8 documentation
+    -->
   <profiles>
     <profile>
       <id>f8-build</id>

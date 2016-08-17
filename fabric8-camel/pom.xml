@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
      Copyright 2005-2015 Red Hat, Inc.
 
@@ -81,45 +81,21 @@
 
   <build>
     <plugins>
-        <plugin>
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>${fabric8.version}</version>
-          <executions>
-            <execution>
-              <id>json</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>json</goal>
-              </goals>
-             </execution>
-             <execution>
-              <id>attach</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <replaceReadmeLinksPrefix>/apps/</replaceReadmeLinksPrefix>
-          </configuration>
-        </plugin>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>exec-maven-plugin</artifactId>
-              <version>${exec-maven-plugin.version}</version>
-              <configuration>
-                <mainClass>io.fabric8.camel.Example</mainClass>
-                <includePluginDependencies>false</includePluginDependencies>
-                <classpathScope>test</classpathScope>
-                <arguments>
-                  <argument>${example.rcName}</argument>
-                  <argument>${example.rcNamespace}</argument>
-                  <argument>${example.camelContext}</argument>
-                </arguments>
-              </configuration>
-            </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${exec-maven-plugin.version}</version>
+        <configuration>
+          <mainClass>io.fabric8.camel.Example</mainClass>
+          <includePluginDependencies>false</includePluginDependencies>
+          <classpathScope>test</classpathScope>
+          <arguments>
+            <argument>${example.rcName}</argument>
+            <argument>${example.rcNamespace}</argument>
+            <argument>${example.camelContext}</argument>
+          </arguments>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
