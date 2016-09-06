@@ -22,7 +22,7 @@
     <failOnMissingWebXml>false</failOnMissingWebXml>
 
     <!-- dependency versions -->
-    <fabric8.version>2.2.156</fabric8.version>
+    <fabric8.version>2.2.157</fabric8.version>
     <fabric8-ipaas.version>2.2.103</fabric8-ipaas.version>
 
     <!-- maven plugin versions -->
