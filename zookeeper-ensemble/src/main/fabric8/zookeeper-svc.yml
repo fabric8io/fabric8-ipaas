@@ -19,3 +19,4 @@ spec:
     project: "zookeeper"
     provider: "fabric8"
     group: "io.fabric8.ipaas.apps"
+  type: "LoadBalancer"
