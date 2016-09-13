@@ -38,7 +38,7 @@ spec:
               fieldPath: "metadata.namespace"
         - name: "SERVER_ID"
           value: "3"
-        image: "fabric8/zookeeper:${project.version}"
+        image: "fabric8/zookeeper-ensemble:${project.version}"
         name: "zookeeper"
         ports:
         - containerPort: 2181
