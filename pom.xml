@@ -167,6 +167,7 @@
         <module>message-gateway</module>
         <module>mq-client</module>
         <module>zookeeper</module>
+        <module>zookeeper-ensemble</module>
         <module>packages</module>
     </modules>
 

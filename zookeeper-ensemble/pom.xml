@@ -25,7 +25,7 @@
 
   <artifactId>zookeeper-ensemble</artifactId>
   <packaging>jar</packaging>
-  <name>ZooKeeper</name>
+  <name>ZooKeeper-ensemble</name>
 
   <properties>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
@@ -103,9 +103,7 @@
               <name>${docker.image}</name>
               <build>
                 <from>${docker.from}</from>
-                <assembly>
-                  <dockerFileDir>${project.basedir}/src/main/docker/zookeeper</dockerFileDir>
-                </assembly>
+                <dockerFileDir>${project.basedir}/src/main/docker/zookeeper-ensemble</dockerFileDir>
               </build>
             </image>
           </images>
