@@ -35,6 +35,7 @@ public class TestArtemis {
     @Before
     public void doStart() throws Exception {
         artemis = new Artemis();
+        artemis.setPersistent(false);
         artemis.start();
     }
 
