@@ -29,28 +29,48 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.util.HashMap;
 
 @SpringBootApplication
 public class Artemis {
     private static final Logger LOG = LoggerFactory.getLogger(Artemis.class);
+    private static final String DATA_ROOT = "/data/message-broker/";
     private EmbeddedJMS broker;
+    private boolean persistent=true;
+
+
+    public void setPersistent(boolean persistent){
+        this.persistent=persistent;
+    }
+
+    public boolean isPersistent(){
+        return persistent;
+    }
 
     @PostConstruct
     public void start() throws Exception {
 
         String port = Systems.getEnvVarOrSystemProperty("AMQ_PORT", "AMQ_PORT", "61616");
-        String dataDirectory = Systems.getEnvVarOrSystemProperty("AMQ_DATA_DIRECTORY", "AMQ_DATA_DIRECTORY", "data");
 
         HashMap<String, Object> configMap = new HashMap<>();
         configMap.put("host", "0.0.0.0");
         configMap.put("port", port);
+
         TransportConfiguration transportConfiguration = new TransportConfiguration(NettyAcceptorFactory.class.getName(), configMap, "artemis");
-        Configuration configuration = new ConfigurationImpl().setJournalDirectory("data")
-                .setPersistenceEnabled(false).setSecurityEnabled(false)
-                .addAcceptorConfiguration(transportConfiguration)
-                .setJournalDirectory(dataDirectory)
-                .setCreateJournalDir(true);
+        Configuration configuration = new ConfigurationImpl().setJournalDirectory(DATA_ROOT + "journal-directory");
+        if (isPersistent()) {
+            configuration.setBindingsDirectory(DATA_ROOT + "bindings");
+            configuration.setLargeMessagesDirectory(DATA_ROOT + "largemessages");
+            configuration.setPagingDirectory(DATA_ROOT + "paging");
+            configuration.setCreateJournalDir(true);
+            configuration.setCreateBindingsDir(true);
+            waitForVolume();
+        }else{
+            configuration.setPersistenceEnabled(false);
+        }
+        configuration.setSecurityEnabled(false);
+        configuration.addAcceptorConfiguration(transportConfiguration);
 
 
         JMSConfiguration jmsConfig = new JMSConfigurationImpl();
@@ -71,5 +91,18 @@ public class Artemis {
 
     public static void main(String[] args) throws Exception {
         SpringApplication.run(Artemis.class, args);
+    }
+
+    private void waitForVolume() throws Exception{
+        while (true) {
+            File file = new File(DATA_ROOT);
+            if (file.exists() && file.isDirectory()) {
+                LOG.info("Bound to persistent volume " + DATA_ROOT);
+                break;
+            }
+            LOG.warn("Waiting for persistent volume to be initalized");
+            Thread.sleep(10000);
+            LOG.warn("Directory exists " + file + " = " + file.exists());
+        }
     }
 }

@@ -25,6 +25,10 @@ spec:
         project: "message-broker"
         version: "${project.version}"
     spec:
+      volumes:
+      - name:  message-broker
+        persistentVolumeClaim:
+          claimName:  message-broker
       containers:
       - env:
         - name: "KUBERNETES_NAMESPACE"
@@ -38,6 +42,9 @@ spec:
           name: "amq"
         - containerPort: 8778
           name: "jolokia"
+        volumeMounts:
+        - mountPath: /data/message-broker/
+          name: message-broker
         resources:
           limits:
             cpu: "0"
