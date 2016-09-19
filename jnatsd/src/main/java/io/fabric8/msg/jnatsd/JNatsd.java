@@ -86,6 +86,7 @@ public class JNatsd {
 
                 VertxOptions vertxOptions = new VertxOptions();
 
+                System.setProperty("vertx.disableFileCPResolving","true");
                 vertx = Vertx.vertx(vertxOptions);
 
                 LOG.info("Creating " + numberOfServers + " vert.x servers for JNatsd");
