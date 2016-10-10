@@ -73,6 +73,9 @@
         <skipItests>true</skipItests>
         <integrationTestPattern>**/*KubernetesTest*.java</integrationTestPattern>
 
+        <!-- lets disable S2I for our releases -->
+        <fabric8.mode>kubernetes</fabric8.mode>
+
         <!-- upstream vs redhat versions of dependencies goes here -->
         <apiman.version>1.2.7.Beta1</apiman.version>
         <camel.version>2.17.1</camel.version>
