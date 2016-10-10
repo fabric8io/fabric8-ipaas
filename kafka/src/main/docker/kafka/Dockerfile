@@ -16,5 +16,7 @@ WORKDIR /opt/kafka
 VOLUME ["/opt/kafka/config", "/opt/kafka/logs"]
 
 COPY server.properties ./config/
+COPY log4j.properties ./config/
+COPY connect-log4j.properties ./config/
 
 CMD ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
