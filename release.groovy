@@ -46,6 +46,14 @@ def updateDownstreamDependencies(stagedProject) {
     ]
     version = stagedProject[1]
   }
+  pushPomPropertyChangePR {
+    propertyName = 'fabric8.ipaas.version'
+    projects = [
+            'fabric8io/fabric8-platform',
+            'fabric8io/ipaas-platform'
+    ]
+    version = stagedProject[1]
+  }
 }
 
 def release(project){
