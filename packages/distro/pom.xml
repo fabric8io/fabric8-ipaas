@@ -36,15 +36,11 @@
       <artifactId>messaging</artifactId>
       <version>${project.version}</version>
     </dependency>
-<!--
-    TODO
-
     <dependency>
       <groupId>io.fabric8.ipaas.packages</groupId>
       <artifactId>apiman</artifactId>
       <version>${project.version}</version>
     </dependency>
--->
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>cassandra</artifactId>

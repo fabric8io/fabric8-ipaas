@@ -151,12 +151,8 @@
     </properties>
 
     <modules>
-<!--
-        TODO fixme!
-
         <module>apiman</module>
         <module>apiman-gateway</module>
--->
         <module>camel-amq</module>
         <module>camel-master</module>
         <module>cassandra</module>
