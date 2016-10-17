@@ -35,23 +35,33 @@
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>elasticsearch-v1</artifactId>
       <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>apiman</artifactId>
       <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8.ipaas.apps</groupId>
       <artifactId>apiman-gateway</artifactId>
       <version>${project.version}</version>
-      <classifier>kubernetes</classifier>
-      <type>json</type>
     </dependency>
   </dependencies>
+ 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-maven-plugin</artifactId>
+        <configuration>
+          <enricher>
+            <excludes>
+              <exclude>fmp-controller</exclude>
+            </excludes>
+          </enricher>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

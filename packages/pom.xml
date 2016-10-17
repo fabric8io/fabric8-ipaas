@@ -35,10 +35,7 @@
     </properties>
 
     <modules>
-<!--
-      TODO
         <module>apiman</module>
--->
         <module>messaging</module>
         <module>distro</module>
     </modules>

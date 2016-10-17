@@ -61,7 +61,5 @@ spec:
         - mountPath: "/usr/share/elasticsearch/data"
           name: "elasticsearch-data"
           readOnly: false
-      - image: "fabric8/elasticsearch-logstash-template:${project.version}"
-        name: "logstash-template"
       volumes:
       - name: "elasticsearch-data"
