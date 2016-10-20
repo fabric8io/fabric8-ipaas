@@ -22,7 +22,6 @@
 
     <http.port>7070</http.port>
     <docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
-    <docker.assemblyDescriptorRef>artifact-with-dependencies</docker.assemblyDescriptorRef>
     <docker.env.MAIN>io.fabric8.apiman.ApimanStarter</docker.env.MAIN>
     <docker.env.apiman.ssl>false</docker.env.apiman.ssl>
   </properties>
@@ -140,6 +139,19 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>hawt-app-maven-plugin</artifactId>
+        <version>${fabric8.version}</version>
+        <executions>
+          <execution>
+            <id>hawt-app</id>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
