@@ -1,7 +1,6 @@
 #!/usr/bin/groovy
 def imagesBuiltByPipline() {
-  //return ['apiman','apiman-gateway','elasticsearch-v1','message-broker','message-gateway','example-message-consumer','example-message-producer','kafka','zookeeper']
-  return ['elasticsearch-v1','message-broker','message-gateway','example-message-consumer','example-message-producer','kafka','zookeeper']
+  return ['apiman','apiman-gateway','elasticsearch-v1','message-broker','message-gateway','example-message-consumer','example-message-producer','kafka','zookeeper']
 }
 
 def repo(){
