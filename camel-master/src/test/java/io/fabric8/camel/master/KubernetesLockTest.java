@@ -2,16 +2,22 @@ package io.fabric8.camel.master;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapList;
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.ClientMixedOperation;
-import io.fabric8.kubernetes.client.mock.BaseMockOperation;
-import io.fabric8.kubernetes.client.mock.KubernetesMockClient;
-import io.fabric8.kubernetes.client.mock.MockResource;
-import io.fabric8.kubernetes.client.mock.impl.donable.MockDoneableConfigMap;
-import org.easymock.EasyMock;
-import org.easymock.IExpectationSetters;
+
+import io.fabric8.openshift.server.mock.OpenShiftMockServer;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -19,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.System.getenv;
-import static org.easymock.EasyMock.anyObject;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -31,25 +36,40 @@ public class KubernetesLockTest {
     public static final String TEST_CONFIG_MAP_NAME = "testConfigMapName";
     public static final String TEST_ENDPOINT = "testEndpoint";
 
+    private static final OpenShiftMockServer MOCK = new OpenShiftMockServer();
+
+    @BeforeClass
+    public static void setupClass() {
+        //set expected configMap for get and watch
+        ConfigMap cm = new ConfigMapBuilder().withNewMetadata().withName(TEST_CONFIG_MAP_NAME).endMetadata().build();
+
+        MOCK.expect().get().withPath("/api/v1/namespaces/testNamespace/configmaps").andReturn(200, new ConfigMapListBuilder()
+                .withNewMetadata()
+                    .withResourceVersion("1")
+                .endMetadata()
+                .withItems(cm).build()).always();
+
+        MOCK.expect().get().withPath("/api/v1/namespaces/testNamespace/configmaps/testConfigMapName").andReturn(200, cm).always();
+        MOCK.expect().patch().withPath("/api/v1/namespaces/testNamespace/configmaps/testConfigMapName").andReturn(500, cm).once();
+        MOCK.expect().patch().withPath("/api/v1/namespaces/testNamespace/configmaps/testConfigMapName").andReturn(200, cm).once();
+
+        MOCK.expect().get().withPath("/api/v1/namespaces/testNamespace/configmaps?fieldSelector=metadata.name%3DtestConfigMapName&resourceVersion=1&watch=true")
+                .andUpgradeToWebSocket()
+                .open()
+                .done().always();
+
+
+        String masterUrl = MOCK.getServer().url("/").toString();
+        System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, masterUrl);
+        System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, TEST_NAMESPACE);
+    }
+
     @Test
     public void  testLcokAcquiredOrRetry() throws Exception {
         //set env variable useful during KubernetesLock construction
         getEditableEnvVariables().put("HOSTNAME", "hostname");
 
-        //create Kubernetes mock client
-        KubernetesMockClient mock = new KubernetesMockClient();
-
-        ConfigMap cm = new ConfigMapBuilder().withNewMetadata().withName(TEST_CONFIG_MAP_NAME).endMetadata().build();
-
-        //set expected configMap for get and watch
-        mock.configMaps().inNamespace(TEST_NAMESPACE).withName(TEST_CONFIG_MAP_NAME).get().andReturn( cm ).anyTimes();
-        mock.configMaps().inNamespace(TEST_NAMESPACE).withName(TEST_CONFIG_MAP_NAME).watch( anyObject(Watcher.class) )
-                .andReturn(new Watch() {
-                    @Override
-                    public void close() {
-
-                    }
-                }).anyTimes();
+        KubernetesClient client = new DefaultKubernetesClient();
 
 //XXX: ideally should be like this:
 //        mock.configMaps().inNamespace(TEST_NAMESPACE).withName(TEST_CONFIG_MAP_NAME).patch(cm).andThrow(new RuntimeException("Failed patching of a resource")).once();
@@ -57,7 +77,7 @@ public class KubernetesLockTest {
 // An issue has been opened to kubernetes-client project (kubernetes-mock module): https://github.com/fabric8io/kubernetes-client/issues/458
 
         //set expected patch calls: first time an excetion is thrown (means someone else has acuired the lock), second time is a success
-        MockResource<ConfigMap, MockDoneableConfigMap, Boolean> resource = mock.configMaps().inNamespace(TEST_NAMESPACE).withName(TEST_CONFIG_MAP_NAME);
+       /* MockResource<ConfigMap, MockDoneableConfigMap, Boolean> resource = mock.configMaps().inNamespace(TEST_NAMESPACE).withName(TEST_CONFIG_MAP_NAME);
         Field delegate = BaseMockOperation.class.getDeclaredField("delegate");
         delegate.setAccessible(true);
         ClientMixedOperation delegateResource = (ClientMixedOperation)delegate.get(resource);
@@ -66,7 +86,7 @@ public class KubernetesLockTest {
         expect.andReturn(cm).times(1);
 
         NamespacedKubernetesClient client = mock.replay();
-
+*/
         final AtomicBoolean lockAcquired = new AtomicBoolean(false);
 
         //create KubernetesLock passing the mock client
