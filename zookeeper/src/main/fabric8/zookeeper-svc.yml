@@ -9,6 +9,7 @@ metadata:
     project: "${project.artifactId}"
     version: "${project.version}"
     group: "io.fabric8.ipaas.apps"
+    expose: "true"
   name: "zookeeper"
 spec:
   ports:
