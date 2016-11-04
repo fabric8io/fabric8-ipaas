@@ -123,13 +123,29 @@ public class BearerTokenFilter implements Filter {
                 sendInvalidTokenResponse((HttpServletResponse)response, errMsg);
             }
         } else if (("/".equals(req.getPathInfo())) || ("/swagger.json".equals(req.getPathInfo()))
+        		|| ("/config.js".equals(req.getPathInfo()))
                 || ("/swagger.yaml".equals(req.getPathInfo())) || (req.getPathInfo().startsWith("/downloads/"))) {
             //allow anonymous requests to the root or swagger document
             log.debug("Allowing anonymous access to " + req.getPathInfo());
             chain.doFilter(request, response);
         } else {
             //no bearer token present
-            sendInvalidTokenResponse((HttpServletResponse)response, "No BearerToken");
+        	String loginForm = "<html>\n" + 
+            		"<title>Login into APIMAN with authToken</title>\n" + 
+            		"<head>\n" + 
+            		"</head>\n" + 
+            		"<body>\n" + 
+            		"<h1>Provide valid authToken and a link into the Apiman console</h1>\n" + 
+            		"<form action=\"/apimanui/link\" method=\"post\">\n" + 
+            		"    AuthToken: <input type=\"text\" name=\"access_token\" size=\"100\" value=\"oc whoami -t\" /></br>\n" + 
+            		"    Redirect URL: <input type=\"text\" name=\"redirect\"  size=\"100\" value=\"/apimanui/api-manager/\" /></br>\n" + 
+            		"    <input type=\"submit\" value=\"Login\" />    \n" + 
+            		"</form>\n" + 
+            		"</body>\n" + 
+            		"</html>";
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().append(loginForm);
+            //sendInvalidTokenResponse((HttpServletResponse)response, "No BearerToken");
         }
     }
     /**
@@ -172,9 +188,9 @@ public class BearerTokenFilter implements Filter {
      */
     private void sendInvalidTokenResponse(HttpServletResponse response, String errMsg)
             throws IOException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
+    	
+    	response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
     }
-
     /**
      * @see javax.servlet.Filter#destroy()
      */
