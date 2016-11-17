@@ -81,6 +81,8 @@
 
   <build>
     <plugins>
+      <!-- Disabled for now since it confuse the current java-exec generator
+           which thinks there is an app to include: 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -96,6 +98,7 @@
           </arguments>
         </configuration>
       </plugin>
+      -->
     </plugins>
   </build>
 
