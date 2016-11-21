@@ -31,6 +31,12 @@ Then find the name of the pod that runs this quickstart, and output the logs fro
 You can also use the fabric8 [web console](http://fabric8.io/guide/console.html) to manage the
 running pods, and view logs and much more.
 
+When the deployment is done don't forget to run
+
+    gofabric8 volume 
+
+this way the Persistent Volume related to the Persistent Volume Claim of the deployment will be created.
+
 ### Populate the Cassandra keyspace
 
 It is assumed a running Kubernetes platform is already running. If not you can find details how to [get started](http://fabric8.io/guide/getStarted/index.html).
