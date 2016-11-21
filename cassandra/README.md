@@ -1,6 +1,8 @@
 # Cassandra Server QuickStart
 
-This quickstart exposes a 3 nodes Cassandra cluster. The configuration is inspired to the [Kubernetes Cassandra example](https://github.com/kubernetes/kubernetes/tree/master/examples/storage/cassandra)
+This quickstart exposes a single node Cassandra cluster. The configuration is inspired to the [Kubernetes Cassandra example](https://github.com/kubernetes/kubernetes/tree/master/examples/storage/cassandra).
+This deployment is persisted with a Persistent Volume, this is why it's just single node for the moment.
+We will use StatefulSet (PetSet) Kubernetes' feature to get the same result in a multi-node Cluster, when the feature will become stable.
 
 ### Building
 
@@ -53,9 +55,8 @@ Datacenter: datacenter1
 Status=Up/Down
 |/ State=Normal/Leaving/Joining/Moving
 --  Address      Load       Tokens       Owns (effective)  Host ID                               Rack
-UN  172.17.0.9   69.99 KB   32           100.0%            e308d4c5-4d53-4770-8bc4-41edb3159031  rack1
-UN  172.17.0.8   95.93 KB   32           100.0%            b690159d-3079-44a8-9e58-8ea2dc8877bb  rack1
-UN  172.17.0.10  90.11 KB   32           100.0%            69467200-c202-42a0-b790-21c677863158  rack1
+UN  172.17.0.11  110.87 KiB  32           100.0%            c1e68ff1-8626-468d-905c-6715c39531cf  rack1
+
 ```
 
 You can also scale up or scale down your cluster:
