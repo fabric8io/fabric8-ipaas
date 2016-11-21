@@ -1,7 +1,7 @@
 metadata:
   name: cassandra
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -43,5 +43,6 @@ spec:
               name: data
       volumes:
         - name: data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: pvc-cassandra
       serviceAccount: cassandra

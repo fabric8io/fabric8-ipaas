@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-cassandra
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: pv-cassandra
+status:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
