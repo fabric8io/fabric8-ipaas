@@ -4,13 +4,13 @@ metadata:
   name: pvc-cassandra
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
   volumeName: pv-cassandra
 status:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
   capacity:
     storage: 1Gi
