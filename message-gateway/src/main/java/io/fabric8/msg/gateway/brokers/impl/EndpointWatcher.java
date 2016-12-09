@@ -84,6 +84,8 @@ public class EndpointWatcher implements Watcher<Endpoints> {
             Long resourceVersion = getResourceVersion(endpoints);
             Long previousResourceVersion = endpointsVersions.get(namespacedName);
 
+            LOG.info("upsertEndpoint: " + namespacedName);
+
             // lets only process this EndpointSubset if the resourceVersion is newer than the last one we processed
             if (previousResourceVersion == null || (resourceVersion != null && resourceVersion > previousResourceVersion)) {
                 endpointsVersions.put(namespacedName, resourceVersion);

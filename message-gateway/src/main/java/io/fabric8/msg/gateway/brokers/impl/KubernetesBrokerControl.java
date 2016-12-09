@@ -50,7 +50,7 @@ public class KubernetesBrokerControl extends BrokerControlSupport implements Bro
     private final AtomicBoolean started = new AtomicBoolean();
     private final DestinationMapper destinationMapper;
     private String brokerSelector = "component=message-broker,group=messaging";
-    private String artemisName = "artemis";
+    private String artemisName = "message-broker";
     private String portName = "61616";
     private String namespace = KubernetesHelper.defaultNamespace();
     private int ARTEMIS_PORT = 61616;
@@ -82,9 +82,11 @@ public class KubernetesBrokerControl extends BrokerControlSupport implements Bro
             kubernetesClient = new DefaultKubernetesClient();
 
             endpointWatcher = new EndpointWatcher(this, kubernetesClient.getNamespace());
+            LOG.info("EndpointWatcher created in namespace " + kubernetesClient.getNamespace());
 
             ClientResource<Endpoints, DoneableEndpoints> endpointsClient;
             endpointsClient = kubernetesClient.endpoints().inNamespace(getNamespace()).withName(getArtemisName());
+            LOG.info("watching endpoints in namespace " + getNamespace() + " for " + getArtemisName());
             endpointWatch = endpointsClient.watch(endpointWatcher);
             Endpoints endpoints = endpointsClient.get();
             if (endpoints != null) {
