@@ -162,6 +162,7 @@
         <module>fabric8-camel</module>
         <module>jnatsd</module>
         <module>kafka</module>
+        <module>kafka-manager</module>
         <module>message-broker</module>
         <module>message-gateway</module>
         <module>mq-client</module>
