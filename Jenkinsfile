@@ -1,5 +1,7 @@
 #!/usr/bin/groovy
-node{
+@Library('github.com/fabric8io/fabric8-pipeline-library@master')
+def dummy
+mavenNode {
   ws{
     checkout scm
     sh "git remote set-url origin git@github.com:fabric8io/fabric8-ipaas.git"
@@ -11,7 +13,7 @@ node{
 
     stage 'Promote'
     pipeline.release(stagedProject)
-    
+
     stage 'Update downstream dependencies'
     pipeline.updateDownstreamDependencies(stagedProject)
   }
