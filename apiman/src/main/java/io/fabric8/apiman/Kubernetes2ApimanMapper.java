@@ -58,7 +58,7 @@ public class Kubernetes2ApimanMapper {
             if (annotations!=null && annotations.containsKey(SERVICE_SCHEME)) {
                 scheme = annotations.get(SERVICE_SCHEME);
             }
-            String serviceUrl = getUrl(scheme, serviceName, namespace, service.getSpec().getPortalIP(), port);
+            String serviceUrl = getUrl(scheme, serviceName, namespace, service.getSpec().getClusterIP(), port);
             String routeUrl = routeUrls.get(serviceName);
             if (routeUrl!=null) routeUrl = scheme + "://" + routeUrl;
             ServiceContract serviceContract = createServiceContract(annotations, serviceUrl, routeUrl);
