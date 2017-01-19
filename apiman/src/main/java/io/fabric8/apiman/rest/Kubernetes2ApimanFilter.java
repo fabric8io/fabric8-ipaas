@@ -42,7 +42,6 @@ import io.fabric8.apiman.SudoSecurityContext;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -361,7 +360,7 @@ public class Kubernetes2ApimanFilter implements Filter {
     private boolean isServiceReady(AvailableApiBean bean) {
         log.debug("DefinitionType: " + bean.getDefinitionType());
         URL defUrl = null;
-        if (bean.getDefinitionType()!=null && ! "".equals(bean.getDefinitionType())) {
+        if (bean.getDefinitionType()!=null && ! "None".equals(bean.getDefinitionType().name())) {
             try {
                 defUrl = new URL(bean.getDefinitionUrl());
                 URLConnection urlConnection =  defUrl.openConnection();
@@ -385,8 +384,7 @@ public class Kubernetes2ApimanFilter implements Filter {
                     return false;
                 }
             } catch (Exception e) {
-                log.info("DefinitionDoc for '" + bean.getName() + "' can't be read from " 
-                        +  defUrl.toExternalForm() +  ". " + e.getMessage());
+                log.info("DefinitionDoc for '" + bean.getName() + "' can't be read. " + e.getMessage());
                 return false;
             }
         }
