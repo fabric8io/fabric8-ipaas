@@ -80,7 +80,7 @@
         <apiman.version>1.2.7.Beta1</apiman.version>
         <camel.version>2.17.1</camel.version>
         <fabric8.devops.version>2.2.311</fabric8.devops.version>
-        <fabric8.version>2.2.192</fabric8.version>
+        <fabric8.version>2.2.197</fabric8.version>
         <fabric8.release.version>${fabric8.version}</fabric8.release.version>
 
         <maven.bundle.plugin.version>2.5.4</maven.bundle.plugin.version>
