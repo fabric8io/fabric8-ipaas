@@ -121,6 +121,11 @@
       <artifactId>artemis-hornetq-protocol</artifactId>
       <version>${artemis.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-stomp-protocol</artifactId>
+      <version>${artemis.version}</version>
+    </dependency>
 <!--
     TODO disabled as it brings in different version of netty
 
