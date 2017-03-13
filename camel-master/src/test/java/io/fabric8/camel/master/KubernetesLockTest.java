@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.ClientMixedOperation;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 
 import io.fabric8.openshift.server.mock.OpenShiftMockServer;
 import org.junit.Before;
@@ -80,7 +80,7 @@ public class KubernetesLockTest {
        /* MockResource<ConfigMap, MockDoneableConfigMap, Boolean> resource = mock.configMaps().inNamespace(TEST_NAMESPACE).withName(TEST_CONFIG_MAP_NAME);
         Field delegate = BaseMockOperation.class.getDeclaredField("delegate");
         delegate.setAccessible(true);
-        ClientMixedOperation delegateResource = (ClientMixedOperation)delegate.get(resource);
+        MixedOperation delegateResource = (MixedOperation)delegate.get(resource);
         IExpectationSetters<Object> expect = EasyMock.expect(delegateResource.patch(cm));
         expect.andThrow(new RuntimeException("Failed patching of a resource")).once();
         expect.andReturn(cm).times(1);
