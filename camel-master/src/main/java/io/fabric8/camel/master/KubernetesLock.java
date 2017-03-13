@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.ClientPodResource;
-import io.fabric8.kubernetes.client.dsl.ClientResource;
+import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.utils.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class KubernetesLock implements Closeable {
      * gets the lock
      */
     public void tryAcquireLock() {
-        ClientResource<ConfigMap, DoneableConfigMap> configMapResource = client.configMaps().inNamespace(namespace).withName(configMapName);
+        Resource<ConfigMap, DoneableConfigMap> configMapResource = client.configMaps().inNamespace(namespace).withName(configMapName);
         boolean retry = false;
         do {
             retry = false;
@@ -137,7 +137,7 @@ public class KubernetesLock implements Closeable {
                 final String deadPodName = currentOwnerPodName;
                 LOG.info("Pod " + deadPodName + " has the lock for endpoint: " + endpointName + " in ConfigMap " + configMapName + " so lets watch it...");
 
-                ClientPodResource<Pod, DoneablePod> podResource = client.pods().inNamespace(namespace).withName(currentOwnerPodName);
+                PodResource<Pod, DoneablePod> podResource = client.pods().inNamespace(namespace).withName(currentOwnerPodName);
                 podWatch = podResource.watch(new Watcher<Pod>() {
                     @Override
                     public void eventReceived(Action action, Pod pod) {
