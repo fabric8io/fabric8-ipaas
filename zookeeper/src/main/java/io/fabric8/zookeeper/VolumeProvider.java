@@ -29,7 +29,7 @@ public enum VolumeProvider {
         public Volume create(String name, int serverId) {
             return new VolumeBuilder()
                     .withName(name)
-                    .withNewFlocker(FLOCKER_PREFIX + "-" + serverId)
+                    .withNewFlocker(name, FLOCKER_PREFIX + "-" + serverId)
                     .build();
         }
     };
