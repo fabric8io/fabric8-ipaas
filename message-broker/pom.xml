@@ -210,7 +210,6 @@
                   <descriptorRef>artifact</descriptorRef>
                 </assembly>
                 <env>
-                  <AB_JOLOKIA_AUTH_OPENSHIFT>true</AB_JOLOKIA_AUTH_OPENSHIFT>
                   <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
                 </env>
               </build>
