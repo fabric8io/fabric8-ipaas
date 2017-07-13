@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.dsl.ClientResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.msg.gateway.ArtemisClient;
 import io.fabric8.msg.gateway.brokers.BrokerControl;
@@ -84,7 +84,7 @@ public class KubernetesBrokerControl extends BrokerControlSupport implements Bro
             endpointWatcher = new EndpointWatcher(this, kubernetesClient.getNamespace());
             LOG.info("EndpointWatcher created in namespace " + kubernetesClient.getNamespace());
 
-            ClientResource<Endpoints, DoneableEndpoints> endpointsClient;
+            Resource<Endpoints, DoneableEndpoints> endpointsClient;
             endpointsClient = kubernetesClient.endpoints().inNamespace(getNamespace()).withName(getArtemisName());
             LOG.info("watching endpoints in namespace " + getNamespace() + " for " + getArtemisName());
             endpointWatch = endpointsClient.watch(endpointWatcher);
