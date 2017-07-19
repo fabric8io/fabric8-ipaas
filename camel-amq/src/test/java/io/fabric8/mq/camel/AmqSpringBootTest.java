@@ -18,19 +18,19 @@ package io.fabric8.mq.camel;
 import io.fabric8.mq.core.MQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
-import org.apache.camel.test.spring.CamelSpringJUnit4ClassRunner;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.jms.ConnectionFactory;
 
-@RunWith(CamelSpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest
 @SpringBootApplication
-@SpringApplicationConfiguration(classes = AmqSpringBootTest.class)
 public class AmqSpringBootTest {
 
     @Autowired
