@@ -53,7 +53,7 @@ public class KubernetesLockTest {
         MOCK.expect().patch().withPath("/api/v1/namespaces/testNamespace/configmaps/testConfigMapName").andReturn(500, cm).once();
         MOCK.expect().patch().withPath("/api/v1/namespaces/testNamespace/configmaps/testConfigMapName").andReturn(200, cm).once();
 
-        MOCK.expect().get().withPath("/api/v1/namespaces/testNamespace/configmaps?fieldSelector=metadata.name%3DtestConfigMapName&resourceVersion=1&watch=true")
+        MOCK.expect().get().withPath("/api/v1/namespaces/testNamespace/configmaps?fieldSelector=metadata.name%3DtestConfigMapName&watch=true")
                 .andUpgradeToWebSocket()
                 .open()
                 .done().always();
