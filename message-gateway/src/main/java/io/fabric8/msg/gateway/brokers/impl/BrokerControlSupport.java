@@ -33,11 +33,12 @@ public abstract class BrokerControlSupport implements BrokerControl {
 
     public ArtemisClient getOrCreateArtemisClient(String hostAndPort) throws Exception {
         ArtemisClient artemisClient = artemisClients.get(hostAndPort);
+        LOG.info("artemisClient for " + hostAndPort);
         if (artemisClient == null) {
             artemisClient = new ArtemisClient(hostAndPort);
             artemisClients.put(hostAndPort, artemisClient);
             try {
-                System.out.println("About to try connect to Artemis: " + artemisClient.getHostAndPort());
+                LOG.info("About to try connect to Artemis: " + artemisClient.getHostAndPort());
                 artemisClient.start();
             } catch (Exception e) {
                 LOG.error("Failed to connect to client " + artemisClient.getHostAndPort() + ". " + e, e);
