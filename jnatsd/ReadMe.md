@@ -1,1 +1,0 @@
-Java implementation of a NATS daemon
