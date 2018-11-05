@@ -1,1 +1,0 @@
-Provides Messaging as a Service using a pool of Message Brokers based on Apache ActiveMQ Artemis and a scalable Message Gateway which performs discovery, load balancing and scaling of message brokers

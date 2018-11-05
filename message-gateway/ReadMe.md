@@ -1,1 +1,0 @@
-Message Gateway provides discovery, load balancing and scaling of messages on an elastic pool of Message Brokers

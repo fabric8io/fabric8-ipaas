@@ -1,9 +1,0 @@
-metadata:
-  labels:
-    app: cassandra
-  name: cassandra
-spec:
-  ports:
-    - port: 9042
-  selector:
-    app: cassandra
